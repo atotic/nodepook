@@ -1,0 +1,25 @@
+database.txt
+
+schema
+
+user
+
+photo
+	DateTime :created_at
+	Integer :user_id
+
+	String :display_name, :size=>128	# Original file name
+	String :md5, :size=>128
+
+	# Exif data
+	String :date_taken
+	String :caption, :size=>256
+	Latitude
+	Longitude
+	width
+	height
+
+	# s3
+	Bucket
+	Key
+

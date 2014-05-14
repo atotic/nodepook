@@ -1,0 +1,10 @@
+extends layout
+
+block content
+  h1 File upload successful
+  img(width="400", src='http://pookio-test.s3-website-us-west-2.amazonaws.com/' + photoSrc)
+  p Try again?
+  form(action="/photos", method="post", enctype="multipart/form-data")
+    input(type="file", name="myPhoto")
+    input(type="text", name="myText")
+    input(type="submit")

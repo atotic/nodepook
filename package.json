@@ -1,0 +1,29 @@
+{
+  "name": "pookio",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "start": "node ./bin/www"
+  },
+  "dependencies": {
+    "aws-sdk": "^2.0.0-rc",
+    "biguint-format": "*",
+    "cookie-parser": "*",
+    "debug": "*",
+    "express": "^4.1.1",
+    "flake-idgen": "*",
+    "int-encoder": "*",
+    "jade": "*",
+    "moment": "*",
+    "morgan": "*",
+    "multer": "*",
+    "promised-io": ">=0.3.4",
+    "serve-favicon": "*"
+  },
+  "devDependencies": {
+    "grunt": ">=0.4.5"
+  },
+  "comments": [
+    "https://github.com/visionmedia/debug"
+  ]
+}
