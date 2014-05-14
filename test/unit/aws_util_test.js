@@ -12,12 +12,11 @@ describe('aws_util.js', function() {
 
 	describe('s3', function() {
 		it ('#uploadFile', function() {
-			var s3 = AWSu.s3.connect('test');
 			var src = path.resolve(__dirname, '../data/tiny.jpg');
 			var key = "s3uploadFiletest-" + utils.randomString(6); 
 			return promise.seq([
-				function() { return AWSu.s3.uploadFile(s3, src, key)},
-				function() { return AWSu.s3.deleteKey(s3, key) }
+				function() { return AWSu.s3.uploadFile('test', src, key)},
+				function() { return AWSu.s3.deleteKey('test', key) }
 			]);
 		});
 	});

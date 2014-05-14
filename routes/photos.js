@@ -18,7 +18,6 @@ router.route('/')
     debug("got a file", req.files.myPhoto.originalname);
 
     var photoPath = path.resolve(__dirname,'../uploads/' + req.files.myPhoto.name);
-    var s3 = AWSu.s3.connect('photos');
 
     var exifData;
     var bucketName = req.files.myPhoto.name;
@@ -27,7 +26,7 @@ router.route('/')
       function() { return photoUtil.autoRotate(photoPath) },
       function() { return photoUtil.readExifData(photoPath) },
       function(inExifData) { exifData = inExifData; return null;},
-      function() { return AWSu.s3.uploadFile(s3, photoPath, bucketName) }
+      function() { return AWSu.s3.uploadFile('photos', photoPath, bucketName) }
       // store in db
       // delete file
     ], photoPath);
