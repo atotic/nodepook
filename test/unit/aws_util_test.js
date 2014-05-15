@@ -25,10 +25,9 @@ describe('aws_util.js', function() {
 
 		it ('#createDomain', function() {
 			this.timeout(60 * 1000);
-			var sdb = AWSu.sdb.connect();
 			return promise.seq( [
-				function() { return AWSu.sdb.deleteDomain(sdb, 'test') },
-				function() { return AWSu.sdb.createDomain(sdb, 'test') }
+				function() { return AWSu.sdb.deleteDomain('test') },
+				function() { return AWSu.sdb.createDomain('test') }
 			]);
 		});
 
@@ -41,9 +40,9 @@ describe('aws_util.js', function() {
 
 		it ('#select', function() {
 			this.timeout(60 * 1000);
-			var sdb = AWSu.sdb.connect();
+			// var q = "select itemName() from photos where md5='a7aea1d663adc76b9269ec6f0c1b8e15'";
 			var q = "select itemName() from test";
-			var p = AWSu.sdb.select(sdb, q);
+			var p = AWSu.sdb.select(q);
 			// promise.when(p, 
 			// 	function(data) {console.log(data)},
 			// 	function(err) { console.log(err)} 
@@ -53,19 +52,18 @@ describe('aws_util.js', function() {
 
 		it ('#createItem, #deleteItem', function() {
 			this.timeout(20 * 1000);
-			var sdb = AWSu.sdb.connect();
 			
 			return promise.seq([
 				function() { // creation
 					// console.log('creating item');
-					return AWSu.sdb.createItem(sdb, 'test', "testItem", {
+					return AWSu.sdb.createItem('test', "testItem", {
 						first: "first",
 						second: "second"
 					});
 				},
 				function(data) { // create same item again, should fail
 					// console.log("createItem data", data);
-					var p = AWSu.sdb.createItem(sdb, 'test', "testItem", {
+					var p = AWSu.sdb.createItem('test', "testItem", {
 						first: "first",
 						second: "second"
 					});
@@ -73,7 +71,7 @@ describe('aws_util.js', function() {
 				},
 				function(err) { // delete the item
 					// console.log("deleting item");
-					return AWSu.sdb.deleteItem(sdb, 'test', 'testItem');
+					return AWSu.sdb.deleteItem('test', 'testItem');
 				},
 			]);
 		});
