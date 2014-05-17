@@ -40,4 +40,19 @@ describe('photo_util.js', function() {
 		);
 		return deferred.promise;
 	});
+
+	it ('#readExifData no width', function() {
+		var src = path.resolve(__dirname,'../data/noexif.jpg');
+		var deferred = new promise.Deferred();
+		promise.when( photo.readExifData(src), 
+			function(exifData) { 
+				if ('width' in exifData) 
+					deferred.resolve();
+				else
+					deferred.reject(new Error("no exif data")); 
+			},
+			function(err) { deferred.reject(err) }
+		);
+		return deferred.promise;
+	});
 });

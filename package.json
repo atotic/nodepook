@@ -12,6 +12,7 @@
     "debug": "*",
     "express": "^4.1.1",
     "flake-idgen": "*",
+    "gm": "^1.16.0",
     "int-encoder": "*",
     "jade": "*",
     "moment": "*",

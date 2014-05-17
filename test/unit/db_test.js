@@ -34,11 +34,9 @@ describe('db.js', function() {
 					});
 				return p;
 			},
-			function(sdbItemId) { // delete photo
-				debug('created', sdbItemId);
-				return db.photo.read(sdbItemId);
-				// return AWSu.sdb.readItem('photos', sdbItemId);
-				// return db.photo.delete( sdbItemId);
+			function(item) { // delete photo
+				debug('created', item.sdbId);
+				return db.photo.read(item.sdbId);
 			},
 			function(data) {
 				debug('read');
