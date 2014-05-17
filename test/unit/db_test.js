@@ -23,7 +23,7 @@ describe('db.js', function() {
 			},
 			function(exif) { // create photo
 				exif.displayName = "orient3.jpg";
-				debug("creating photo");
+				// debug("creating photo");
 				p = db.photo.create(src, exif, 0);
 				promise.when(p,
 					function() {},
@@ -35,15 +35,15 @@ describe('db.js', function() {
 				return p;
 			},
 			function(item) { // delete photo
-				debug('created', item.sdbId);
+				// debug('created', item.sdbId);
 				return db.photo.read(item.sdbId);
 			},
 			function(data) {
-				debug('read');
+				// debug('read');
 				return db.photo.delete( data.itemId);
 			},
 			function() {
-				debug('deleted');
+				// debug('deleted');
 			}
 			]);
 	});
