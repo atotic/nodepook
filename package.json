@@ -23,7 +23,8 @@
   },
   "devDependencies": {
     "grunt": ">=0.4.5",
-    "grunt-debug": "0.0.3"
+    "grunt-debug": "0.0.3",
+    "supertest": "^0.12.1"
   },
   "comments": [
     "https://github.com/visionmedia/debug"

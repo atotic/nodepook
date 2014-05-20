@@ -11,6 +11,7 @@ var utils = require ('../../lib/util.js');
 describe('aws_util.js', function() {
 
 	describe('s3', function() {
+
 		it ('#uploadFile', function() {
 			var src = path.resolve(__dirname, '../data/tiny.jpg');
 			var key = "s3uploadFiletest-" + utils.randomString(6); 
@@ -19,7 +20,14 @@ describe('aws_util.js', function() {
 				function() { return AWSu.s3.deleteKey('test', key) }
 			]);
 		});
+
+		it ('listObjects', function() {
+			var p = AWSu.s3.listObjects('photos');
+			// promise.when(p, function(data) { console.log(data)}, function(){});
+			return p;
+		});
 	});
+
 
 	describe('SimpleDB', function() {
 

@@ -3,7 +3,7 @@ var debug = require('debug')('pook:routes:photos');
 var express = require('express');
 var path = require('path');
 var promise = require('promised-io/promise');
-var fs = require("promised-io/fs").fs;
+var fs = require("promised-io/fs");
 
 var AWSu = require ('../lib/aws_util.js');
 var photoUtil = require('../lib/photo_util.js');
@@ -30,30 +30,37 @@ router.route('/')
       function createPhoto(inExifData) { 
         exifData = inExifData;
         exifData.displayName = req.files.myPhoto.originalname;
-        return db.createPhoto(photoPath, exifData, 0);
+        return db.photo.create(photoPath, exifData, 0);
       },
       function deleteFile(inItemIds) {
         itemIds = inItemIds;
         return fs.unlink(photoPath);
-      }
+      },
       function render() {
-        res.render('photo', { photoSrc: itemIds.s3id })
+        res.format({ 
+          'application/json': function() {
+              res.send( { photoId: itemIds.sdbId } );
+            },
+          default: function() {
+              res.render('photo', { photoSrc: itemIds.s3id });
+            }
+        });
       }
     ]);
     return seq;
   });
 
-  router.get('/test', function testS3(req, res, next) {
-    var s3 = AWSu.s3.connect('photos');
-    s3.listBuckets(function(err, data) {
-      if (err) {
-        debugger;
-        throw new Error("S3 error",  err.message);
-      } else {
-        res.render('dev', {message: 'listBuckets', payload: data})
-      }
-    });
+router.get('/test', function testS3(req, res, next) {
+  var s3 = AWSu.s3.connect('photos');
+  s3.listBuckets(function(err, data) {
+    if (err) {
+      debugger;
+      throw new Error("S3 error",  err.message);
+    } else {
+      res.render('dev', {message: 'listBuckets', payload: data})
+    }
   });
+});
 
 module.exports = router;
 
