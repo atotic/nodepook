@@ -16,7 +16,7 @@ var src = path.resolve(__dirname, '../data/orient3.jpg');
 describe('db.js', function() {
 
 	it ('#createPhoto', function() {
-		this.timeout(10 * 1000);
+		this.timeout(30 * 1000);
 		return promise.seq([
 			function() { // read exif
 				return photoUtil.readExifData( src ) 
@@ -36,6 +36,8 @@ describe('db.js', function() {
 			},
 			function(item) { // delete photo
 				// debug('created', item.sdbId);
+				if (item.s3id == null)
+					throw new Error("Photo was a duplicate " + item.sdbId);
 				return db.photo.read(item.sdbId);
 			},
 			function(data) {

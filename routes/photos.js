@@ -42,7 +42,10 @@ router.route('/')
               res.send( { photoId: itemIds.sdbId } );
             },
           default: function() {
-              res.render('photo', { photoSrc: itemIds.s3id });
+              if (itemIds.s3id)
+                res.render('photo', { photoSrc: itemIds.s3id });
+              else
+                res.send('Not rendering duplicate items yet');
             }
         });
       }
