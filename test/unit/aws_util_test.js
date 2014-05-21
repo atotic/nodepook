@@ -3,20 +3,35 @@
 var assert = require("assert");
 var path = require('path');
 var promise = require('promised-io/promise');
-var fs = require('promised-io/fs');
+var fs = require('fs');
+var promiseFs = require('promised-io/fs');
 
 var AWSu = require ('../../lib/aws_util.js');
 var utils = require ('../../lib/util.js');
+var photoUtil = require('../../lib/photo_util.js');
+var gm = require('gm');
 
 describe('aws_util.js', function() {
 
 	describe('s3', function() {
 
-		it ('#uploadFile', function() {
+		it('#putObject buffer', function() {
+			this.timeout(4*1000);
 			var src = path.resolve(__dirname, '../data/tiny.jpg');
-			var key = "s3uploadFiletest-" + utils.randomString(6); 
+			var key = "s3uploadStreamtest-" + utils.randomString(6); 
 			return promise.seq([
-				function() { return AWSu.s3.uploadFile('test', src, key)},
+				function() { return promiseFs.readFile(src) },
+				function(data) { return AWSu.s3.putObject('test', key, data ) },
+				function() { return AWSu.s3.deleteKey('test', key) }
+			]);
+		});
+
+		it ('#putObject stream', function() {
+			this.timeout(4*1000);
+			var src = path.resolve(__dirname, '../data/tiny.jpg');
+			var key = "s3uploadStreamtest-" + utils.randomString(6); 
+			return promise.seq([
+				function() { return AWSu.s3.putObject('test', key, fs.createReadStream(src) ) },
 				function() { return AWSu.s3.deleteKey('test', key) }
 			]);
 		});
@@ -26,6 +41,17 @@ describe('aws_util.js', function() {
 			// promise.when(p, function(data) { console.log(data)}, function(){});
 			return p;
 		});
+
+		it ('#headObject', function() {
+			var p = AWSu.s3.headObject('photos', '404.jpg');
+			//promise.when(p, function(data) { console.log(data)}, function(){});
+			return p;
+		});
+
+		it ('#getObject', function() {
+			return AWSu.s3.getObject('photos', '404.jpg');
+		});
+
 	});
 
 

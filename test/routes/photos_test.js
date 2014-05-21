@@ -16,7 +16,7 @@ describe('/photos', function() {
 			.expect(200, done);
 	});
 
-	it.only('/ POST', function(done) {
+	it('/ POST', function(done) {
 		this.timeout(10 * 1000);
 		request(app)
 			.post('/photos')

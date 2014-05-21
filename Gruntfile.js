@@ -1,11 +1,11 @@
 var debug = require('debug')('pook:grunt');
-
 var AWSu = require('./lib/aws_util.js');
 var promise = require('promised-io/promise');
 var utils = require('./lib/util.js');
 var path = require('path');
 
 module.exports = function(grunt) {
+"use strict";
 
 	grunt.loadNpmTasks('grunt-debug');
 	
@@ -116,6 +116,39 @@ module.exports = function(grunt) {
 			function() { done()},
 			function(err) { done(err)}
 		);
+	});
+
+	grunt.registerTask('eraseDatabases', function() {
+		var done = this.async();
+		var seq = promise.seq( [
+			// erase sdb photos domain
+			function sdbSelect() { return AWSu.sdb.select('select itemName() from photos')},
+			function sdbDelete(data) {
+				if (!('Items' in data))
+					return;
+				var deletions = data.Items.map( function(item) { 
+					debug('deleting sdb ', item.Name);
+					return AWSu.sdb.deleteItem('photos', item.Name);
+				});
+				return promise.all(deletions);
+			},
+			function s3list() {
+				return AWSu.s3.listObjects('photos');
+			},
+			function s3delete(data) {
+				return promise.all(
+					data.map(
+					 	function(item) {
+							if ( ['404.jpg', 'index.jpg'].indexOf(item.Key) == -1) {
+								debug('deleting s3 ', item.Key);
+								return AWSu.s3.deleteKey('photos', item.Key);
+							}
+						}
+					)
+				);
+			}
+		]);
+	
 	});
 
 	grunt.registerTask('default', 'sdbReadItem');

@@ -16,7 +16,7 @@ router.use('/', express.static( path.resolve(__dirname, '../uploads') ));
 router.route('/')
   .post( function uploadPhoto(req, res, next) {
 
-    debug("got a file", req.files.myPhoto.originalname);
+    // debug("got a file", req.files.myPhoto.originalname);
 
     var photoPath = path.resolve(__dirname,'../uploads/' + req.files.myPhoto.name);
 

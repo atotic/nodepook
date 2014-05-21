@@ -8,8 +8,6 @@ var cookieParser = require('cookie-parser');
 var multer = require('multer'); // processes multipart/form-data
 
 var routes = require('./routes/index');
-var users = require('./routes/users');
-var photos = require('./routes/photos')
 
 var app = express();
 
@@ -24,8 +22,9 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(multer({ dest: './uploads/', fileSize: 15 * 1049000, files: 1}));
 
 app.use('/', routes);
-app.use('/users', users);
-app.use('/photos', photos);
+app.use('/users', require('./routes/users'));
+app.use('/photos', require('./routes/photos'));
+app.use('/resize', require('./routes/resize'))
 
 /// catch 404 and forwarding to error handler
 app.use(function(req, res, next) {
