@@ -1,6 +1,21 @@
 // resizer.js -- on-demand image resize module
 
+/*
+// routing rules for the bucket that redirect to this server
+<RoutingRules>
+<RoutingRule>
+<Condition>
+<HttpErrorCodeReturnedEquals>404</HttpErrorCodeReturnedEquals>
+</Condition>
+<Redirect>
+<HostName>dev.pook.io</HostName>
+<ReplaceKeyPrefixWith>resize/</ReplaceKeyPrefixWith>
+</Redirect>
+</RoutingRule>
+</RoutingRules>
+*/
 var debug = require('debug')('pook:routes:resize');
+"use strict";
 
 var express = require('express');
 var path = require('path');
@@ -22,28 +37,34 @@ router.get('/stats', function stats(req, res, next) {
 
 var ALLOWED_SIZES = [256, 1024];
 
-router.get('*', function conversion(req, res, next) {
-	var size = parseInt(req.param('size'));
-	if (!size || ALLOWED_SIZES.indexOf(size) == -1)
-		return res.send(400, "invalid size " + req.param('size'));
+/** 
+ * path is /s3key$size
+ * @returns { key: , size: }
+ */
+function pathToKeySize(path) {
+	var m = path.split( photoUtil.separator );
+	return { key: m[0].slice(1), size: parseInt(m[1]) }
+}
 
-	var s3key = req.path;
-	s3key = s3key.slice(1);
-	var s3resizedKey = s3key + "?size=" + size;
+router.get('*', function conversion(req, res, next) {
+	var ks = pathToKeySize(req.path);
+	if (!ks.size || ALLOWED_SIZES.indexOf(ks.size) == -1)
+		return res.send(400, "invalid size " + ks.size);
+
+	var s3resizedKey = ks.key + photoUtil.separator + ks.size;
 
 	function resizeAndUpload() {
 		var imageBuffer;
 		var contentType;
-
 		var seq = promise.seq([
 			function fetch() { 
-				debug('fetch', s3key); 
-				return AWSu.s3.getObject('photos', s3key);
+				debug('fetch', ks.key); 
+				return AWSu.s3.getObject('photos', ks.key);
 			},
 			function resize(data) {
 				debug('resize');
 				if (data == null) {
-					debug("resize: could not fetch s3key", s3key);
+					debug("resize: could not fetch ks.key", ks.key);
 					return util.createRejectedPromise('s3 key not found');
 				}
 				else {
@@ -52,23 +73,24 @@ router.get('*', function conversion(req, res, next) {
 					return photoUtil.gmToBufferPromise(
 						// resize image to 3:2 rect with size maxHeight, keep aspect
 						// convert resized image to buffer
-						gm(data.Body).resize(size * 1.34, size, '>')
+						gm(data.Body).resize(ks.size * 1.34, ks.size, '>')
 					);
 				}
 			},
 			function upload(buffer) {
 				debug('upload');
 				imageBuffer = buffer;
+				res.type(contentType);
+				res.send(imageBuffer);
 				return AWSu.s3.putObject('photos', {
 					Key: s3resizedKey, 
 					Body: buffer,
-					ContentType: contentType
-				});					
+					ContentType: contentType,
+					StorageClass: 'REDUCED_REDUNDANCY'
+				});
 			},
 			function render(x) {
 				debug('render ');
-				res.type(contentType);
-				res.send(imageBuffer);
 			}
 		]);
 		promise.when(seq,
@@ -82,8 +104,8 @@ router.get('*', function conversion(req, res, next) {
 
 	promise.when( AWSu.s3.headObject('photos', s3resizedKey),
 		function success(data) {
-			debug('head exists, redirect');
-			res.redirect( photoUtil.photoHostUrl + s3resizedKey);
+			debug('head exists, redirect to ', photoUtil.hostUrl + s3resizedKey);
+			res.redirect( photoUtil.hostUrl + s3resizedKey);
 		},
 		function error(err) { // does not exist
 			debug('head does not exist', s3resizedKey);

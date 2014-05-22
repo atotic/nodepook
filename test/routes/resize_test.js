@@ -8,11 +8,13 @@ var app = require('../../app.js');
 var db = require('../../lib/db.js');
 var AWSu = require('../../lib/aws_util.js');
 var util = require('../../lib/util.js');
+var photoUtil = require('../../lib/photo_util.js');
+
 var src = path.resolve(__dirname, '../data/tiny.jpg');
 
 describe('/resize', function() {
 
-	it ('/s3key?size=256', function(done) {
+	it.only ('/s3key$size', function(done) {
 		// http://localhost:3000/resize/fggYxMFaaaaxB7eXi.jpg
 		this.timeout(1990*1000);
 		var s3id;
@@ -33,7 +35,7 @@ describe('/resize', function() {
 				s3id = item.s3id;
 				sdbId = item.sdbId;
 				request(app)
-					.get("/resize/" + item.s3id + "?size=256")
+					.get("/resize/" + item.s3id + photoUtil.separator + "256")
 					.expect(200)
 					.end( util.callbackFromPromise(deferred));
 				return deferred.promise;
@@ -41,9 +43,10 @@ describe('/resize', function() {
 			function test1024() {
 				var deferred = new promise.Deferred();
 				request(app)
-					.get('/resize/' + s3id + "?size=1024")
-					.expect(1024)
+					.get('/resize/' + s3id + photoUtil.separator + "1024")
+					.expect(200)
 					.end( util.callbackFromPromise(deferred));
+				return deferred.promise;
 			},
 			function deletePhoto() {
 				return db.photo.delete(sdbId);
