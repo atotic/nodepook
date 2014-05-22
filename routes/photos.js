@@ -43,7 +43,7 @@ router.route('/')
             },
           default: function() {
               if (itemIds.s3id)
-                res.render('photo', { photoSrc: itemIds.s3id });
+                res.render('photo', { photoSrc: itemIds.s3id + "~1024"});
               else
                 res.send('Not rendering duplicate items yet'); // TODO
             }

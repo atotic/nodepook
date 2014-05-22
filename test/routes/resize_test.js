@@ -14,7 +14,7 @@ var src = path.resolve(__dirname, '../data/tiny.jpg');
 
 describe('/resize', function() {
 
-	it.only ('/s3key$size', function(done) {
+	it ('/s3key$size', function(done) {
 		// http://localhost:3000/resize/fggYxMFaaaaxB7eXi.jpg
 		this.timeout(1990*1000);
 		var s3id;
