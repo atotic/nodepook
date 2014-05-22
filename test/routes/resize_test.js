@@ -21,6 +21,7 @@ describe('/resize', function() {
 			function createPhoto() {
 				return db.photo.create(src, {
 					displayName: "yellow.jpg",
+					contentType: 'image/jpg',
 					width: 100,
 					height: 100
 				},0);

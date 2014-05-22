@@ -141,7 +141,7 @@ module.exports = function(grunt) {
 					 	function(item) {
 							if ( ['404.jpg', 'index.jpg'].indexOf(item.Key) == -1) {
 								debug('deleting s3 ', item.Key);
-								return AWSu.s3.deleteKey('photos', item.Key);
+								return AWSu.s3.deleteObject('photos', item.Key);
 							}
 						}
 					)

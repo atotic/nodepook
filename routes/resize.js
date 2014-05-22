@@ -59,7 +59,11 @@ router.get('*', function conversion(req, res, next) {
 			function upload(buffer) {
 				debug('upload');
 				imageBuffer = buffer;
-				return AWSu.s3.putObject('photos', s3resizedKey, buffer);					
+				return AWSu.s3.putObject('photos', {
+					Key: s3resizedKey, 
+					Body: buffer,
+					ContentType: contentType
+				});					
 			},
 			function render(x) {
 				debug('render ');

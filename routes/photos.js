@@ -45,7 +45,7 @@ router.route('/')
               if (itemIds.s3id)
                 res.render('photo', { photoSrc: itemIds.s3id });
               else
-                res.send('Not rendering duplicate items yet');
+                res.send('Not rendering duplicate items yet'); // TODO
             }
         });
       }

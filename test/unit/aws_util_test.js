@@ -21,8 +21,13 @@ describe('aws_util.js', function() {
 			var key = "s3uploadStreamtest-" + utils.randomString(6); 
 			return promise.seq([
 				function() { return promiseFs.readFile(src) },
-				function(data) { return AWSu.s3.putObject('test', key, data ) },
-				function() { return AWSu.s3.deleteKey('test', key) }
+				function(data) { 
+					return AWSu.s3.putObject('test', {
+						Key: key,
+						Body: data
+					});
+				},
+				function() { return AWSu.s3.deleteObject('test', key) }
 			]);
 		});
 
@@ -31,8 +36,13 @@ describe('aws_util.js', function() {
 			var src = path.resolve(__dirname, '../data/tiny.jpg');
 			var key = "s3uploadStreamtest-" + utils.randomString(6); 
 			return promise.seq([
-				function() { return AWSu.s3.putObject('test', key, fs.createReadStream(src) ) },
-				function() { return AWSu.s3.deleteKey('test', key) }
+				function() { 
+					return AWSu.s3.putObject('test', {
+						Key: key, 
+						Body: fs.createReadStream(src) 
+					});
+				},
+				function() { return AWSu.s3.deleteObject('test', key) }
 			]);
 		});
 
