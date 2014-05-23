@@ -6,26 +6,27 @@
     "start": "node ./bin/www"
   },
   "dependencies": {
-    "aws-sdk": "^2.0.0-rc",
-    "biguint-format": "*",
-    "cookie-parser": "*",
-    "debug": "*",
-    "express": "^4.1.1",
-    "flake-idgen": "*",
+    "aws-sdk": "2.0.0-rc.18",
+    "biguint-format": "^0.2.0",
+    "cookie-parser": "^1.1.0",
+    "debug": "^0.8.1",
+    "express": "^4.3.0",
+    "flake-idgen": "^0.1.1",
     "gm": "^1.16.0",
-    "int-encoder": "*",
-    "jade": "*",
-    "moment": "*",
-    "morgan": "*",
-    "multer": "*",
+    "int-encoder": "^0.1.4",
+    "jade": "^1.3.1",
+    "moment": "^2.6.0",
+    "morgan": "^1.1.1",
+    "multer": "^0.0.7",
     "promised-io": ">=0.3.4",
-    "serve-favicon": "*"
+    "serve-favicon": "^2.0.0"
   },
   "devDependencies": {
     "grunt": ">=0.4.5",
     "grunt-debug": "0.0.3",
     "supertest": "^0.12.1"
   },
+  "engine": "node >= 0.10.26",
   "comments": [
     "https://github.com/visionmedia/debug"
   ]

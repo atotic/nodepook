@@ -148,7 +148,11 @@ module.exports = function(grunt) {
 				);
 			}
 		]);
-	
+		promise.when(seq,
+			function success() {},
+			function error(err) {
+				console.log("unexpected error", err, err.stack());
+			});
 	});
 
 	grunt.registerTask('default', 'sdbReadItem');
