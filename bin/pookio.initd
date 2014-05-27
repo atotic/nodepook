@@ -34,7 +34,6 @@ DIR="/home/ec2-user/nodepook"
 APP=${DIR}/${DESC}/${NAME}
 LOCKFILE=`basename $0 .sh`
 export NODE_ENV=${NODE_ENV:="production"}
-forever -h
 
 ################################################################################
 ################################################################################
@@ -45,11 +44,12 @@ forever -h
 ################################################################################
 
 
-export $HOME/local/bin:${PATH:=}
+#export $HOME/local/bin:${PATH:=}
 export MANPATH=$HOME/local/man:${MANPATH:=}
 export LD_LIBRARY_PATH=$HOME/local/lib:${LD_LIBRARY_PATH:=}
 echo $PATH
 echo `which forever`
+
 ################################################################################
 ################################################################################
 ##                                                                            ##
@@ -65,6 +65,7 @@ running() {
 }
 
 start_server() {
+	echo `which forever`
 	forever start ${APP} 2>&1 >/dev/null
 	return $?
 }
@@ -85,6 +86,14 @@ stop_server() {
 # Source function library.
 . /etc/init.d/functions
 
+# these reset paths, have to redo
+export PATH=/usr/local/bin:${PATH:=}
+export MANPATH=$HOME/local/man:${MANPATH:=}
+export LD_LIBRARY_PATH=$HOME/local/lib:${LD_LIBRARY_PATH:=}
+
+echo log2
+echo $PATH
+echo `which forever`
 
 DIETIME=10              # Time to wait for the server to die, in seconds
                         # If this value is set too low you might not
@@ -174,6 +183,10 @@ do_stop() {
 
 case "$1" in
   start)
+	echo "log1"
+	echo $PATH
+	echo `which forever`
+	
     do_start
     RETVAL=$?
     ;;
