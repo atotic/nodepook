@@ -28,27 +28,13 @@
 ################################################################################
 ################################################################################
 
-DESC="bin"
-NAME="www"
-DIR="/home/ec2-user/nodepook"
+DESC="nodepook"
+NAME="bin/www"
+DIR="/home/ec2-user"
 APP=${DIR}/${DESC}/${NAME}
 LOCKFILE=`basename $0 .sh`
 export NODE_ENV=${NODE_ENV:="production"}
-
-################################################################################
-################################################################################
-##                                                                            ##
-#                       PATHs section                                          #
-##                                                                            ##
-################################################################################
-################################################################################
-
-
-#export $HOME/local/bin:${PATH:=}
-export MANPATH=$HOME/local/man:${MANPATH:=}
-export LD_LIBRARY_PATH=$HOME/local/lib:${LD_LIBRARY_PATH:=}
-echo $PATH
-echo `which forever`
+export PORT=3000
 
 ################################################################################
 ################################################################################
@@ -86,14 +72,11 @@ stop_server() {
 # Source function library.
 . /etc/init.d/functions
 
-# these reset paths, have to redo
+# previous line resets paths, set them again here
 export PATH=/usr/local/bin:${PATH:=}
-export MANPATH=$HOME/local/man:${MANPATH:=}
-export LD_LIBRARY_PATH=$HOME/local/lib:${LD_LIBRARY_PATH:=}
+export MANPATH=/usr/local/man:${MANPATH:=}
+export LD_LIBRARY_PATH=/usr/local/lib:${LD_LIBRARY_PATH:=}
 
-echo log2
-echo $PATH
-echo `which forever`
 
 DIETIME=10              # Time to wait for the server to die, in seconds
                         # If this value is set too low you might not
@@ -182,11 +165,7 @@ do_stop() {
 }
 
 case "$1" in
-  start)
-	echo "log1"
-	echo $PATH
-	echo `which forever`
-	
+  start)	
     do_start
     RETVAL=$?
     ;;
