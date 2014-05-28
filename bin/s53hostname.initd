@@ -22,21 +22,21 @@
 NAME=s53hostname
 GRUNT=/usr/local/bin/grunt
 USER=ec2-user
+NODEPOOK=/home/ec2-user/nodepook
 
 . /etc/rc.d/init.d/functions
 
 export PATH=$PATH:/usr/local/bin
 
 super() {
-    su - $USER -c "PATH=$PATH; $*"
+    su - $USER -c "PATH=$PATH; cd $NODEPOOK; $*"
     RETVAL=$?
 }
 
 start() {
     echo "Starting $NAME"
-    pushd /home/ec2-user/nodepook
     super $GRUNT netRegisterHostAs:resize
-    popd
+    RETVAL=$?
 }
 
 stop() {
