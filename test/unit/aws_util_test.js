@@ -64,6 +64,11 @@ describe('aws_util.js', function() {
 
 	});
 
+	describe('Metadata', function() {
+		it.skip ('#request', function() {
+			return AWSu.metadata.request('/latest/meta-data/public-ipv4');
+		});
+	});
 
 	describe('SimpleDB', function() {
 
