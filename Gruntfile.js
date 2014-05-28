@@ -164,23 +164,32 @@ module.exports = function(grunt) {
 	grunt.registerTask('netRegisterHostAs', function(hostname) {
 		//var Route53 = require('nice-route53');
 		var done = this.async();
-		var r53 = new Route53(AWS.config.credentials);
-		var ip = util.hostIp();
-		var zones = r53.zones(function(err, domains) {
-			if (err)
-				return done(err);
+		hostname = hostname || 'resize';
 
-			r53.setRecord( {
-				zoneId: domains[0].zoneId,
-				name: hostname + ".pook.io",
-				type: 'A',
-				ttl: 600,
-				values: [ ip ]
-			}, function(err, res) {
-				console.log(res);
+		promise.when( util.hostIp(),
+			function success(ip) {
+				var r53 = new Route53(AWS.config.credentials);
+				var zones = r53.zones(function(err, domains) {
+					if (err)
+						return done(err);
+
+					r53.setRecord( {
+						zoneId: domains[0].zoneId,
+						name: hostname + ".pook.io",
+						type: 'A',
+						ttl: 600,
+						values: [ ip ]
+					}, function(err, res) {
+						console.log('registered ' + hostname + ' as ' + ip);
+						// console.log(res);
+						done(err);
+					});
+				});
+			},
+			function error(err) {
 				done(err);
-			});
-		});
+			}
+		);	
 	});
 
 	grunt.registerTask('default', 'sdbListDomains');

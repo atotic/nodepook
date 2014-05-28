@@ -18,8 +18,12 @@ describe('util.js', function() {
 		return util.invertPromise( util.fileMd5('crap'));
 	});
 
-	it('#hostIp', function() {
-		var ip = util.hostIp();
-		assert(ip.match(/(?:[0-9]{1,3}\.){3}[0-9]{1,3}/));
+	it.only('#hostIp', function() {
+		return promise.seq([
+			function() { return util.hostIp(); },
+			function(ip) { if (!ip.match(/(?:[0-9]{1,3}\.){3}[0-9]{1,3}/)) 
+				throw new Error("Bad ip " + ip) 
+			}
+		]) ;
 	});
 });
