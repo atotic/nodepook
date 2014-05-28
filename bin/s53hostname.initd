@@ -29,13 +29,14 @@ export PATH=$PATH:/usr/local/bin
 
 super() {
     su - $USER -c "PATH=$PATH; $*"
+    RETVAL=$?
 }
 
 start() {
     echo "Starting $NAME"
-
+    pushd /home/ec2-user/nodepook
     super $GRUNT netRegisterHostAs:resize
-    retval=$?
+    popd
 }
 
 stop() {
