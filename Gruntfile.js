@@ -1,8 +1,14 @@
-var debug = require('debug')('pook:grunt');
-var AWSu = require('./lib/aws_util.js');
-var promise = require('promised-io/promise');
-var utils = require('./lib/util.js');
+// var debug = require('debug')('pook:grunt');
+
 var path = require('path');
+var promise = require('promised-io/promise');
+
+var AWS = require('aws-sdk');
+var Route53 = require('nice-route53');
+
+var AWSu = require('./lib/aws_util.js');
+
+var util = require('./lib/util.js');
 
 module.exports = function(grunt) {
 "use strict";
@@ -35,7 +41,7 @@ module.exports = function(grunt) {
 		var fullPath = path.resolve(__dirname, filePath);
 		var seq = promise.seq([
 			function() {
-				return utils.fileMd5(fullPath);
+				return util.fileMd5(fullPath);
 			},
 			function(md5) {
 				return AWSu.sdb.select("select itemName() from photos where md5='" + md5 + "'");
@@ -155,5 +161,27 @@ module.exports = function(grunt) {
 			});
 	});
 
-	grunt.registerTask('default', 'sdbReadItem');
+	grunt.registerTask('netRegisterHostAs', function(hostname) {
+		//var Route53 = require('nice-route53');
+		var done = this.async();
+		var r53 = new Route53(AWS.config.credentials);
+		var ip = util.hostIp();
+		var zones = r53.zones(function(err, domains) {
+			if (err)
+				return done(err);
+
+			r53.setRecord( {
+				zoneId: domains[0].zoneId,
+				name: hostname + ".pook.io",
+				type: 'A',
+				ttl: 600,
+				values: [ ip ]
+			}, function(err, res) {
+				console.log(res);
+				done(err);
+			});
+		});
+	});
+
+	grunt.registerTask('default', 'sdbListDomains');
 };

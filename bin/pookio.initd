@@ -6,26 +6,18 @@
 # description: Startup script for Express / Node.js application with the \
 ##              forever module.
 ##
-##  A modification of https://gist.github.com/1339289
+##  A modification of https://gist.github.com/touv/1339289
 ##
-## This is free software; you may redistribute it and/or modify
-## it under the terms of the GNU General Public License as
-## published by the Free Software Foundation; either version 2,
-## or (at your option) any later version.
-##
-## This is distributed in the hope that it will be useful, but
-## WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-## GNU General Public License for more details.
-##
+## Install:
+##  sudo cp pookio.initd  /etc/init.d/pookio
+##  sudo chown root /etc/init.d/pookio
+## 
 
 
-################################################################################
 ################################################################################
 ##                                                                            ##
 #                           APPLICATION section                                #
-##             Edit the variables below for your installation                 ##
-################################################################################
+##                                                                            ##
 ################################################################################
 
 DESC="nodepook"
@@ -37,11 +29,9 @@ export NODE_ENV=${NODE_ENV:="production"}
 export PORT=3000
 
 ################################################################################
-################################################################################
 ##                                                                            ##
 #                       FOREVER section                                        #
 ##                                                                            ##
-################################################################################
 ################################################################################
 
 
@@ -62,17 +52,15 @@ stop_server() {
 }
 
 ################################################################################
-################################################################################
 ##                                                                            ##
 #                       GENERIC section                                        #
 ##                                                                            ##
-################################################################################
 ################################################################################
 
 # Source function library.
 . /etc/init.d/functions
 
-# previous line resets paths, set them again here
+# PATH manipulation must happen here, previous line resets them
 export PATH=/usr/local/bin:${PATH:=}
 export MANPATH=/usr/local/man:${MANPATH:=}
 export LD_LIBRARY_PATH=/usr/local/lib:${LD_LIBRARY_PATH:=}

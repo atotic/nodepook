@@ -21,11 +21,17 @@ ssh -i ~/.ssh/AmazonEC2KeyPair_May2014.pem ec2-user@ec2-54-200-184-220.us-west-2
 http://ec2-54-200-184-220.us-west-2.compute.amazonaws.com/
 binaries: 
 node, npm
-npm install -g mocha grunt grunt-cli
+npm install -g mocha grunt grunt-cli forever
 yum install GraphicsMagick expat-devel
 exiv2 - download, install
 
 /etc/profile.d/pookio.sh sets the environment variables
+/etc/init.d/pookio starts bin/www with forever
+/etc/init.d/nginx starts
+
+make these start on startup:
+sudo chkconfig --add nginx
+sudo chkconfig --add pookio
 
 jsgroupdoc
 what library to use for synchronization:

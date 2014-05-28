@@ -23,9 +23,10 @@
   },
   "devDependencies": {
     "grunt": "~0.4.5",
-    "grunt-debug": "~0.0.3",
     "grunt-cli": "*",
+    "grunt-debug": "~0.0.3",
     "mocha": "~1.18.0",
+    "nice-route53": "^0.3.4",
     "supertest": "~0.12.1"
   },
   "engine": "node >= 0.10.26"
