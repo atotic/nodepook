@@ -1,37 +1,55 @@
-Database
+# Comon commands 
+chrome://net-internals/#dns  # chrome dns cache clear
+sudo dscacheutil -flushcache # clear dns cache
+curl -D - http://localhost -o /dev/null # curl headers
+sudo chkconfig --add s53hostname # adds init.d script to startup
+ssh -i ~/.ssh/AmazonEC2KeyPair_May2014.pem ec2-user@AmazonHost
 
-aws_util exports names of buckets, domains
+# Testing
+
+DEBUG=pook* mocha test/*/**_test
+grunt # has a bunch of command-line utilities
+grunt eraseDatabase
+grunt readItem:photos:id
+
+# Database
+
+SimpleDb, s3. Use aws_util module
+
 s3
 	photos, resized photos
 sdb
 	photo meta information
-grunt
-  grunt eraseDatabase
-  grunt readItem:domain:id
 
+# AWS
+Using IAM. pookio_dev has access to everything
 
-Servers:
+# Servers:
 
-s3 photos:
-http://pookio-test.s3-website-us-west-2.amazonaws.com/
-redirects to resizer on error
+s3:
+photos:
+	http://pookio-test.s3-website-us-west-2.amazonaws.com/
+	redirects to resizer on error
 
-resizer:
-ssh -i ~/.ssh/AmazonEC2KeyPair_May2014.pem ec2-user@ec2-54-200-184-220.us-west-2.compute.amazonaws.com
-http://ec2-54-200-184-220.us-west-2.compute.amazonaws.com/
+EC2 instance:
 binaries: 
 node, npm
-npm install -g mocha grunt grunt-cli forever
+npm install -g mocha grunt grunt-cli pm2
 yum install GraphicsMagick expat-devel
 exiv2 - download, install
 
-/etc/profile.d/pookio.sh sets the environment variables
-/etc/init.d/pookio starts bin/www with forever
-/etc/init.d/nginx starts
+# sets AWS environment variables
+nano /etc/profile.d/pookio.sh 
+cp bin/pookio.initd /etc/init.d/pookio
+cp bin/s53hostname.initd /etc/init.d/s53hostname
+cp bin/nginx.resize.conf  /etc/nginx/nginx.conf
 
-make these start on startup:
+# make daemons start on startup:
 sudo chkconfig --add nginx
 sudo chkconfig --add pookio
+sudo chkconfig --add s53hostname
+
+# make grunt update route53 on startup
 
 jsgroupdoc
 what library to use for synchronization:

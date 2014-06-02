@@ -21,30 +21,28 @@
 
 NAME=s53hostname
 GRUNT=/usr/local/bin/grunt
-USER=ec2-user
-
+USER=atotic
+NODEPOOK=/home/ec2-user/nodepook
 . /etc/rc.d/init.d/functions
 
 export PATH=$PATH:/usr/local/bin
 
 super() {
-    su - $USER -c "PATH=$PATH; $*"
+    su - $USER -c "PATH=$PATH; cd $NODEPOOK; $*"
     RETVAL=$?
 }
 
 start() {
-    echo "Starting $NAME"
-    pushd /home/ec2-user/nodepook
+    echo "$NAME: Updating resize.pook.io dns "
     super $GRUNT netRegisterHostAs:resize
-    popd
 }
 
 stop() {
-    echo "Stopping $NAME"
+    echo "noop $NAME"
 }
 
 restart() {
-    echo "Restarting $NAME"
+    # echo "Restarting $NAME"
     start
 }
 
@@ -53,8 +51,8 @@ reload() {
 }
 
 status() {
-    echo "Status for $NAME:"
-    super $GRUNT sdbListDomains
+    echo "$NAME: Status"
+    nslookup resize.pook.io
     RETVAL=$?
 }
 

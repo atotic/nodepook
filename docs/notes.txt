@@ -1,0 +1,30 @@
+- promises so far: a whole lot of rewriting existing world.
+- async seems to offer same functionality, with less friction
+
+Angular 2.0 design docs: https://drive.google.com/?pli=1#folders/0B7Ovm8bUYiUDR29iSkEyMk5pVUk
+
+TODO:
+rewrite everything with async
+user authentication: passport
+user authentication ui: angular (or not?)
+use bootstrap
+use angular for drag'n'drop, in place UI with list of photos.
+jsdoc: my own, or existing frameworks
+
+
+DONE:
+dns via route53. Create command line tool to set 
+resize images on ec2: run servers on boot, run forever, redirect dns via route 53, s3 redirect
+switched pook.io DNS to Route53
+ec2 instance is running, 
+ec2: installed node, etc, passed tests
+http://www.bennadel.com/blog/2321-how-i-got-node-js-running-on-a-linux-micro-instance-using-amazon-ec2.htm
+nginx on my mac as dev.pook.io
+amazon bucket redirection, save images in less-permanent storage
+database + models
+post-process uploaded file: rotate, exif data
+using mocha for unit tests
+using promised-io to manage callback chains
+upload to S3
+upload file
+serve file as a static file

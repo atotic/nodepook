@@ -177,7 +177,7 @@ module.exports = function(grunt) {
 						zoneId: domains[0].zoneId,
 						name: hostname + ".pook.io",
 						type: 'A',
-						ttl: 600,
+						ttl: 300,
 						values: [ ip ]
 					}, function(err, res) {
 						console.log('registered ' + hostname + ' as ' + ip);
