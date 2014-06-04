@@ -45,7 +45,7 @@ router.route('/')
       ],
       function final(err, result) {
         if (err)
-          throw err;
+          next(err);
         else {
           res.format(
             {
@@ -68,7 +68,7 @@ router.route('/')
 router.get('/test', function testS3(req, res, next) {
   AWSu.s3.listBuckets(function(err, data) {
     if (err)
-      throw err;
+      next(err);
     else {
       res.render('dev', {message: 'listBuckets', payload: data})
     }

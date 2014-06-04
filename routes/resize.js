@@ -32,9 +32,8 @@ var router = express.Router();
 router.get('/stats', function stats(req, res, next) {
 	AWSu.s3.listBuckets(function(err, data) {
 		if (err)
-      throw err;
-    else
-      res.render('dev', {message: 'listBuckets', payload: data});
+      return next(err);
+    res.render('dev', {message: 'listBuckets', payload: data});
 	});
 });
 
