@@ -11,18 +11,19 @@
 # Provides:          pm2
 # Required-Start: $local_fs $remote_fs $network
 # Required-Stop: $local_fs $remote_fs
-# Should-Start: 
+# Should-Start:
 # Should-Stop: $network
 # Default-Start:        3 4 5
 # Default-Stop:         0 1 6
-# Short-Description: s53 
+# Short-Description: s53
 # Description: PM2 is the next gen process manager for Node.js
 ### END INIT INFO
 
 NAME=s53hostname
 GRUNT=/usr/local/bin/grunt
-USER=atotic
+USER=ec2-user
 NODEPOOK=/home/ec2-user/nodepook
+
 . /etc/rc.d/init.d/functions
 
 export PATH=$PATH:/usr/local/bin
@@ -33,16 +34,17 @@ super() {
 }
 
 start() {
-    echo "$NAME: Updating resize.pook.io dns "
+    echo "Starting $NAME"
     super $GRUNT netRegisterHostAs:resize
+    RETVAL=$?
 }
 
 stop() {
-    echo "noop $NAME"
+    echo "Stopping $NAME"
 }
 
 restart() {
-    # echo "Restarting $NAME"
+    echo "Restarting $NAME"
     start
 }
 
@@ -51,7 +53,7 @@ reload() {
 }
 
 status() {
-    echo "$NAME: Status"
+    echo "Status for $NAME:"
     nslookup resize.pook.io
     RETVAL=$?
 }
