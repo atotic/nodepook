@@ -1,10 +1,10 @@
 // photos_test.js
 var debug = require('debug')('pook:test:routes');
-var request = require('supertest');
 var path = require('path');
+var request = require('supertest');
+
 var app = require('../../app.js');
 var db = require('../../lib/db.js');
-var promise = require('promised-io/promise');
 
 var testPath = path.resolve(__dirname,'../data/tiny.jpg');
 
@@ -27,10 +27,7 @@ describe('/photos', function() {
 				if (err)
 					done(err);
 				else {
-					promise.when(db.photo.delete( res.body.photoId),
-						function success() { done() },
-						function error(err) { done(err) }
-					)
+					db.photo.delete( res.body.photoId, done);
 				}
 			});
 	});

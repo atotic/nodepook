@@ -3,9 +3,9 @@
 var debug = require('debug')('pook:test:db_test');
 
 var assert = require("assert");
+var async = require('async');
+var fs = require('fs');
 var path = require('path');
-var promise = require('promised-io/promise');
-var fs = require('promised-io/fs');
 
 var photoUtil = require ('../../lib/photo_util.js');
 var db = require('../../lib/db.js');
@@ -15,39 +15,37 @@ var src = path.resolve(__dirname, '../data/orient3.jpg');
 
 describe('db.js', function() {
 
-	it ('#createPhoto', function() {
+	it ('#createPhoto', function(done) {
 		this.timeout(30 * 1000);
-		return promise.seq([
-			function() { // read exif
-				return photoUtil.readExifData( src ) 
-			},
-			function(exif) { // create photo
-				exif.displayName = "orient3.jpg";
-				// debug("creating photo");
-				p = db.photo.create(src, exif, 0);
-				promise.when(p,
-					function() {},
-					function(err) {
-						if (err.name == 'DuplicatePhoto')
-							db.photo.delete(err.id);
-						debug("Cant create", err.name, err.id);
+		async.waterfall(
+			[
+				function readExif(cb) {
+					photoUtil.readExifData(src, cb);
+				},
+				function createPhoto(exif, cb) {
+					exif.displayName = "orient3.jpg";
+					debug("creating photo");
+					db.photo.create(src, exif, 0, function(err, data) {
+						if (err && err.name == 'DuplicatePhoto')
+							db.photo.delete(err.id, cb);
+						else
+							cb(err, data);
 					});
-				return p;
-			},
-			function(item) { // delete photo
-				// debug('created', item.sdbId);
-				if (item.s3id == null)
-					throw new Error("Photo was a duplicate " + item.sdbId);
-				return db.photo.read(item.sdbId);
-			},
-			function(data) {
-				// debug('read');
-				return db.photo.delete( data.itemId);
-			},
-			function() {
-				// debug('deleted');
-			}
-			]);
+				},
+				function readPhoto(item, cb) {
+					debug('reading photo', item.sdbId);
+					if (item.s3id == null)
+						cb( new Error("Photo was a duplicate " + item.sdbId));
+					else
+						db.photo.read(item.sdbId, cb);
+				},
+				function deletePhoto(data, cb) {
+					debug('deleting photo', data.itemId);
+					db.photo.delete( data.itemId, cb);
+				}
+			],
+			done
+		);
 	});
 
 });

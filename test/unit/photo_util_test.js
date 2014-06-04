@@ -1,8 +1,8 @@
 // photo_test.js
 var assert = require("assert");
+var async = require("async");
+var fs = require('fs');
 var path = require('path');
-var promise = require('promised-io/promise');
-var fs = require('promised-io/fs');
 
 var photo = require("../../lib/photo_util.js");
 var utils = require("../../lib/util.js");
@@ -10,49 +10,52 @@ var utils = require("../../lib/util.js");
 var testPath = path.resolve(__dirname,'../data/orient6.jpg');
 
 describe('photo_util.js', function() {
-	it ('#autoRotate', function() {
+	it ('#autoRotate', function(done) {
 		var src = testPath;
 		var dest = path.resolve(__dirname, '../data/rotatetest.jpg');
-		// return utils.fileCopy(src, dest);
-		var sequence = promise.seq([
-		 	function() { return utils.fileCopy(src, dest) }, // setup
-		 	function() { return photo.autoRotate(dest) },
-		 	function() { return fs.unlink(dest) }	// cleanup
-			]);
-		return sequence;
+		async.series([
+				function(fn) { utils.fileCopy( src, dest, fn)},
+				function(fn) { photo.autoRotate( dest, fn) },
+				function(fn) { fs.unlink(dest, fn)}
+			],
+			function(err, result) {
+				done(err);
+			});
 	});
 
-	it ('#autoRotate fail', function() {
-		return utils.invertPromise( photo.autoRotate('/badpath'));
+	it ('#autoRotate fail', function(done) {
+		photo.autoRotate('/badpath', function(err) {
+			if (err)
+				done();
+			else
+				done(new Error("Why did you rotate invisible file"));
+		});
 	});
 
-	it ('#readExifData', function() {
+	it ('#readExifData', function(done) {
 		var src = testPath;
-		var deferred = new promise.Deferred();
-		promise.when( photo.readExifData(src), 
-			function(exifData) { 
-				if ('width' in exifData) 
-					deferred.resolve();
+		photo.readExifData(src, function(err, exif) {
+			if (err)
+				done(err);
+			else
+				if ('width' in exif)
+					done();
 				else
-					deferred.reject(new Error("no exif data")); 
-			},
-			function(err) { deferred.reject(err) }
-		);
-		return deferred.promise;
+					done(new Error('did not get width in exif'));
+		});
 	});
 
-	it ('#readExifData no width', function() {
+	it ('#readExifData no width', function(done) {
 		var src = path.resolve(__dirname,'../data/noexif.jpg');
-		var deferred = new promise.Deferred();
-		promise.when( photo.readExifData(src), 
-			function(exifData) { 
-				if ('width' in exifData) 
-					deferred.resolve();
+		photo.readExifData( src, function(err, exif) {
+			if (err)
+				done(err);
+			else
+				if ('width' in exif) 
+					done();
 				else
-					deferred.reject(new Error("no exif data")); 
-			},
-			function(err) { deferred.reject(err) }
-		);
-		return deferred.promise;
+					done(new Error('did not get width in exif'));
+		});
 	});
+
 });

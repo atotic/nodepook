@@ -1,83 +1,123 @@
 // aws_util_test.js
-
+"use strict";
 var assert = require("assert");
-var path = require('path');
-var promise = require('promised-io/promise');
+var async = require('async');
 var fs = require('fs');
-var promiseFs = require('promised-io/fs');
+var gm = require('gm');
+var path = require('path');
 
 var AWSu = require ('../../lib/aws_util.js');
-var utils = require ('../../lib/util.js');
+var util = require ('../../lib/util.js');
 var photoUtil = require('../../lib/photo_util.js');
-var gm = require('gm');
 
 describe('aws_util.js', function() {
 
 	describe('s3', function() {
 
-		it('#putObject buffer', function() {
+		it('#putObject buffer', function(done) {
 			this.timeout(4*1000);
 			var src = path.resolve(__dirname, '../data/tiny.jpg');
-			var key = "s3uploadStreamtest-" + utils.randomString(6); 
-			return promise.seq([
-				function() { return promiseFs.readFile(src) },
-				function(data) { 
-					return AWSu.s3.putObject('test', {
-						Key: key,
-						Body: data
-					});
-				},
-				function() { return AWSu.s3.deleteObject('test', key) }
-			]);
+			var key = "s3uploadStreamtest-" + util.randomString(6);
+			async.waterfall([
+					function read(callback) {
+						fs.readFile(src, callback);
+					},
+					function upload(buffer, callback) {
+						AWSu.s3.client.putObject({
+								Bucket: AWSu.buckets.test,
+								Key: key,
+								Body: buffer
+							},
+							callback
+						);
+					},
+					function del(data, callback) {
+						return callback();
+						AWSu.s3.client.deleteObject( {
+								Bucket: AWSu.buckets.test,
+								Key: key
+							},
+							callback
+						);
+					}
+				],
+				function(err, ignore) {
+					done(err);
+				}
+			);
 		});
 
-		it ('#putObject stream', function() {
+		it ('#putObject stream', function(done) {
 			this.timeout(4*1000);
 			var src = path.resolve(__dirname, '../data/tiny.jpg');
-			var key = "s3uploadStreamtest-" + utils.randomString(6); 
-			return promise.seq([
-				function() { 
-					return AWSu.s3.putObject('test', {
-						Key: key, 
-						Body: fs.createReadStream(src) 
-					});
+			var key = "s3uploadStreamtest-" + util.randomString(6);
+			async.waterfall([
+					function upload(callback) {
+						AWSu.s3.client.putObject( {
+								Bucket: AWSu.buckets.test,
+								Key: key,
+								Body: fs.createReadStream(src)
+							},
+							callback
+						)
+					},
+					function del(data, callback) {
+						AWSu.s3.client.deleteObject( {
+							Bucket: AWSu.buckets.test,
+							Key: key
+						},
+						callback);
+					}
+				],
+				function(err, ignore) {
+					done(err);
+				}
+			)
+		});
+
+		it ('listObjects', function(done) {
+			AWSu.s3.client.listObjects({
+					Bucket: AWSu.buckets.photos,
+					Delimiter: '/'
 				},
-				function() { return AWSu.s3.deleteObject('test', key) }
-			]);
+				done
+			);
 		});
 
-		it ('listObjects', function() {
-			var p = AWSu.s3.listObjects('photos');
-			// promise.when(p, function(data) { console.log(data)}, function(){});
-			return p;
+		it ('#headObject', function(done) {
+			var p = AWSu.s3.client.headObject({
+					Bucket: AWSu.buckets.photos,
+					Key:'404.jpg'
+				}, done);
 		});
 
-		it ('#headObject', function() {
-			var p = AWSu.s3.headObject('photos', '404.jpg');
-			//promise.when(p, function(data) { console.log(data)}, function(){});
-			return p;
-		});
-
-		it ('#getObject', function() {
-			return AWSu.s3.getObject('photos', '404.jpg');
+		it ('#getObject', function(done) {
+			AWSu.s3.client.getObject({
+					Bucket: AWSu.buckets.photos,
+					Key: '404.jpg'
+				},
+				done
+			);
 		});
 
 	});
 
 	describe('Metadata', function() {
-		it.skip ('#request', function() {
-			return AWSu.metadata.request('/latest/meta-data/public-ipv4');
-		});
+		// it.skip ('#request', function() {
+		// 	return AWSu.metadata.request('/latest/meta-data/public-ipv4');
+		// });
 	});
 
 	describe('SimpleDB', function() {
 
-		it ('#createDomain', function() {
+		it ('#createDomain', function(done) {
 			this.timeout(60 * 1000);
-			return promise.seq( [
-				function() { return AWSu.sdb.deleteDomain('test') },
-				function() { return AWSu.sdb.createDomain('test') }
-			]);
+			async.waterfall( [
+				function(cb) { AWSu.sdb.deleteDomain( { DomainName: 'test'}, cb )},
+				function(ignore, cb) { AWSu.sdb.createDomain( { DomainName: 'test'}, cb )}
+				],
+				done
+			);
 		});
 
 		it ('#uniqueId', function() {
@@ -87,42 +127,52 @@ describe('aws_util.js', function() {
 			assert(id1 != id2);
 		});
 
-		it ('#select', function() {
+		it ('#select', function(done) {
 			this.timeout(60 * 1000);
 			// var q = "select itemName() from photos where md5='a7aea1d663adc76b9269ec6f0c1b8e15'";
-			var q = "select itemName() from test";
-			var p = AWSu.sdb.select(q);
-			// promise.when(p, 
-			// 	function(data) {console.log(data)},
-			// 	function(err) { console.log(err)} 
-			// )
-			return p;
+			var p = AWSu.sdb.select({
+					SelectExpression:  "select itemName() from test",
+					ConsistentRead: true
+				},
+				done
+			);
 		});
 
-		it ('#createItem, #deleteItem', function() {
+		it ('#createItem, #deleteItem', function(done) {
 			this.timeout(20 * 1000);
-			
-			return promise.seq([
-				function() { // creation
-					// console.log('creating item');
-					return AWSu.sdb.createItem('test', "testItem", {
-						first: "first",
-						second: "second"
-					});
-				},
-				function(data) { // create same item again, should fail
-					// console.log("createItem data", data);
-					var p = AWSu.sdb.createItem('test', "testItem", {
-						first: "first",
-						second: "second"
-					});
-					return utils.invertPromise(p);
-				},
-				function(err) { // delete the item
-					// console.log("deleting item");
-					return AWSu.sdb.deleteItem('test', 'testItem');
-				},
-			]);
+			async.waterfall([
+					function createItem(cb) {
+						AWSu.sdb.putAttributes( {
+							DomainName: AWSu.domains.test,
+							ItemName: 'testItem',
+							Attributes: AWSu.objectToAttributes({ first: 'first', second: 'second'})
+							},
+							cb
+						);
+					},
+					function createDuplicate(ignore, cb) {
+						AWSu.sdb.putAttributes( {
+							DomainName: AWSu.domains.test,
+							ItemName: 'testItem',
+							Attributes: AWSu.objectToAttributes({ first: 'first', second: 'second'}),
+							Expected: { Name: 'first', Exists: false}
+							},
+							util.invertCallback(cb)
+						);
+					},
+					function deleteItem(ignore, cb) {
+						AWSu.sdb.deleteAttributes( {
+							DomainName: AWSu.domains.test,
+							ItemName: 'testItem'
+							},
+							cb
+						);
+					}
+				],
+				function(err) {
+					done(err);
+				}
+				);
 		});
 
 	});

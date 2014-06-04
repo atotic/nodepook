@@ -1,13 +1,14 @@
 var debug = require('debug')('pook:routes:photos');
+"use strict";
 
+var async = require('async');
 var express = require('express');
+var fs = require('fs');
 var path = require('path');
-var promise = require('promised-io/promise');
-var fs = require("promised-io/fs");
 
 var AWSu = require ('../lib/aws_util.js');
-var photoUtil = require('../lib/photo_util.js');
 var db = require('../lib/db.js');
+var photoUtil = require('../lib/photo_util.js');
 
 var router = express.Router();
 
@@ -24,42 +25,51 @@ router.route('/')
     var bucketName = req.files.myPhoto.name;
     var itemIds;
 
-    var seq = promise.seq([
-      function autoRotate() { return photoUtil.autoRotate(photoPath) },
-      function readExifData() { return photoUtil.readExifData(photoPath) },
-      function createPhoto(inExifData) { 
-        exifData = inExifData;
-        exifData.displayName = req.files.myPhoto.originalname;
-        return db.photo.create(photoPath, exifData, 0);
-      },
-      function deleteFile(inItemIds) {
-        itemIds = inItemIds;
-        return fs.unlink(photoPath);
-      },
-      function render() {
-        res.format({ 
-          'application/json': function() {
-              res.send( { photoId: itemIds.sdbId } );
-            },
-          default: function() {
-              if (itemIds.s3id)
-                res.render('photo', { photoSrc: itemIds.s3id + "~1024"});
-              else
-                res.send('Not rendering duplicate items yet'); // TODO
+    async.waterfall(
+      [
+        function autoRotate(cb) {
+          photoUtil.autoRotate(photoPath, cb);
+        },
+        function readExifData(ignore, cb) {
+          photoUtil.readExifData(photoPath, cb);
+        },
+        function createPhoto(inExifData, cb) {
+          exifData = inExifData;
+          exifData.displayName = req.files.myPhoto.originalname;
+          db.photo.create(photoPath, exifData, 0, cb);
+        },
+        function deleteFile(inItemIds, cb) {
+          itemIds = inItemIds;
+          fs.unlink(photoPath, cb);
+        }
+      ],
+      function final(err, result) {
+        if (err)
+          throw err;
+        else {
+          res.format(
+            {
+              'application/json': function() {
+                res.send( { photoId: itemIds.sdbId } );
+              },
+              default: function() {
+                if (itemIds.s3id)
+                  res.render('photo', { photoSrc: itemIds.s3id + "~1024"});
+                else
+                  res.send('Not rendering duplicate items yet'); // TODO
+              }
             }
-        });
+          );
+        }
       }
-    ]);
-    return seq;
+      );
   });
 
 router.get('/test', function testS3(req, res, next) {
-  var s3 = AWSu.s3.connect('photos');
-  s3.listBuckets(function(err, data) {
-    if (err) {
-      debugger;
-      throw new Error("S3 error",  err.message);
-    } else {
+  AWSu.s3.listBuckets(function(err, data) {
+    if (err)
+      throw err;
+    else {
       res.render('dev', {message: 'listBuckets', payload: data})
     }
   });

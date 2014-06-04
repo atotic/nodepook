@@ -17,11 +17,11 @@
 var debug = require('debug')('pook:routes:resize');
 "use strict";
 
+var async = require('async');
 var express = require('express');
-var path = require('path');
-var promise = require('promised-io/promise');
-var fs = require("promised-io/fs").fs;
+var fs = require("fs");
 var gm = require('gm');
+var path = require('path');
 
 var AWSu = require ('../lib/aws_util.js');
 var photoUtil = require('../lib/photo_util.js');
@@ -30,14 +30,17 @@ var util = require('../lib/util.js')
 var router = express.Router();
 
 router.get('/stats', function stats(req, res, next) {
-	return promise.seq([
-		function() { return AWSu.s3.listBuckets('photos') },
-		]);
+	AWSu.s3.listBuckets(function(err, data) {
+		if (err)
+      throw err;
+    else
+      res.render('dev', {message: 'listBuckets', payload: data});
+	});
 });
 
 var ALLOWED_SIZES = [256, 1024];
 
-/** 
+/**
  * path is /s3key$size
  * @returns { key: , size: }
  */
@@ -56,60 +59,68 @@ router.get('*', function conversion(req, res, next) {
 	function resizeAndUpload() {
 		var imageBuffer;
 		var contentType;
-		var seq = promise.seq([
-			function fetch() { 
-				debug('fetch', ks.key); 
-				return AWSu.s3.getObject('photos', ks.key);
-			},
-			function resize(data) {
-				debug('resize');
-				if (data == null) {
-					debug("resize: could not fetch ks.key", ks.key);
-					return util.createRejectedPromise('s3 key not found');
-				}
-				else {
-					debug("resizing")
-					contentType = data.ContentType;
-					return photoUtil.gmToBufferPromise(
+		async.waterfall(
+			[
+				function fetch(fn) {
+					debug('fetch', ks.key);
+					AWSu.s3.client.getObject({
+							Bucket: AWSu.buckets.photos,
+							Key: ks.key
+						},
+						fn);
+				},
+				function resize(data, fn) {
+					debug('resize');
+					if (data == null) {
+						debug("resize: could not fetch ks.key", ks.key);
+						fn( new Error('s3 key not found ' + ks.key));
+					}
+					else {
+						debug("resizing")
+						contentType = data.ContentType;
 						// resize image to 3:2 rect with size maxHeight, keep aspect
 						// convert resized image to buffer
-						gm(data.Body).resize(ks.size * 1.34, ks.size, '>')
+						gm(data.Body).resize(ks.size * 1.34, ks.size, '>').toBuffer(fn);
+					}
+				},
+				function upload(buffer, fn) {
+					debug('upload');
+					imageBuffer = buffer;
+					// render
+					res.type(contentType);
+					res.send(imageBuffer);
+					// upload
+					AWSu.s3.putObject({
+							Bucket: AWSu.buckets.photos,
+							Key: s3resizedKey,
+							Body: buffer,
+							ContentType: contentType,
+							StorageClass: 'REDUCED_REDUNDANCY'
+						},
+						fn
 					);
 				}
-			},
-			function upload(buffer) {
-				debug('upload');
-				imageBuffer = buffer;
-				res.type(contentType);
-				res.send(imageBuffer);
-				return AWSu.s3.putObject('photos', {
-					Key: s3resizedKey, 
-					Body: buffer,
-					ContentType: contentType,
-					StorageClass: 'REDUCED_REDUNDANCY'
-				});
-			},
-			function render(x) {
-				debug('render ');
-			}
-		]);
-		promise.when(seq,
-			function() {},
-			function(err) { 
-				debug("seq error", err);
-				next(err);
+			],
+			function(err, ignore) {
+				if (err)
+					next(err);
 			}
 		);
 	}
 
-	promise.when( AWSu.s3.headObject('photos', s3resizedKey),
-		function success(data) {
-			debug('head exists, redirect to ', photoUtil.hostUrl + s3resizedKey);
-			res.redirect( photoUtil.hostUrl + s3resizedKey);
+	AWSu.s3.client.headObject( {
+			Bucket: AWSu.buckets.photos,
+			Key: s3resizedKey
 		},
-		function error(err) { // does not exist
-			debug('head does not exist', s3resizedKey);
-			resizeAndUpload();
+		function(err, data) {
+			if (err) {
+				debug('head does not exist', s3resizedKey);
+				resizeAndUpload();
+			}
+			else {
+				debug('head exists, redirect to ', photoUtil.hostUrl + s3resizedKey);
+				res.redirect( photoUtil.hostUrl + s3resizedKey);
+			}
 		}
 	);
 });

@@ -6,6 +6,7 @@
     "start": "node ./bin/www"
   },
   "dependencies": {
+    "async": "^0.9.0",
     "aws-sdk": "2.0.0-rc.18",
     "biguint-format": "~0.2.0",
     "cookie-parser": "~1.1.0",

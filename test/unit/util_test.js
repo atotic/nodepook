@@ -1,8 +1,10 @@
 // util_test.js
+var debug = require('debug')('pook:test:util_test');
+
 var assert = require("assert");
 var path = require('path');
-var promise = require('promised-io/promise');
-var fs = require('promised-io/fs');
+var fs = require('fs');
+var async = require('async');
 
 var util = require ('../../lib/util.js');
 
@@ -10,20 +12,30 @@ var src = path.resolve(__dirname, '../data/tiny.jpg');
 
 describe('util.js', function() {
 
-	it ('#fileMd5', function() {
-		return util.fileMd5(src);
+	it ('#fileMd5', function(done) {
+		util.fileMd5(src, done);
 	});
 
-	it('#fileMd5:error', function() {
-		return util.invertPromise( util.fileMd5('crap'));
+	it('#fileMd5:error', function(done) {
+		util.fileMd5('crap', function(err, md5) {
+			if (err)
+				done();
+			else
+				done(new Error("Read md5 of non existent file"));
+		});
 	});
 
-	it('#hostIp', function() {
-		return promise.seq([
-			function() { return util.hostIp(); },
-			function(ip) { if (!ip.match(/(?:[0-9]{1,3}\.){3}[0-9]{1,3}/)) 
-				throw new Error("Bad ip " + ip) 
+	it('#hostIp', function(done) {
+		async.seq(
+			util.hostIp,
+			function(ip, fn) {
+				if (!ip.match(/(?:[0-9]{1,3}\.){3}[0-9]{1,3}/)) 
+					fn(new Error("Bad ip " + ip));
+				else
+					fn(); 
 			}
-		]) ;
+		)( function(err, result) {
+			done(err);
+		} );
 	});
 });
