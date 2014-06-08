@@ -24,7 +24,8 @@ app.use(multer({ dest: './uploads/', fileSize: 15 * 1049000, files: 1}));
 app.use('/', routes);
 app.use('/users', require('./routes/users'));
 app.use('/photos', require('./routes/photos'));
-app.use('/resize', require('./routes/resize'))
+app.use('/resize', require('./routes/resize'));
+app.use('/angular', require('./routes/angular'));
 
 /// catch 404 and forwarding to error handler
 app.use(function(req, res, next) {

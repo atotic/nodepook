@@ -1,0 +1,17 @@
+# TESTING
+
+## Server tests
+runner mocha, assertions: node-assert
+
+### Server unit
+- simple single function tests
+run as: mocha test/unit
+
+### Server Routes
+- tests server routes
+use supertest to launch server inside tests
+
+## Browser tests
+Karma used to be called testacular!
+Use it to run tests inside the browser
+

@@ -4,19 +4,42 @@
 Angular 2.0 design docs: https://drive.google.com/?pli=1#folders/0B7Ovm8bUYiUDR29iSkEyMk5pVUk
 
 TODO:
-rewrite everything with async
 user authentication: passport
 user authentication ui: angular (or not?)
-use bootstrap
 use angular for drag'n'drop, in place UI with list of photos.
 jsdoc: my own, or existing frameworks
 
+RESEARCH:
+sync document model
+couchdb?
+PDF generation: http://www.feedhenry.com/server-side-pdf-generation-node-js/
+
+APPLICATION LAYOUT
+
+server
+	common
+	routes
+	instances
+client
+  img
+  css
+  views
+  vendor
+  sass
+test
+scripts
+docs
+
+new code layout
+bower support
+karma
 
 DONE:
-dns via route53. Create command line tool to set 
+ripped out promises. Although I prefer them, callbacks are node standard and async makes it nice
+dns via route53. Create command line tool to set
 resize images on ec2: run servers on boot, run forever, redirect dns via route 53, s3 redirect
 switched pook.io DNS to Route53
-ec2 instance is running, 
+ec2 instance is running,
 ec2: installed node, etc, passed tests
 http://www.bennadel.com/blog/2321-how-i-got-node-js-running-on-a-linux-micro-instance-using-amazon-ec2.htm
 nginx on my mac as dev.pook.io

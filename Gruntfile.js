@@ -1,3 +1,6 @@
+// This gruntfile is ugly. I have not idea how to make pretty grunt
+// https://github.com/angular/angular.js/blob/master/Gruntfile.js should inspire me to do better
+
 var debug = require('debug')('pook:grunt');
 
 "use strict";
@@ -35,6 +38,7 @@ module.exports = function(grunt) {
 				console.error(err);
 			else
 				console.log(item);
+			done(err);
 		});
 	});
 
@@ -48,7 +52,7 @@ module.exports = function(grunt) {
 				console.error(err);
 			else
 				console.log(data);
-			done()
+			done(err);
 		});
 	});
 
@@ -60,7 +64,7 @@ module.exports = function(grunt) {
 			},
 			function(err, data) {
 				console.log(data);
-			done(err);
+				done(err);
 		});
 	});
 
