@@ -10,8 +10,8 @@ var AWS = require('aws-sdk');
 var path = require('path');
 var Route53 = require('nice-route53');
 
-var AWSu = require('./lib/aws_util.js');
-var util = require('./lib/util.js');
+var AWSu = require('./server/common/aws_util.js');
+var util = require('./server/common/util.js');
 
 module.exports = function(grunt) {
 "use strict";
