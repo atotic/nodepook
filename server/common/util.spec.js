@@ -6,9 +6,10 @@ var path = require('path');
 var fs = require('fs');
 var async = require('async');
 
-var util = require ('../../lib/util.js');
+var util = require ('../common/util.js');
 
-var src = path.resolve(__dirname, '../data/tiny.jpg');
+var datadir = path.resolve(__dirname, '../../test/data');
+var src = path.join(datadir, 'tiny.jpg');
 
 describe('util.js', function() {
 

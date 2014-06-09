@@ -7,11 +7,11 @@ var async = require('async');
 var fs = require('fs');
 var path = require('path');
 
-var photoUtil = require ('../../lib/photo_util.js');
-var db = require('../../lib/db.js');
-var AWSu  = require('../../lib/aws_util.js');
+var photoUtil = require ('./photo_util.js');
+var db = require('./db.js');
+var AWSu  = require('./aws_util.js');
 
-var src = path.resolve(__dirname, '../data/orient3.jpg');
+var src = path.resolve(__dirname, '../../test/data/orient3.jpg');
 
 describe('db.js', function() {
 

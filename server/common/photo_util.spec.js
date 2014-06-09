@@ -4,15 +4,16 @@ var async = require("async");
 var fs = require('fs');
 var path = require('path');
 
-var photo = require("../../lib/photo_util.js");
-var utils = require("../../lib/util.js");
+var photo = require("./photo_util.js");
+var utils = require("./util.js");
 
-var testPath = path.resolve(__dirname,'../data/orient6.jpg');
+var datadir = path.resolve(__dirname, '../../test/data');
+var testPath = path.join(datadir,'orient6.jpg');
 
 describe('photo_util.js', function() {
 	it ('#autoRotate', function(done) {
 		var src = testPath;
-		var dest = path.resolve(__dirname, '../data/rotatetest.jpg');
+		var dest = path.join(datadir, 'rotatetest.jpg');
 		async.series([
 				function(fn) { utils.fileCopy( src, dest, fn)},
 				function(fn) { photo.autoRotate( dest, fn) },
@@ -46,7 +47,7 @@ describe('photo_util.js', function() {
 	});
 
 	it ('#readExifData no width', function(done) {
-		var src = path.resolve(__dirname,'../data/noexif.jpg');
+		var src = path.join(datadir,'noexif.jpg');
 		photo.readExifData( src, function(err, exif) {
 			if (err)
 				done(err);

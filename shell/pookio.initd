@@ -21,7 +21,7 @@
 ################################################################################
 
 DESC="nodepook"
-NAME="bin/www"
+NAME="shell/www"
 DIR="/home/ec2-user"
 APP=${DIR}/${DESC}/${NAME}
 LOCKFILE=`basename $0 .sh`

@@ -27,7 +27,7 @@ client
   vendor
   sass
 test
-scripts
+shell 
 docs
 
 new code layout

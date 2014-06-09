@@ -23,9 +23,9 @@ var fs = require("fs");
 var gm = require('gm');
 var path = require('path');
 
-var AWSu = require ('../lib/aws_util.js');
-var photoUtil = require('../lib/photo_util.js');
-var util = require('../lib/util.js')
+var AWSu = require ('../common/aws_util.js');
+var photoUtil = require('../common/photo_util.js');
+var util = require('../common/util.js')
 
 var router = express.Router();
 

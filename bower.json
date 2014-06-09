@@ -1,0 +1,25 @@
+{
+  "name": "nodepook",
+  "version": "0.0.1",
+  "homepage": "https://github.com/atotic/nodepook",
+  "authors": [
+    "Aleks Totic <a@totic.org>"
+  ],
+  "description": "node/angular photobook editor",
+  "main": "shell/www",
+  "moduleType": [
+    "node"
+  ],
+  "license": "MIT",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "browser/vendor",
+    "test"
+  ],
+  "dependencies": {
+    "angular": "~1.2.17"
+  }
+}

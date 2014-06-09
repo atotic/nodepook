@@ -3,10 +3,11 @@ var debug = require('debug')('pook:test:routes');
 var path = require('path');
 var request = require('supertest');
 
-var app = require('../../app.js');
-var db = require('../../lib/db.js');
+var app = require('../instances/app.js');
+var db = require('../common/db.js');
 
-var testPath = path.resolve(__dirname,'../data/tiny.jpg');
+var datadir = path.resolve(__dirname, '../../test/data');
+var testPath = path.join(datadir,'tiny.jpg');
 
 describe('/photos', function() {
 

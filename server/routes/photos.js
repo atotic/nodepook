@@ -6,20 +6,22 @@ var express = require('express');
 var fs = require('fs');
 var path = require('path');
 
-var AWSu = require ('../lib/aws_util.js');
-var db = require('../lib/db.js');
-var photoUtil = require('../lib/photo_util.js');
+var AWSu = require ('../common/aws_util.js');
+var db = require('../common/db.js');
+var photoUtil = require('../common/photo_util.js');
 
 var router = express.Router();
 
-router.use('/', express.static( path.resolve(__dirname, '../uploads') ));
+var uploadDir = path.resolve(__dirname, '../../uploads');
+
+router.use('/', express.static( uploadDir ));
 
 router.route('/')
   .post( function uploadPhoto(req, res, next) {
 
-    // debug("got a file", req.files.myPhoto.originalname);
+    debug("got a file", req.files.myPhoto.originalname);
 
-    var photoPath = path.resolve(__dirname,'../uploads/' + req.files.myPhoto.name);
+    var photoPath = path.join(uploadDir, req.files.myPhoto.name);
 
     var exifData;
     var bucketName = req.files.myPhoto.name;

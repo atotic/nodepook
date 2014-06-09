@@ -4,13 +4,14 @@ var request = require('supertest');
 var async = require('async');
 var path = require('path');
 
-var app = require('../../app.js');
-var db = require('../../lib/db.js');
-var AWSu = require('../../lib/aws_util.js');
-var util = require('../../lib/util.js');
-var photoUtil = require('../../lib/photo_util.js');
+var app = require('../instances/app.js');
+var db = require('../common/db.js');
+var AWSu = require('../common/aws_util.js');
+var util = require('../common/util.js');
+var photoUtil = require('../common/photo_util.js');
 
-var src = path.resolve(__dirname, '../data/tiny.jpg');
+var datadir = path.resolve(__dirname, '../../test/data');
+var src = path.join(datadir, 'tiny.jpg');
 
 describe('/resize', function() {
 

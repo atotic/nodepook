@@ -6,9 +6,11 @@ var fs = require('fs');
 var gm = require('gm');
 var path = require('path');
 
-var AWSu = require ('../../lib/aws_util.js');
-var util = require ('../../lib/util.js');
-var photoUtil = require('../../lib/photo_util.js');
+var AWSu = require ('./aws_util.js');
+var util = require ('./util.js');
+var photoUtil = require('./photo_util.js');
+
+var datadir = path.resolve(__dirname, '../../test/data');
 
 describe('aws_util.js', function() {
 
@@ -16,7 +18,7 @@ describe('aws_util.js', function() {
 
 		it('#putObject buffer', function(done) {
 			this.timeout(4*1000);
-			var src = path.resolve(__dirname, '../data/tiny.jpg');
+			var src = path.join(datadir, 'tiny.jpg');
 			var key = "s3uploadStreamtest-" + util.randomString(6);
 			async.waterfall([
 					function read(callback) {
@@ -49,7 +51,7 @@ describe('aws_util.js', function() {
 
 		it ('#putObject stream', function(done) {
 			this.timeout(4*1000);
-			var src = path.resolve(__dirname, '../data/tiny.jpg');
+			var src = path.join(datadir, 'tiny.jpg');
 			var key = "s3uploadStreamtest-" + util.randomString(6);
 			async.waterfall([
 					function upload(callback) {
