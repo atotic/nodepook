@@ -4,6 +4,7 @@ html(ng-app='notesApp')
     title Angular tests
     link(rel='stylesheet', href='/css/style.css')
     script(src="/vendor/angular/angular.min.js")
+    script(src='/views/angular_play.js')
     style.
       .done { 
         background-color: green;
@@ -15,19 +16,3 @@ html(ng-app='notesApp')
     div(ng-repeat='note in ctrl.notes' ng-class='ctrl.getNoteClass(note.done)')
       span.label {{note.label}} 
       span.assignee( ng-show='note.assignee', ng-bind='note.assignee')
-    script.
-      angular.module('notesApp',[])
-        .controller('MainCtrl', [ function() {
-          this.notes = [
-          { id: 1, label: 'First', done: false, assignee: 'Shyam'},
-          { id: 2, label: 'Second', done: false},
-          { id: 3, label: 'Third', done: true},
-          { id: 4, label: 'Fourth', done: false, assignee: 'Brad'},
-          ]
-          this.getNoteClass = function(status) {
-            return {
-              done: status,
-              pending: !status
-            }
-          }
-        }]);

@@ -1,5 +1,5 @@
 // photo_test.js
-var assert = require("assert");
+var assert = require("chai").assert;
 var async = require("async");
 var fs = require('fs');
 var path = require('path');

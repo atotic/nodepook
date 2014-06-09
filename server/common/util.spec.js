@@ -1,7 +1,7 @@
 // util_test.js
 var debug = require('debug')('pook:test:util_test');
 
-var assert = require("assert");
+var assert = require("chai").assert;
 var path = require('path');
 var fs = require('fs');
 var async = require('async');

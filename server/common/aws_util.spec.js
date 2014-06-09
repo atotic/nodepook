@@ -1,6 +1,6 @@
 // aws_util_test.js
 "use strict";
-var assert = require("assert");
+var assert = require('chai').assert;
 var async = require('async');
 var fs = require('fs');
 var gm = require('gm');
@@ -125,8 +125,8 @@ describe('aws_util.js', function() {
 		it ('#uniqueId', function() {
 			var id1 = AWSu.uniqueId();
 			var id2 = AWSu.uniqueId();
-			assert(id1.length > 10);
-			assert(id1 != id2);
+			assert(id1.length > 10, "id is long enough");
+			assert(id1 != id2, "ids are not equal");
 		});
 
 		it ('#select', function(done) {

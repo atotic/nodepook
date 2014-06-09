@@ -4,6 +4,7 @@
 Angular 2.0 design docs: https://drive.google.com/?pli=1#folders/0B7Ovm8bUYiUDR29iSkEyMk5pVUk
 
 TODO:
+pm2 inside pookio.initd
 user authentication: passport
 user authentication ui: angular (or not?)
 use angular for drag'n'drop, in place UI with list of photos.

@@ -2,3 +2,4 @@ node_modules/**
 uploads/**
 bin/aws.credentials
 browser/vendor/**
+pook.sublime-workspace
