@@ -1,42 +1,25 @@
-- promises so far: a whole lot of rewriting existing world.
-- async seems to offer same functionality, with less friction
-
-Angular 2.0 design docs: https://drive.google.com/?pli=1#folders/0B7Ovm8bUYiUDR29iSkEyMk5pVUk
-
 TODO:
 pm2 inside pookio.initd
 user authentication: passport
-user authentication ui: angular (or not?)
-use angular for drag'n'drop, in place UI with list of photos.
 jsdoc: my own, or existing frameworks
+
+User authentication:
+- created domain users
+- passport, passport-local, bcrypt
 
 RESEARCH:
 sync document model
 couchdb?
 PDF generation: http://www.feedhenry.com/server-side-pdf-generation-node-js/
 
-APPLICATION LAYOUT
-
-server
-	common
-	routes
-	instances
-client
-  img
-  css
-  views
-  vendor
-  sass
-test
-shell 
-docs
-
-new code layout
-bower support
-karma
+BUSINESS:
+Can she launch my product? http://unicornfree.com/
 
 DONE:
-ripped out promises. Although I prefer them, callbacks are node standard and async makes it nice
+bower for vendor libraries
+use karma/chai/mocha as testing framework
+refactored code into browser/server
+ripped out promises. Although I prefer them, callbacks are node standard and async makes callbacks ok
 dns via route53. Create command line tool to set
 resize images on ec2: run servers on boot, run forever, redirect dns via route 53, s3 redirect
 switched pook.io DNS to Route53

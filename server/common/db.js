@@ -53,7 +53,7 @@ function extensionFromName(name) {
  */
 function createPhoto(localFile, exif, ownerId, done) {
 
-	var sdbId = AWSu.uniqueId();
+	var sdbId = AWSu.uniqueId;
 
 	var s3extension = extensionFromName( exif.displayName);
 

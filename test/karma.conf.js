@@ -20,8 +20,8 @@ module.exports = function(config) {
       { pattern: 'browser/vendor/angular-mocks/angular-mocks.js' },
       { pattern: 'browser/vendor/chai/chai.js' },
 
-      // application files
-      { pattern: 'browser/views/angular_play.js'},
+      // application files, everything but spec
+      { pattern: 'browser/views/*!(spec).js'},
 
       // test files
       { pattern: 'browser/**/*.spec.js' }

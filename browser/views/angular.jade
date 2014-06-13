@@ -12,7 +12,23 @@ html(ng-app='notesApp')
       .pending {
         background-color: red;
       }
-  body(ng-controller='MainCtrl as ctrl') 
-    div(ng-repeat='note in ctrl.notes' ng-class='ctrl.getNoteClass(note.done)')
-      span.label {{note.label}} 
-      span.assignee( ng-show='note.assignee', ng-bind='note.assignee')
+  body
+    div(ng-controller='MainCtrl as ctrl')
+      form(ng-submit="ctrl.submit", name='form1')
+        p Username:
+          input(name='username', ng-model="ctrl.user.username", required=true, ng-minlength=4)
+          span(ng-show='form1.username.$error.required') Required
+          span(ng-show='form1.username.$error.minlength') Username is too short
+        p Password:
+          input(name='password', ng-model='ctrl.user.password', type='password', required=true, ng-minlength=8)
+          span(ng-show='form1.password.$error.required && form1.password.$dirty') Required
+          span(ng-show='form1.password.$error.minlength') Too short
+        p
+          input(type='submit', value='submit!', ng-disabled='form1.$invalid')
+          input(type='reset')
+      button(ng-click='ctrl.change()') Change it
+      div(ng-repeat='note in ctrl.notes' ng-class='ctrl.getNoteClass(note.done)')
+        span.label {{note.label}} 
+        span.assignee( ng-show='note.assignee', ng-bind='note.assignee')
+    div(ng-controller="MainCtrl as ctrl")
+      p username is {{ctrl.username}}

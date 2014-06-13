@@ -12,7 +12,7 @@ var photoUtil = require('./photo_util.js');
 
 var datadir = path.resolve(__dirname, '../../test/data');
 
-describe('aws_util.js', function() {
+describe('aws_util.js, and various aws calls', function() {
 
 	describe('s3', function() {
 
@@ -122,13 +122,6 @@ describe('aws_util.js', function() {
 			);
 		});
 
-		it ('#uniqueId', function() {
-			var id1 = AWSu.uniqueId();
-			var id2 = AWSu.uniqueId();
-			assert(id1.length > 10, "id is long enough");
-			assert(id1 != id2, "ids are not equal");
-		});
-
 		it ('#select', function(done) {
 			this.timeout(60 * 1000);
 			// var q = "select itemName() from photos where md5='a7aea1d663adc76b9269ec6f0c1b8e15'";
@@ -176,6 +169,28 @@ describe('aws_util.js', function() {
 				}
 				);
 		});
+	});
 
+	describe('misc utils', function() {
+		it ('#uniqueId', function() {
+			var id1 = AWSu.uniqueId;
+			var id2 = AWSu.uniqueId;
+			assert(id1.length > 10, "id is long enough");
+			assert(id1 != id2, "ids are not equal");
+		});
+
+		it('attribute conversion', function(done) {
+			var o = { one: "one", two: "two"};
+			var asAttr = AWSu.objectToAttributes(o);
+			var oBack = AWSu.attributesToObject(asAttr);
+			assert.deepEqual(o, oBack, "Deep object conversion");
+			done();
+		});
+		
+		it('quoteForSelect', function(done) {
+			var str = 'str"st';
+			assert.equal("\"str\"\"st\"", AWSu.quoteForSelect(str), "Added extra quotes");
+			done();
+		});
 	});
 });

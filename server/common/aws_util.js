@@ -69,7 +69,7 @@ function sdbObjectToAttributes(o) {
   var attributes = [];
   for (var a in o) {
     if (o[a] !== undefined)  // do not write out undefined params
-      attributes.push( { Name: a, Value: String(attributes[a]) } );
+      attributes.push( { Name: a, Value: String(o[a]) } );
   }
   return attributes;
 }
@@ -103,9 +103,15 @@ function sdbReadItem(domain, itemName, done) {
   );
 }
 
+function quoteForSelect(str) {
+  if (typeof str != "string")
+    return "";
+  return '"' + str.replace('"', '""') + '"'; 
+}
+
 
 module.exports = {
-  uniqueId: uniqueId,
+  get uniqueId() { return uniqueId() },
   buckets: {
     photos: 'pookio-test',
     books: 'pookio-test',
@@ -118,6 +124,7 @@ module.exports = {
   },
   objectToAttributes: sdbObjectToAttributes,
   attributesToObject: sdbAttributesToObject,
+  quoteForSelect: quoteForSelect,
   sdbReadItem: sdbReadItem,
   get s3() { return services.s3 },
   get sdb() { return services.sdb },

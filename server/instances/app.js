@@ -28,6 +28,11 @@ app.use('/users',   require('../routes/users'));
 app.use('/photos',  require('../routes/photos'));
 app.use('/resize',  require('../routes/resize'));
 app.use('/angular', require('../routes/angular'));
+app.use('/auth',    require('../routes/auth'));
+
+app.get('/polymer', function stats(req, res, next) {
+   res.render('polymer');
+ });
 
 /// catch 404 and forwarding to error handler
 app.use(function(req, res, next) {

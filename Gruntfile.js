@@ -94,6 +94,16 @@ module.exports = function(grunt) {
 			done);
 	});
 
+	grunt.registerTask('select', function() {
+		var done = this.async();
+		AWSu.sdb.select({
+			SelectExpression: 'select password from users where email="test@test.com"'
+		}, function(err, response) {
+			console.log(response);
+			done(err, response);
+		});
+	});
+
 	grunt.registerTask('eraseDatabases', function() {
 		var done = this.async();
 		async.waterfall(
