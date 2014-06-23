@@ -3,6 +3,7 @@ var debug = require('debug')('pook:routes:photos');
 
 var async = require('async');
 var express = require('express');
+var formidable = require('formidable');
 var fs = require('fs');
 var path = require('path');
 
@@ -19,30 +20,36 @@ router.use('/', express.static( uploadDir ));
 router.route('/')
   .post( function uploadPhoto(req, res, next) {
 
-    debug("got a file", req.files.myPhoto.originalname);
-
-    var photoPath = path.join(uploadDir, req.files.myPhoto.name);
+    debug("got a file");
+    var form = new formidable.IncomingForm();
+    form.uploadDir = uploadDir;
+    form.type = 'multipart';
+    form.hash = 'md5';
 
     var exifData;
-    var bucketName = req.files.myPhoto.name;
     var itemIds;
-
+    var file;
     async.waterfall(
       [
-        function autoRotate(cb) {
-          photoUtil.autoRotate(photoPath, cb);
+        function parseForm(cb) {
+          form.parse(req, cb);
+        },
+        function autoRotate(fields, files, cb) {
+          file = files.myPhoto;
+          photoUtil.autoRotate(file.path, cb);
         },
         function readExifData(ignore, cb) {
-          photoUtil.readExifData(photoPath, cb);
+          photoUtil.readExifData(file.path, cb);
         },
         function createPhoto(inExifData, cb) {
           exifData = inExifData;
-          exifData.displayName = req.files.myPhoto.originalname;
-          db.photo.create(photoPath, exifData, 0, cb);
+          exifData.displayName = file.name;
+          exifData.md5 = file.hash;
+          db.photo.create(file.path, exifData, 0, cb);
         },
         function deleteFile(inItemIds, cb) {
           itemIds = inItemIds;
-          fs.unlink(photoPath, cb);
+          fs.unlink(file.path, cb);
         }
       ],
       function final(err, result) {

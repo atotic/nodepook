@@ -60,7 +60,7 @@ function createPhoto(localFile, exif, ownerId, done) {
 	var attributes = {
 		createdAt: (new Date()).toISOString(),
 		ownerId: ownerId,
-		md5: 0,
+		md5: exif.md5,
 		s3id: utils.randomString(6) + "_" + sdbId + s3extension,
 		displayName: exif.displayName,
 		width: exif.width,
@@ -128,24 +128,31 @@ function createPhoto(localFile, exif, ownerId, done) {
 		);
 	}
 
-	utils.fileMd5(localFile, function gotMd5(err, md5) {
-		if (err)
-			done(err);
-		else {
-			attributes.md5 = md5;
-			rejectDuplicates(md5, ownerId, function noDups(err) {
-				if (err) {
-					if (err.name == "DuplicatePhoto")
-						done({ sdbId: err.id, s3id: null });
-					else
-						done(err);
+	async.waterfall( [
+			function getMd5(cb) {
+				if (attributes.md5)
+					cb(null, attributes.md5);
+				else
+					utils.fileMd5(localFile, cb);
+			},
+			function noDups(md5, cb) {
+				attributes.md5 = md5;
+				rejectDuplicates(md5, ownerId, cb);
+			},
+		],
+		function(err) {
+			if (err) {
+				if (err.name == "DuplicatePhoto") {
+					debug("got duplicate");
+					done(null, { sdbId: err.id, s3id: null });
 				}
-				else {
-					saveToDb();
-				}
-			});
+				else
+					done(err);
+			}
+			else
+				saveToDb();
 		}
-	});
+	);
 }
 
 function readPhoto(itemId, done) {

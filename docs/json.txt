@@ -1,0 +1,25 @@
+json.txt
+
+JSON apis return following, most fields optional
+if success, http 200
+{
+	message:
+	err_msg:
+	warn_msg:
+	data: {
+		id: // create
+	}
+}
+
+if error, http 422
+{
+	message:
+	errMsg:
+	warnMsg:
+	formMessages {
+			field_name: <error_msg>
+		}
+	}
+}
+
+

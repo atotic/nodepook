@@ -26,14 +26,14 @@ describe('user_model', function() {
 				function createUser(cb) {
 					userModel.create(email, password, cb);
 				},
-				function createDuplicateUser(id, cb) {
+				function createDuplicateUser(id, cb) { // fails, can't create two users with same email
 					userId = id;
 					userModel.create(email, password, util.invertCallback(cb));
 				},
 				function readUser(id, cb) {
 					AWSu.sdbReadItem(AWSu.domains.users, userId, cb);
 				},
-				function findByEmailPW(user, cb) {
+				function findByEmailPassword(user, cb) {
 					assert(user.email == email, "stored email matches");
 					// cb(null, userId);
 					userModel.findByEmailPassword(email, password, cb);

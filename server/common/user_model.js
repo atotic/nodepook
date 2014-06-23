@@ -22,10 +22,10 @@ var AWSu = require('./aws_util');
  *	 fieldName: "error text"  // for each field
  * }
  */
-function UserModelError(errorMessages) {
-	var err = new Error(errorMessages.message || "UserModelError");
+function UserModelError(message, formMessages) {
+	var err = new Error(message);
 	err.name = "UserModelError";
-	err.errorMessages = errorMessages;
+	err.formMessages = formMessages;
 	return err;
 }
 
@@ -46,11 +46,12 @@ function encryptPassword(password, done) {
 
 
 // done(err, userId)
+var CANT_CREATE_MSG = "User cannot be registered.";
 function create(email, password, done) {
 	if (!email || !email.match('@'))
-		return done( new UserModelError({email: "Invalid address"}) );
+		return done( new UserModelError(CANT_CREATE_MSG, {email: "Invalid address"}) );
 	if (!password || password.length < 8)
-		return done( new UserModelError( { password: "Password is too short"}));
+		return done( new UserModelError(CANT_CREATE_MSG,  { password: "Password is too short"}));
 
 	var userId;
 	async.waterfall([
@@ -59,7 +60,7 @@ function create(email, password, done) {
 			},
 			function encryptPw(awsResponse, cb) {
 				if ('Items' in awsResponse && awsResponse.Items.length > 0) {
-					return cb( new UserModelError( { email: "email already registered"}));
+					return cb( new UserModelError(CANT_CREATE_MSG,  { email: "email already registered"}));
 				}
 				debug('encryptPw');
 				encryptPassword(password, cb);
@@ -117,14 +118,14 @@ function findByEmailPassword(email, password, done) {
 				}
 				else {
 					debug('could not find user by email', email);
-					cb( new UserModelError({ email: "email is not registered"}));
+					cb( new UserModelError("No such user", { email: "email is not registered"}));
 				}
 			},
 			function haveMatch(isMatch, cb) {
 				if (isMatch)
 					return cb(null, userId);
 				else
-					cb(new UserModelError({ password: "passwords do not match"}));
+					cb(new UserModelError("No such user", { password: "passwords do not match"}));
 			}
 		],
 		function(err, userId) {

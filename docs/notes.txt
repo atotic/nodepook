@@ -3,14 +3,25 @@ pm2 inside pookio.initd
 user authentication: passport
 jsdoc: my own, or existing frameworks
 
+NEXT
 User authentication:
 - created domain users
 - passport, passport-local, bcrypt
+- user_model api
+- can't test the api, because Express does not do form parsing by default
+- bodyparser was the solution, no more.
+- need to get multiparty instead of multer
+- use querystring to parse the body
+- use session to keep user logged in
 
 RESEARCH:
-sync document model
+document syncing
 couchdb?
+
+pdf generation
+
 PDF generation: http://www.feedhenry.com/server-side-pdf-generation-node-js/
+PDF generation with http://dailyjs.com/2014/06/19/phridge/
 
 BUSINESS:
 Can she launch my product? http://unicornfree.com/

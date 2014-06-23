@@ -1,11 +1,10 @@
 // DEBUG=pook* node ./bin/www
 
+var cookieParser = require('cookie-parser');
 var express = require('express');
-var path = require('path');
 var favicon = require('serve-favicon');
 var logger = require('morgan');
-var cookieParser = require('cookie-parser');
-var multer = require('multer'); // processes multipart/form-data
+var path = require('path');
 
 var routes = require('../routes/index');
 
@@ -21,7 +20,6 @@ app.use(favicon(homepath + '/browser/favicon.ico'));
 app.use(logger('dev'));
 app.use(cookieParser());
 app.use(express.static(path.join(homepath, 'browser')));
-app.use(multer({ dest: path.join(homepath, 'uploads'), fileSize: 15 * 1049000, files: 1}));
 
 app.use('/', routes);
 app.use('/users',   require('../routes/users'));

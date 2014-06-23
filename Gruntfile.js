@@ -81,6 +81,7 @@ module.exports = function(grunt) {
 					if (!('Items' in data))
 						return;
 					async.map(data.Items, function(item, callback) {
+						console.log("deleting item ", item.Name);
 						AWSu.sdb.deleteAttributes(
 							{
 								DomainName: domain,
@@ -108,18 +109,18 @@ module.exports = function(grunt) {
 		var done = this.async();
 		async.waterfall(
 			[
-				function selectItems(cb) {
+				function selectPhotos(cb) {
 					debug('selectItems');
 					AWSu.sdb.select({
 						SelectExpression: 'select itemName() from photos'
 					}, cb);
 				},
-				function deleteItems(data, cb) {
+				function deletePhotos(data, cb) {
 					debug('deleteItems');
 					if (!('Items' in data))
 						return cb(null, null);
 					async.map(data.Items, function(item, callback) {
-						console.log('deleting item ', item.Name);
+						console.log('deleting photo ', item.Name);
 						AWSu.sdb.deleteAttributes(
 							{
 								DomainName: 'photos',
