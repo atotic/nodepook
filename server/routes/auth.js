@@ -1,58 +1,103 @@
 var debug = require('debug')('pook:routes:auth');
 
 var async = require('async');
-var bcrypt = require('bcrypt');
 var express = require('express');
 var formidable = require('formidable');
-var localStrategy = require('passport-local').Strategy;
 var passport = require('passport');
+var LocalStrategy = require('passport-local').Strategy;
 
-var userModel = require('../common/user_model.js');
+var User = require('../common/User.js');
 
-/**
- * User model
- *
- * fields:
- * email
- * password: encrypted with bcrypt
- */
-var User = {
-	create: function(email, password, done) {
+// passport.use( new LocalStrategy(function (email, password, done) {
+// 	async.waterfall([
+// 		function findUser(cb) {
+// 			User.findByEmailPassword(email, password, cb);
+// 		},
+// 		function gotUser(userId, cb) {
+// 			done(null, userId);
+// 			cb();
+// 		}
+// 		],
+// 		function complete(err) {
+// 			if (err) {
+// 				done(err, false, err.formMessages);
+// 			}
+// 		}
+// 	);
 
-	}
+// }));
+
+var COOKIE_ID = 'pookio_user';
+function login(res, userId) {
+	res.cookie(COOKIE_ID, userId, {
+		signed: true, 
+		maxAge: 24 * 60 * 60 * 1000, 
+		httpOnly: true});
+}
+
+function logout(res) {
+	res.clearCookie(COOKIE_ID);
 }
 
 var router = express.Router();
+
 router.post('/login', function(req, res, next) {
+
+	async.waterfall([
+			function parseForm(cb) {
+				var form = new formidable.IncomingForm();
+				form.parse(req, cb);
+			},
+			function authenticate(fields, files, cb) {
+				User.findByEmailPassword(fields.email, fields.password, cb);
+			},
+			function setCookie(userId, cb) {
+				login(res, userId);
+				res.send(200, { data: { id: userId } });
+			}
+		],
+		function complete(err) {
+			if (err) {
+				res.send(422, {
+					errMsg: err.message,
+					formMessages: err.formMessages
+				});				
+			}
+		});
 });
 
 router.post('/register', function(req, res, next ) {
-	var form = new formidable.IncomingForm();
+
 	var userId;
+
 	async.waterfall([
 		function parseForm(cb) {
+			var form = new formidable.IncomingForm();
 			form.parse(req, cb);
 		},
 		function createUser(fields, files, cb) {
-			userModel.create(fields.email, fields.password, cb);
+			User.create(fields.email, fields.password, cb);
 		},
-		function(inUserId, cb) {
+		function getUserId(inUserId, cb) {
 			userId = inUserId;
-			cb();
-		}
-	],
-	function complete(err) {
-		if (err) {
-			debug("error creating user", err);
-			res.send(422, {
-				errMsg: err.message,
-				formMessages: err.formMessages
-			});		
-		}
-		else {
+			login(res, userId);
 			debug("user created", userId);
 			res.send(200, { data: { id: userId } });
+			cb();
 		}
-	});
+		],
+		function complete(err) {
+			if (err) {
+				debug("error creating user", err);
+				res.send(422, {
+					errMsg: err.message,
+					formMessages: err.formMessages
+				});		
+			}
+		}
+	);
 });
-module.exports = router;
+
+module.exports = {
+	router: router
+}

@@ -23,6 +23,11 @@ pdf generation
 PDF generation: http://www.feedhenry.com/server-side-pdf-generation-node-js/
 PDF generation with http://dailyjs.com/2014/06/19/phridge/
 
+sync:
+http://strongloop.com/strongblog/node-js-replication-mobile-offline-sync-loopback/
+http://stackoverflow.com/questions/16043722/open-source-service-like-parse-or-firebase
+https://groups.google.com/forum/#!topic/polymer-dev/3c56Evdt-5Q
+
 BUSINESS:
 Can she launch my product? http://unicornfree.com/
 

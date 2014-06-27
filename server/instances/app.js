@@ -6,6 +6,8 @@ var favicon = require('serve-favicon');
 var logger = require('morgan');
 var path = require('path');
 
+var auth = require('../routes/auth');
+
 var routes = require('../routes/index');
 
 var app = express();
@@ -18,7 +20,7 @@ app.set('view engine', 'jade');
 
 app.use(favicon(homepath + '/browser/favicon.ico'));
 app.use(logger('dev'));
-app.use(cookieParser());
+app.use(cookieParser("WEJNSD<MVCSDKJF"));
 app.use(express.static(path.join(homepath, 'browser')));
 
 app.use('/', routes);
@@ -26,7 +28,7 @@ app.use('/users',   require('../routes/users'));
 app.use('/photos',  require('../routes/photos'));
 app.use('/resize',  require('../routes/resize'));
 app.use('/angular', require('../routes/angular'));
-app.use('/auth',    require('../routes/auth'));
+app.use('/auth',    auth.router);
 
 app.get('/polymer', function stats(req, res, next) {
    res.render('polymer');

@@ -3,14 +3,14 @@
 var assert = require("chai").assert;
 var async = require("async");
 
-var userModel = require('./user_model.js');
+var User = require('./User.js');
 var AWSu = require('./aws_util.js');
 var util = require('./util.js');
 
 describe('user_model', function() {
 
 	it ("#encryptPassword", function(done) {
-		userModel.encryptPassword("test", function(err, newPw) {
+		User.encryptPassword("test", function(err, newPw) {
 			assert.isUndefined(err, 'expect no error');
 			assert(newPw.length > 10, "pw is long enough");
 			done();
@@ -24,11 +24,11 @@ describe('user_model', function() {
 		var userId;
 		async.waterfall([
 				function createUser(cb) {
-					userModel.create(email, password, cb);
+					User.create(email, password, cb);
 				},
 				function createDuplicateUser(id, cb) { // fails, can't create two users with same email
 					userId = id;
-					userModel.create(email, password, util.invertCallback(cb));
+					User.create(email, password, util.invertCallback(cb));
 				},
 				function readUser(id, cb) {
 					AWSu.sdbReadItem(AWSu.domains.users, userId, cb);
@@ -36,7 +36,7 @@ describe('user_model', function() {
 				function findByEmailPassword(user, cb) {
 					assert(user.email == email, "stored email matches");
 					// cb(null, userId);
-					userModel.findByEmailPassword(email, password, cb);
+					User.findByEmailPassword(email, password, cb);
 				},
 				function deleteUser(id, cb) {
 					assert(userId == id, "found by email match");
