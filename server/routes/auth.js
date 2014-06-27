@@ -3,11 +3,11 @@ var debug = require('debug')('pook:routes:auth');
 var async = require('async');
 var express = require('express');
 var formidable = require('formidable');
-var passport = require('passport');
-var LocalStrategy = require('passport-local').Strategy;
 
 var User = require('../common/User.js');
 
+// var passport = require('passport');
+// var LocalStrategy = require('passport-local').Strategy;
 // passport.use( new LocalStrategy(function (email, password, done) {
 // 	async.waterfall([
 // 		function findUser(cb) {
@@ -28,10 +28,12 @@ var User = require('../common/User.js');
 // }));
 
 var COOKIE_ID = 'pookio_user';
+var HOUR = 60 * 60 * 1000;
+
 function login(res, userId) {
 	res.cookie(COOKIE_ID, userId, {
 		signed: true, 
-		maxAge: 24 * 60 * 60 * 1000, 
+		maxAge: 24 * HOUR, // 24 hours
 		httpOnly: true});
 }
 
@@ -66,6 +68,11 @@ router.post('/login', function(req, res, next) {
 		});
 });
 
+router.post('/logout', function(req, res, next) {
+	logout(res);
+	res.send(200, { data: {}})
+});
+
 router.post('/register', function(req, res, next ) {
 
 	var userId;
@@ -97,6 +104,7 @@ router.post('/register', function(req, res, next ) {
 		}
 	);
 });
+
 
 module.exports = {
 	router: router

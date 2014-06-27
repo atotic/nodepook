@@ -30,13 +30,18 @@ describe('/register', function() {
 		request(app)
 			.post('/auth/register')
 			.type('form')
-			.send({ email: 'test6@totic.org'})
+			.send({ email: 'test7@totic.org'})
 			.send({ password: 'goodpassword'})
 			.set('Accept', 'application/json')
 			.expect(function(response) {
 				if (!response.body.data.id) {
 					return "register should return user id";
 				}
+				var cookie = response.headers['set-cookie'][0];
+				if( !cookie)
+					return "cookie not returned after registaration";
+				if (!cookie.match(/pookio/))
+					return 'cookie does not have user id';
 			})
 			.expect(200)
 			.expect('Content-Type', /json/)

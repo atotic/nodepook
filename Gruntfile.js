@@ -69,6 +69,7 @@ module.exports = function(grunt) {
 	});
 
 	grunt.registerTask('cleanDomain', function(domain) {
+		console.log('SDB clean domain', domain);
 		var done =  this.async();
 		async.waterfall(
 			[
@@ -79,7 +80,7 @@ module.exports = function(grunt) {
 				},
 				function deleteItems(data, cb) {
 					if (!('Items' in data))
-						return;
+						return cb();
 					async.map(data.Items, function(item, callback) {
 						console.log("deleting item ", item.Name);
 						AWSu.sdb.deleteAttributes(
@@ -95,6 +96,44 @@ module.exports = function(grunt) {
 			done);
 	});
 
+	grunt.registerTask('cleanBucket', function(bucket) {
+		console.log('S3 clean bucket: ', bucket);
+
+		var done = this.async();
+		async.waterfall([
+				function listBucket(cb) {
+					AWSu.s3.client.listObjects({
+						Bucket: bucket,
+						Delimiter: '/'
+					},
+					cb);
+				},
+				function deleteKeys(data, cb) {
+					async.map(data.Contents, function(item, callback) {
+							if ( ['404.jpg', 'index.jpg'].indexOf(item.Key) == -1) {
+								console.log('deleting key ', item.Key);
+								AWSu.s3.client.deleteObject(
+									{
+										Bucket: bucket,
+										Key: item.Key
+									},
+									callback);
+							}
+							else
+								callback();
+						},
+						cb
+					);
+				}			
+			],
+			function complete(err) {
+				if (err)
+					console.log("Have error", err);
+				done(err);
+			}
+		);
+	});
+
 	grunt.registerTask('select', function() {
 		var done = this.async();
 		AWSu.sdb.select({
@@ -105,61 +144,7 @@ module.exports = function(grunt) {
 		});
 	});
 
-	grunt.registerTask('eraseDatabases', function() {
-		var done = this.async();
-		async.waterfall(
-			[
-				function selectPhotos(cb) {
-					debug('selectItems');
-					AWSu.sdb.select({
-						SelectExpression: 'select itemName() from photos'
-					}, cb);
-				},
-				function deletePhotos(data, cb) {
-					debug('deleteItems');
-					if (!('Items' in data))
-						return cb(null, null);
-					async.map(data.Items, function(item, callback) {
-						console.log('deleting photo ', item.Name);
-						AWSu.sdb.deleteAttributes(
-							{
-								DomainName: 'photos',
-								ItemName: item.Name
-							},
-							callback
-						)
-					}, cb);
-				},
-				function listBucket(ingore, cb) {
-					debug('listBucket');
-					AWSu.s3.client.listObjects({
-						Bucket: AWSu.buckets.photos,
-						Delimiter: '/'
-					},
-					cb);
-				},
-				function deleteKeys(data, cb) {
-					debug('deleteKeys');
-					async.map(data.Contents, function(item, callback) {
-						if ( ['404.jpg', 'index.jpg'].indexOf(item.Key) == -1) {
-							console.log('deleting key ', item.Key);
-							AWSu.s3.client.deleteObject(
-								{
-									Bucket: AWSu.buckets.photos,
-									Key: item.Key
-								},
-								callback);
-						}
-					});
-				}
-			],
-			function(err, ignore) {
-				console.log("done");
-				if (err)
-					console.error(err);
-				done(err);
-			});
-	});
+	grunt.registerTask('eraseEverything', ['cleanBucket:pookio-test', 'cleanDomain:photos', 'cleanDomain:users']);
 
 	grunt.registerTask('netRegisterHostAs', function(hostname) {
 		//var Route53 = require('nice-route53');

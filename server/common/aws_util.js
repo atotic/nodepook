@@ -15,6 +15,7 @@ var IntEncoder = require('int-encoder');
 // SimpleDB requires region to be set manually
 AWS.config.update({region: 'us-west-2'});
 
+/** @returns GUID flake style */
 function uniqueId() {
   if (! ('flakeIdGen' in global))
     global.flakeIdGen = new FlakeId();
@@ -47,17 +48,6 @@ var services = {
     return this._metadata;
   }
 }
-
-
-/*********************
- * S3
- *********************/
-
-/**
- * @param params, s3.putObject params (Key, Body, ContentType, Metadata)
- * {@link http://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#putObject-property}
- * @returns resolve(putObjectData)
- */
 
 
 /**********************
@@ -103,6 +93,7 @@ function sdbReadItem(domain, itemName, done) {
   );
 }
 
+/** @returns Quote string for sdb select by double escaping quotes */
 function quoteForSelect(str) {
   if (typeof str != "string")
     return "";
@@ -111,7 +102,6 @@ function quoteForSelect(str) {
 
 
 module.exports = {
-  get uniqueId() { return uniqueId() },
   buckets: {
     photos: 'pookio-test',
     books: 'pookio-test',
@@ -122,10 +112,13 @@ module.exports = {
     users: 'users',
     test: 'test'
   },
+
   objectToAttributes: sdbObjectToAttributes,
   attributesToObject: sdbAttributesToObject,
   quoteForSelect: quoteForSelect,
   sdbReadItem: sdbReadItem,
+
+  get uniqueId() { return uniqueId() },
   get s3() { return services.s3 },
   get sdb() { return services.sdb },
   get metadata() { return services.metadata }
