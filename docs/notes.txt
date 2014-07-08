@@ -5,14 +5,6 @@ jsdoc: my own, or existing frameworks
 
 NEXT
 User authentication:
-- created domain users
-- passport, passport-local, bcrypt
-- user_model api
-- can't test the api, because Express does not do form parsing by default
-- bodyparser was the solution, no more.
-- need to get multiparty instead of multer
-- use querystring to parse the body
-- use session to keep user logged in
 
 RESEARCH:
 document syncing
@@ -32,6 +24,8 @@ BUSINESS:
 Can she launch my product? http://unicornfree.com/
 
 DONE:
+auth: use session to keep user logged in
+auth: register/login. Using my own library for login/register. Will use passport for google/fb logins
 bower for vendor libraries
 use karma/chai/mocha as testing framework
 refactored code into browser/server

@@ -147,7 +147,7 @@ module.exports = function(grunt) {
 	grunt.registerTask('eraseEverything', ['cleanBucket:pookio-test', 'cleanDomain:photos', 'cleanDomain:users']);
 
 	grunt.registerTask('netRegisterHostAs', function(hostname) {
-		//var Route53 = require('nice-route53');
+
 		var done = this.async();
 		hostname = hostname || 'resize';
 

@@ -24,7 +24,7 @@ var gm = require('gm');
 var path = require('path');
 
 var AWSu = require ('../common/aws_util.js');
-var photoUtil = require('../common/photo_util.js');
+var Photo = require('../common/Photo.js');
 var util = require('../common/util.js')
 
 var router = express.Router();
@@ -44,7 +44,7 @@ var ALLOWED_SIZES = [256, 1024];
  * @returns { key: , size: }
  */
 function pathToKeySize(path) {
-	var m = path.split( photoUtil.separator );
+	var m = path.split( Photo.separator );
 	return { key: m[0].slice(1), size: parseInt(m[1]) }
 }
 
@@ -53,7 +53,7 @@ router.get('*', function conversion(req, res, next) {
 	if (!ks.size || ALLOWED_SIZES.indexOf(ks.size) == -1)
 		return res.send(400, "invalid size " + ks.size);
 
-	var s3resizedKey = ks.key + photoUtil.separator + ks.size;
+	var s3resizedKey = ks.key + Photo.separator + ks.size;
 
 	function resizeAndUpload() {
 		var imageBuffer;
@@ -117,8 +117,8 @@ router.get('*', function conversion(req, res, next) {
 				resizeAndUpload();
 			}
 			else {
-				debug('head exists, redirect to ', photoUtil.hostUrl + s3resizedKey);
-				res.redirect( photoUtil.hostUrl + s3resizedKey);
+				debug('head exists, redirect to ', Photo.hostUrl + s3resizedKey);
+				res.redirect( Photo.hostUrl + s3resizedKey);
 			}
 		}
 	);

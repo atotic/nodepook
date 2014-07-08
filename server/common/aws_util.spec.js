@@ -8,7 +8,6 @@ var path = require('path');
 
 var AWSu = require ('./aws_util.js');
 var util = require ('./util.js');
-var photoUtil = require('./photo_util.js');
 
 var datadir = path.resolve(__dirname, '../../test/data');
 

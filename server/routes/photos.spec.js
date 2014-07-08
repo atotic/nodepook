@@ -4,7 +4,7 @@ var path = require('path');
 var request = require('supertest');
 
 var app = require('../instances/app.js');
-var db = require('../common/db.js');
+var Photo = require('../common/Photo.js');
 
 var datadir = path.resolve(__dirname, '../../test/data');
 var testPath = path.join(datadir,'tiny.jpg');
@@ -28,7 +28,7 @@ describe('/photos', function() {
 				if (err)
 					done(err);
 				else {
-					db.photo.delete( res.body.photoId, done);
+					Photo.delete( res.body.photoId, done);
 				}
 			});
 	});

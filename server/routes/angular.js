@@ -9,7 +9,7 @@ var gm = require('gm');
 var path = require('path');
 
 var AWSu = require ('../common/aws_util.js');
-var photoUtil = require('../common/photo_util.js');
+var Photo = require('../common/Photo.js');
 var util = require('../common/util.js')
 
 var router = express.Router();

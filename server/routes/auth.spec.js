@@ -4,9 +4,7 @@ var request = require('supertest');
 var async = require('async');
 
 var app = require('../instances/app.js');
-var db = require('../common/db.js');
 var AWSu = require('../common/aws_util.js');
-
 
 describe('/register', function() {
 

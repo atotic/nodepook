@@ -8,8 +8,7 @@ var fs = require('fs');
 var path = require('path');
 
 var AWSu = require ('../common/aws_util.js');
-var db = require('../common/db.js');
-var photoUtil = require('../common/photo_util.js');
+var Photo = require('../common/Photo.js');
 
 var router = express.Router();
 
@@ -36,16 +35,16 @@ router.route('/')
         },
         function autoRotate(fields, files, cb) {
           file = files.myPhoto;
-          photoUtil.autoRotate(file.path, cb);
+          Photo.autoRotate(file.path, cb);
         },
         function readExifData(ignore, cb) {
-          photoUtil.readExifData(file.path, cb);
+          Photo.readExifData(file.path, cb);
         },
         function createPhoto(inExifData, cb) {
           exifData = inExifData;
           exifData.displayName = file.name;
           exifData.md5 = file.hash;
-          db.photo.create(file.path, exifData, 0, cb);
+          Photo.create(file.path, exifData, 0, cb);
         },
         function deleteFile(inItemIds, cb) {
           itemIds = inItemIds;

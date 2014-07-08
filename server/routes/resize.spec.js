@@ -5,10 +5,9 @@ var async = require('async');
 var path = require('path');
 
 var app = require('../instances/app.js');
-var db = require('../common/db.js');
 var AWSu = require('../common/aws_util.js');
 var util = require('../common/util.js');
-var photoUtil = require('../common/photo_util.js');
+var Photo = require('../common/Photo.js');
 
 var datadir = path.resolve(__dirname, '../../test/data');
 var src = path.join(datadir, 'tiny.jpg');
@@ -24,7 +23,7 @@ describe('/resize', function() {
 		async.waterfall(
 			[
 				function createPhoto(cb) {
-						return db.photo.create(src, {
+						return Photo.create(src, {
 							displayName: "yellow.jpg",
 							contentType: 'image/jpg',
 							width: 100,
@@ -37,18 +36,18 @@ describe('/resize', function() {
 						s3id = item.s3id;
 						sdbId = item.sdbId;
 						request(app)
-							.get("/resize/" + item.s3id + photoUtil.separator + "256")
+							.get("/resize/" + item.s3id + Photo.separator + "256")
 							.expect(200)
 							.end( cb );
 					},
 					function test1024(ignore, cb) {
 						request(app)
-							.get('/resize/' + s3id + photoUtil.separator + "1024")
+							.get('/resize/' + s3id + Photo.separator + "1024")
 							.expect(200)
 							.end( cb );
 					},
 					function deletePhoto(ignore, cb) {
-						db.photo.delete(sdbId, cb);
+						Photo.delete(sdbId, cb);
 					}
 			],
 			function complete(err, result) {
