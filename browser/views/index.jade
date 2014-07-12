@@ -1,9 +1,46 @@
 extends layout
 
 block content
+  link(rel='import', href='views/el/pook-flash.html')
   h1= title
-  p Welcome to #{title}
-  div Upload a file
+  pre
+    | PHOTO BOOK HERE 
+
+  form#login(action="/auth/login", method="post")
+    p Login:
+    label Email:
+      input(type="text", name="email")
+    br
+    label Password:
+      input(type="password", name="password" pattern=".{8,}")
+    br
+    input(type="submit", value="Login")
+
+  script.
+    function displayXhrError(error, form) {
+      if (!error)
+        return;
+
+    }
+    document.querySelector('form').addEventListener('submit', function(ev) {
+      console.log("submit");
+      ev.preventDefault();
+      var form = this;
+      var xhr = new XMLHttpRequest();
+      xhr.onload = function(e) {
+        if (this.status == 200) {
+          window.location.reload();
+        }
+        else {
+          displayXhrError( JSON.parse(this.response), form);
+        }
+      }
+      xhr.open(form.method, form.action);
+      xhr.send( new FormData(form) );
+      });
+
+  pook-flash
+  div(style='margin-top: 100px') Upload a file
   form(action="/photos", method="post", enctype="multipart/form-data")
     input(type="file", name="myPhoto")
     input(type="text", name="myText")
@@ -16,9 +53,3 @@ block content
       input(type="text", name="password" pattern=".{8,}")
     input(type="submit", value="Register")
   div Login
-  form(action="/auth/login", method="post")
-    label Email:
-      input(type="text", name="email")
-    label Password:
-      input(type="text", name="password" pattern=".{8,}")
-    input(type="submit", value="Login")

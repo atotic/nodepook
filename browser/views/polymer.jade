@@ -3,12 +3,14 @@ html
   head
     title Polymer playground
     link(rel='stylesheet', href='/css/style.css')
-    script(src="/vendor/platform-dev/platform.js")
-    link(rel="import", href="vendor/core-drawer-panel/core-drawer-panel.html")
-    link(rel="import", href="vendor/core-field/core-field.html")
-    link(rel="import", href="vendor/core-icons/core-icons.html")
-    link(rel='import', href='vendor/core-input/core-input.html')
-    link(rel='import', href='views/pook-inspector.html')
+    script(src="/vendor/platform/platform.js")
+    link(rel='import', href='vendor/polymer/polymer.html')
+    //- link(rel="import", href="vendor/core-drawer-panel/core-drawer-panel.html")
+    //- link(rel="import", href="vendor/core-field/core-field.html")
+    //- link(rel="import", href="vendor/core-icons/core-icons.html")
+    //- link(rel='import', href='vendor/core-input/core-input.html')
+    link(rel='import', href='views/el/pook-inspector.html')
+    link(rel='import', href='views/el/pook-flash.html')
     style.
       [drawer] {
         border-right: 1px solid blue;
@@ -50,10 +52,11 @@ html
     //-   label Core field demo
     //-   input(type="text",placeholder="I have a label", flex)
     //- core-layout-trbl
-    .left
-      core-input(multiline, rows='20', inputValue='{\n"a": "a",\n"b":"b"\n}',validate="validJson")
-    .right
-      pook-inspector(freight='[{"name":"wow", "last":"cool"}]')
+    //- .left
+    //-   core-input(multiline, rows='20', inputValue='{\n"a": "a",\n"b":"b"\n}',validate="validJson")
+    //- .right
+    //-   pook-inspector(freight='[{"name":"wow", "last":"cool"}]')
+    pook-flash
     script.
       function init() {
         var input = document.querySelector('core-input');
@@ -65,6 +68,7 @@ html
             return true;
           }
           catch(err) {
+            console.error(err.message);
             input.style.backgroundColor = '#FDD';
             return false;
           }

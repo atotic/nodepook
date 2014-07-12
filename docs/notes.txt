@@ -1,10 +1,9 @@
 TODO:
 pm2 inside pookio.initd
-user authentication: passport
 jsdoc: my own, or existing frameworks
 
 NEXT
-User authentication:
+
 
 RESEARCH:
 document syncing
