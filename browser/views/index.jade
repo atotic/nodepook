@@ -19,10 +19,36 @@ block content
       input(type="password", name="password" pattern=".{8,}")
     br
     input(type="submit", value="Login")
+    p.small Forgot your password?
+    p#showRegistration.small Would you like to register?
+  form#register(is='pook-form', action="/auth/register", method="post", style='display:none')
+    h3 Register
+    label Email:
+      br
+      input(type="text", name="email")
+    br
+    label Password:
+      br
+      input(type="password", name="password" pattern=".{8,}")
+    br
+    input(type="submit", value="Register")
+    p#showLogin.small Login instead?
 
+
+  style.
+    #showRegistration, #showLogin { cursor: pointer }
   script.
-    document.querySelector('#login').addEventListener('success', function(xhr) {
-      window.location.pathname = '/users';
+    function showUser() { window.location.pathname = '/users'; }
+    document.querySelector('#login').addEventListener('success', showUser);
+    document.querySelector('#register').addEventListener('success', showUser);
+
+    document.querySelector('#showRegistration').addEventListener('click', function(xhr) {
+      document.querySelector('#login').style.display = 'none';
+      document.querySelector('#register').style.display = 'block';
+    });
+    document.querySelector('#showLogin').addEventListener('click', function(xhr) {
+      document.querySelector('#login').style.display = 'block';
+      document.querySelector('#register').style.display = 'none';
     });
 
   div(style='margin-top: 100px') Upload a file
@@ -30,11 +56,3 @@ block content
     input(type="file", name="myPhoto")
     input(type="text", name="myText")
     input(type="submit")
-  div Register
-  form(action="/auth/register", method="post")
-    label Email:
-      input(type="text", name="email")
-    label Password:
-      input(type="text", name="password" pattern=".{8,}")
-    input(type="submit", value="Register")
-  div Login
