@@ -9,15 +9,21 @@ block content
     | PHOTO BOOK HERE 
 
   form#login(is='pook-form', action="/auth/login", method="post")
-    p Login:
+    h3 Login
     label Email:
+      br
       input(type="text", name="email")
     br
     label Password:
+      br
       input(type="password", name="password" pattern=".{8,}")
     br
     input(type="submit", value="Login")
 
+  script.
+    document.querySelector('#login').addEventListener('success', function(xhr) {
+      window.location.pathname = '/users';
+    });
 
   div(style='margin-top: 100px') Upload a file
   form(action="/photos", method="post", enctype="multipart/form-data")

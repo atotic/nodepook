@@ -19,8 +19,8 @@ describe('user_model', function() {
 
 	it ('#create, duplicateCreate, findByEmailPassword', function(done) {
 		this.timeout(10*1000);
-		var email = 'test@test.com';
-		var password = '234sdf"@!##!@#';
+		var email = 'test@totic.org';
+		var password = '23423#@$34545sdf';
 		var userId;
 		async.waterfall([
 				function createUser(cb) {

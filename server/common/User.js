@@ -125,7 +125,7 @@ function findByEmailPassword(email, password, done) {
 				if (isMatch)
 					return cb(null, userId);
 				else
-					cb(new UserModelError("Invalid password", { password: "passwords do not match"}));
+					cb(new UserModelError("Invalid password", { password: "password does not match"}));
 			}
 		],
 		function(err, userId) {

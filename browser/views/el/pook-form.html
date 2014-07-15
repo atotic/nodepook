@@ -36,7 +36,6 @@
 		var PookFormProto = Object.create(HTMLFormElement.prototype);
 
 		PookFormProto.submitHandler = function(ev) {
-			console.log("submi2t");
 			ev.preventDefault();
 			var form = this;
 			var xhr = new XMLHttpRequest();
@@ -44,7 +43,7 @@
 			xhr.onload = function(e) {
 				switch(this.status) {
 					case 200:
-						console.log("good");
+						form.fire('success', xhr);
 						break;
 					case 422:
 						form.display422error(e.target, form);
@@ -86,7 +85,9 @@
 		};
 
 		PookFormProto.displayUnexpectedError = function(xhr) {
-			console.log("displayUnexpectedError");
+			var flash = document.querySelector('pook-flash');
+			flash.error = "Unexpected error submitting form: " + xhr.status;
+			console.error(xhr);
 		};
 
 		Polymer('pook-form', PookFormProto);
