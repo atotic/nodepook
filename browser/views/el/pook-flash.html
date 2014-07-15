@@ -1,7 +1,11 @@
 <link href="/vendor/polymer/polymer.html" rel="import">
 <link href='/vendor/core-icons/core-icons.html' rel='import'>
 <link href='/vendor/paper-icon-button/paper-icon-button.html' rel='import'>
-<polymer-element name='pook-flash' constructor='PookFlash'>
+<!---
+	Standard flash messages Insert one of these, use methods to display messages
+-->
+<polymer-element name='pook-flash' constructor='PookFlash' 
+	attributes='error warn message'>
 	<template>
 		<style>
 		:host {
@@ -43,28 +47,31 @@
 		<template if='{{error}}'>
 			<div id='error'>
 				{{error}}
-				<paper-icon-button icon=close></paper-icon-button>
+				<paper-icon-button icon=close on-click={{closeError}}></paper-icon-button>
 			</div>
 		</template>
 		<template if='{{warn}}'>
 			<div id='warn'>
 				{{warn}}
-				<paper-icon-button icon=close></paper-icon-button>
+				<paper-icon-button icon=close on-click={{closeWarn}}></paper-icon-button>
 			</div>
 		</template>
 		<template if='{{message}}'>
 			<div id='message'>
 				{{message}}
-				<paper-icon-button icon=close></paper-icon-button>
+				<paper-icon-button icon=close on-click={{closeMessage}}></paper-icon-button>
 			</div>
 		</template>
 	</template>
 	<script>
 		Polymer('pook-flash', {
-			error: 'err',
-			warn: 'warn',
-			message: 'msg',
-
+			error: '',
+			warn: '',
+			message: '',
+			closeError: function() { this.error = ''},
+			closeWarn: function() { this.warn = ''},
+			closeMessage: function() { this.message = ''},
+			clear: function() { this.error = this.warn = this.message = ''}
 		});
 	</script>
 </polymer-element>

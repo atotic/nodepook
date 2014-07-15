@@ -1,0 +1,94 @@
+<link href="/vendor/polymer/polymer.html" rel="import">
+<!---<script>
+	var PookFormProto = Object.create(HTMLFormElement.prototype, {
+		abc: { writable:true, configurable:true, value: "abc" },
+	});
+
+	var PookForm = document.registerElement('pook-form', {
+		prototype: PookFormProto,
+		extends: 'form'
+	});
+ 
+	var MegaButtonProto = Object.create(HTMLButtonElement.prototype);
+	MegaButtonProto.abc = "abc";
+	var MegaButton = document.registerElement('mega-button', {
+  	prototype: MegaButtonProto,
+  	extends: 'button'
+	});
+</script>
+-->
+<polymer-element name='pook-form' extends='form' on-submit="{{submitHandler}}">
+	<template>
+		<content></content>
+	</template>
+	<style>
+		.error {
+			display: inline-block;
+			color: #A94442;
+			background-color: #F2DEDE;
+			border-color: #EBCCD1;
+			margin-left: 24px;
+		}
+	</style>
+	<script>
+	"use strict";
+
+		var PookFormProto = Object.create(HTMLFormElement.prototype);
+
+		PookFormProto.submitHandler = function(ev) {
+			console.log("submi2t");
+			ev.preventDefault();
+			var form = this;
+			var xhr = new XMLHttpRequest();
+			this.clearErrors();
+			xhr.onload = function(e) {
+				switch(this.status) {
+					case 200:
+						console.log("good");
+						break;
+					case 422:
+						form.display422error(e.target, form);
+						break;
+					default:
+						form.displayUnexpectedError(e.target);
+						break;
+				}
+			};
+			xhr.open(form.method, form.action);
+			xhr.send( new FormData(form));
+		};
+
+		PookFormProto.clearErrors = function() {
+			var flash = document.querySelector('pook-flash');
+			if (flash)
+				flash.clear();
+			var errors = this.querySelectorAll('.error');
+			for (var i=0; i<errors.length; i++)
+				errors[i].parentNode.removeChild( errors[i]);
+		};
+
+		PookFormProto.display422error = function(xhr, form) {
+			try {
+				var resp422 = JSON.parse(xhr.response);
+				var flash = document.querySelector('pook-flash');
+				flash.error = resp422.errMsg;
+				for (var p in resp422.formMessages) {
+					var input = form.querySelector('[name="' + p + '"]');
+					var errDiv = document.createElement('div');
+					errDiv.className = "error";
+					errDiv.innerText = resp422.formMessages[p];
+					input.parentNode.appendChild(errDiv);
+				}
+			}
+			catch(err) {
+				console.error("Unexpected error processing 422", err);
+			}
+		};
+
+		PookFormProto.displayUnexpectedError = function(xhr) {
+			console.log("displayUnexpectedError");
+		};
+
+		Polymer('pook-form', PookFormProto);
+	</script>
+</polymer-element> 

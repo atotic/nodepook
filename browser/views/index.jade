@@ -2,11 +2,13 @@ extends layout
 
 block content
   link(rel='import', href='views/el/pook-flash.html')
+  link(rel='import', href='views/el/pook-form.html')
+  pook-flash
   h1= title
   pre
     | PHOTO BOOK HERE 
 
-  form#login(action="/auth/login", method="post")
+  form#login(is='pook-form', action="/auth/login", method="post")
     p Login:
     label Email:
       input(type="text", name="email")
@@ -16,30 +18,7 @@ block content
     br
     input(type="submit", value="Login")
 
-  script.
-    function displayXhrError(error, form) {
-      if (!error)
-        return;
 
-    }
-    document.querySelector('form').addEventListener('submit', function(ev) {
-      console.log("submit");
-      ev.preventDefault();
-      var form = this;
-      var xhr = new XMLHttpRequest();
-      xhr.onload = function(e) {
-        if (this.status == 200) {
-          window.location.reload();
-        }
-        else {
-          displayXhrError( JSON.parse(this.response), form);
-        }
-      }
-      xhr.open(form.method, form.action);
-      xhr.send( new FormData(form) );
-      });
-
-  pook-flash
   div(style='margin-top: 100px') Upload a file
   form(action="/photos", method="post", enctype="multipart/form-data")
     input(type="file", name="myPhoto")
