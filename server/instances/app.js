@@ -11,6 +11,9 @@ var auth = require('../routes/auth');
 var routes = require('../routes/index');
 
 var app = express();
+if (app.get('env') === 'development') {
+  app.locals.pretty = true;
+}
 
 var homepath = path.resolve(__dirname, '../..');
 
@@ -24,7 +27,7 @@ app.use(cookieParser("WEJNSD<MVCSDKJF"));
 app.use(express.static(path.join(homepath, 'browser')));
 
 app.use('/', routes);
-app.use('/users',   require('../routes/users'));
+app.use('/user',   require('../routes/users'));
 app.use('/photos',  require('../routes/photos'));
 app.use('/resize',  require('../routes/resize'));
 app.use('/angular', require('../routes/angular'));

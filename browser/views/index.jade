@@ -5,8 +5,6 @@ block content
   link(rel='import', href='views/el/pook-form.html')
   pook-flash
   h1= title
-  pre
-    | PHOTO BOOK HERE 
 
   form#login(is='pook-form', action="/auth/login", method="post")
     h3 Login
@@ -38,7 +36,7 @@ block content
   style.
     #showRegistration, #showLogin { cursor: pointer }
   script.
-    function showUser() { window.location.pathname = '/users'; }
+    function showUser() { window.location.pathname = '/user'; }
     document.querySelector('#login').addEventListener('success', showUser);
     document.querySelector('#register').addEventListener('success', showUser);
 
@@ -51,8 +49,3 @@ block content
       document.querySelector('#register').style.display = 'none';
     });
 
-  div(style='margin-top: 100px') Upload a file
-  form(action="/photos", method="post", enctype="multipart/form-data")
-    input(type="file", name="myPhoto")
-    input(type="text", name="myText")
-    input(type="submit")

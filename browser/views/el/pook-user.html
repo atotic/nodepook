@@ -1,0 +1,50 @@
+<link href="/vendor/polymer/polymer.html" rel="import">
+<!--
+/**
+	* pook-user represents current user
+	* 'pook-user'.debug=true displays debug information 
+	*
+	* <pook-user user=JSON.stringify(user)>
+	*
+	* @element pook-user
+ */
+-->
+<polymer-element name='pook-user' attributes='user, photos'>
+	<template >
+		<template if="{{debug}}" >
+			<pre>
+				Id: {{user.itemId}}
+				Email: {{user.email}}
+			</pre>
+		</template>
+	</template>
+	<script>
+	(function() {
+	"use strict";
+	var gUser; // global current user
+	function setCurrentUser(user) {
+		if (gUser)
+			console.warn("current user declared more than once");
+		gUser = user;
+	};
+
+	var PookUserPrototype = {
+		publish: {
+			user: { 
+				value: { }
+			},
+			debug: true
+		},
+		ready: function() {
+			if (!('email' in this.user))
+				this.user = gUser;
+			else
+				setCurrentUser(this.user);
+		}
+	};
+
+	Polymer('pook-user', PookUserPrototype);
+
+	})();
+	</script>
+</polymer-element>

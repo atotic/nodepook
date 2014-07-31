@@ -4,28 +4,8 @@ var async = require('async');
 var express = require('express');
 var formidable = require('formidable');
 
+var AWSu = require('../common/aws_util.js');
 var User = require('../common/User.js');
-
-// var passport = require('passport');
-// var LocalStrategy = require('passport-local').Strategy;
-// passport.use( new LocalStrategy(function (email, password, done) {
-// 	async.waterfall([
-// 		function findUser(cb) {
-// 			User.findByEmailPassword(email, password, cb);
-// 		},
-// 		function gotUser(userId, cb) {
-// 			done(null, userId);
-// 			cb();
-// 		}
-// 		],
-// 		function complete(err) {
-// 			if (err) {
-// 				done(err, false, err.formMessages);
-// 			}
-// 		}
-// 	);
-
-// }));
 
 var COOKIE_ID = 'pookio_user';
 var HOUR = 60 * 60 * 1000;
@@ -68,9 +48,12 @@ router.post('/login', function(req, res, next) {
 		});
 });
 
-router.post('/logout', function(req, res, next) {
+router.get('/logout', function(req, res, next) {
 	logout(res);
-	res.send(200, { data: {}})
+	if (req.xhr)
+		res.send(200, { data: {}})
+	else
+		res.redirect('/');
 });
 
 router.post('/register', function(req, res, next ) {
@@ -105,7 +88,20 @@ router.post('/register', function(req, res, next ) {
 	);
 });
 
+// 
+function loadUserFromCookie(req, res, next) {
+	var userId = req.signedCookies.pookio_user;
+	if (userId) {
+		User.read(userId, function(err, user) {
+			req.user = user;
+			next(err);
+		});
+	}
+	else
+		next();
+}
 
 module.exports = {
-	router: router
+	router: router,
+	loadUserFromCookie: loadUserFromCookie
 }

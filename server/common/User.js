@@ -84,6 +84,11 @@ function create(email, password, done) {
 		});
 }
 
+/** @callback done(err, userJs) */
+function read(userId, done) {
+	AWSu.sdbReadItem(AWSu.domains.users, userId, done);
+}
+
 function findByEmail(email, done) {
 	AWSu.sdb.select( {
 		SelectExpression: 'select itemName() from ' + AWSu.domains.users + ' where email=' + AWSu.quoteForSelect(email),
@@ -132,8 +137,10 @@ function findByEmailPassword(email, password, done) {
 			done(err, userId);
 		});
 }
+
 module.exports = {
 	encryptPassword: encryptPassword,
+	findByEmailPassword: findByEmailPassword,
 	create: create,
-	findByEmailPassword: findByEmailPassword
+	read: read
 }

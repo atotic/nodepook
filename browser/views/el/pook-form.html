@@ -1,21 +1,15 @@
 <link href="/vendor/polymer/polymer.html" rel="import">
-<!---<script>
-	var PookFormProto = Object.create(HTMLFormElement.prototype, {
-		abc: { writable:true, configurable:true, value: "abc" },
-	});
-
-	var PookForm = document.registerElement('pook-form', {
-		prototype: PookFormProto,
-		extends: 'form'
-	});
- 
-	var MegaButtonProto = Object.create(HTMLButtonElement.prototype);
-	MegaButtonProto.abc = "abc";
-	var MegaButton = document.registerElement('mega-button', {
-  	prototype: MegaButtonProto,
-  	extends: 'button'
-	});
-</script>
+<!--
+/**
+	* pook-form wraps pook form submission
+	*
+	* uses xhr to submit, and handles display of validation errors
+	* @event success(xhr) fires on successful completion
+	*
+	* <form is='pook-form' action="/auth/login" method="post">
+	*
+	* @element pook-form
+ */
 -->
 <polymer-element name='pook-form' extends='form' on-submit="{{submitHandler}}">
 	<template>

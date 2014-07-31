@@ -206,6 +206,15 @@ function extensionFromName(name) {
 }
 
 /**
+ *
+ * @callback (err, [photo*])
+ */
+function photosByUserId(userId, done) {
+  var photos = [];
+  done(null, photos);
+}
+
+/**
  * Upload file to s3, create record in SimpleDb
  * If photo already exists, returns existing item id
  * @callback ({ sdbId, s3id}) WARNING: if item is a duplicate, s3id is null, you need to load item to get s3id
@@ -363,12 +372,20 @@ function deletePhoto(sdbId, done) {
   );
 }
 
+
 module.exports = {
+
+  // constants
   hostUrl: "http://pookio-test.s3-website-us-west-2.amazonaws.com/",
   separator: separator, // url separator
+
+  // image manipulation
   autoRotate: autoRotate,
   readExifData: readExifData,
   resize: resize,
+
+  // database queries
+  photosByUserId: photosByUserId,
   // CRUD
   create: createPhoto,
   read: readPhoto,

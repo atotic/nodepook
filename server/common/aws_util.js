@@ -74,7 +74,7 @@ function sdbAttributesToObject(attr, itemName) {
   return o;
 }
 
-/** @returns single sdb item as javascript object */
+/** @callback (err, sdb item as javascript object )  */
 function sdbReadItem(domain, itemName, done) {
   services.sdb.select(
     {

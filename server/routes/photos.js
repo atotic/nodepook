@@ -7,6 +7,7 @@ var formidable = require('formidable');
 var fs = require('fs');
 var path = require('path');
 
+var auth = require('./auth');
 var AWSu = require ('../common/aws_util.js');
 var Photo = require('../common/Photo.js');
 
@@ -15,6 +16,7 @@ var router = express.Router();
 var uploadDir = path.resolve(__dirname, '../../uploads');
 
 router.use('/', express.static( uploadDir ));
+router.use(auth.loadUserFromCookie);
 
 router.route('/')
   .post( function uploadPhoto(req, res, next) {
@@ -30,6 +32,12 @@ router.route('/')
     var file;
     async.waterfall(
       [
+        function validateUser(cb) {
+          if (!req.user)
+            cb(new Error("user must be logged in"));
+          else
+            cb();
+        },
         function parseForm(cb) {
           form.parse(req, cb);
         },
@@ -44,7 +52,7 @@ router.route('/')
           exifData = inExifData;
           exifData.displayName = file.name;
           exifData.md5 = file.hash;
-          Photo.create(file.path, exifData, 0, cb);
+          Photo.create(file.path, exifData, req.user, cb);
         },
         function deleteFile(inItemIds, cb) {
           itemIds = inItemIds;
