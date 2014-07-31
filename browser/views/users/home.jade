@@ -4,7 +4,7 @@ block content
   link(rel="import",  href="vendor/core-drag-drop/core-drag-drop.html")
   link(rel='import', href='vendor/core-toolbar/core-toolbar.html')
   link(rel='import', href='views/el/pook-user.html')
-  pook-user(user=JSON.stringify(user))
+  pook-user(user=JSON.stringify(user), photos=JSON.stringify(photos))
   
   core-toolbar(style='color:white;background:#4285f4')
     span(flex)= user.email

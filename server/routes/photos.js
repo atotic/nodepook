@@ -52,7 +52,7 @@ router.route('/')
           exifData = inExifData;
           exifData.displayName = file.name;
           exifData.md5 = file.hash;
-          Photo.create(file.path, exifData, req.user, cb);
+          Photo.create(file.path, exifData, req.user.itemId, cb);
         },
         function deleteFile(inItemIds, cb) {
           itemIds = inItemIds;

@@ -22,8 +22,11 @@ function autoRotate(photoPath, done) {
       done(err);
     })
     .on('exit', function(code, signal) {
-      if (code != 0)
-        done(new Error("autoRotate error exit. code:" + code + " signal: " + signal), context);
+      if (code != 0) {
+        // this happens when we try to rotate a gif
+        debug("autoRotate error exit. code:" + code + " signal: " + signal);
+        done(null, photoPath);
+      }
       else
         done(null, photoPath);
     });
@@ -211,7 +214,26 @@ function extensionFromName(name) {
  */
 function photosByUserId(userId, done) {
   var photos = [];
-  done(null, photos);
+  var selEx = 'select * from ' + AWSu.domains.photos + ' where ownerId=' + AWSu.quoteForSelect(userId);
+  async.waterfall([
+    function getPhotos(cb) {
+      AWSu.sdb.select({
+        SelectExpression: 'select * from ' + AWSu.domains.photos + ' where ownerId=' + AWSu.quoteForSelect(userId)
+      }, cb)
+    },
+    function readPhotos(result, cb) {
+      if ('Items' in result) 
+        for (var i=0; i<result.Items.length; i++) {
+          var item = result.Items[i];
+          photos.push( AWSu.attributesToObject( item.Attributes, item.Name));
+        }
+      cb();
+    }
+    ],
+    function complete(err, result) {
+      done(err, photos);
+    }
+  )
 }
 
 /**
@@ -386,6 +408,7 @@ module.exports = {
 
   // database queries
   photosByUserId: photosByUserId,
+
   // CRUD
   create: createPhoto,
   read: readPhoto,

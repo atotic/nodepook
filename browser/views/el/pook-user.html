@@ -18,14 +18,25 @@
 			</pre>
 		</template>
 	</template>
+	<style>
+		pre {
+			user-select: text;
+			webkit-user-select: text;
+		}
+	</style>
 	<script>
 	(function() {
+
 	"use strict";
-	var gUser; // global current user
-	function setCurrentUser(user) {
+	// Globals
+	var gUser; // Current user
+	var gPhotos; // User's photos
+
+	function setCurrentUser(user, photos) {
 		if (gUser)
 			console.warn("current user declared more than once");
 		gUser = user;
+		gPhotos = photos;
 	};
 
 	var PookUserPrototype = {
@@ -33,13 +44,18 @@
 			user: { 
 				value: { }
 			},
-			debug: true
+			photos: {
+				value: []
+			},
+			debug: false
 		},
 		ready: function() {
-			if (!('email' in this.user))
+			if (!('email' in this.user)) {
+				this.photos = gPhotos;
 				this.user = gUser;
+			}
 			else
-				setCurrentUser(this.user);
+				setCurrentUser(this.user, this.photos);
 		}
 	};
 

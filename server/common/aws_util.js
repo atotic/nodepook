@@ -93,7 +93,9 @@ function sdbReadItem(domain, itemName, done) {
   );
 }
 
-/** @returns Quote string for sdb select by double escaping quotes */
+/** @returns Quote string for sdb select by double escaping quotes 
+    returning string will be surrounded by quotes
+ */
 function quoteForSelect(str) {
   if (typeof str != "string")
     return "";
