@@ -4,8 +4,8 @@
 	* pook-form wraps pook form submission
 	*
 	* uses xhr to submit, and handles display of validation errors
+	* @event beforeSubmit(xhr, form) fires before xhr.send. Use it to hook up progress, etc.
 	* @event success(xhr) fires on successful completion
-	*
 	* <form is='pook-form' action="/auth/login" method="post">
 	*
 	* @element pook-form
@@ -47,6 +47,7 @@
 						break;
 				}
 			};
+			form.fire('beforeSubmit', xhr);
 			xhr.open(form.method, form.action);
 			xhr.send( new FormData(form));
 		};

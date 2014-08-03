@@ -83,7 +83,7 @@ describe('Photo.js crud', function() {
 				},
 				function readPhoto(item, cb) {
 					debug('reading photo', item.sdbId);
-					if (item.s3id == null)
+					if (item.duplicate)
 						cb( new Error("Photo was a duplicate " + item.sdbId));
 					else
 						Photo.read(item.sdbId, cb);

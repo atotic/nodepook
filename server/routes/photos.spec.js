@@ -28,7 +28,7 @@ describe('/photos', function() {
 				if (err)
 					done(err);
 				else {
-					Photo.delete( res.body.photoId, done);
+					Photo.delete( res.body.item.itemId, done);
 				}
 			});
 	});

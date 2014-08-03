@@ -28,8 +28,9 @@ router.route('/')
     form.hash = 'md5';
 
     var exifData;
-    var itemIds;
     var file;
+    var photoData;
+
     async.waterfall(
       [
         function validateUser(cb) {
@@ -54,10 +55,13 @@ router.route('/')
           exifData.md5 = file.hash;
           Photo.create(file.path, exifData, req.user.itemId, cb);
         },
-        function deleteFile(inItemIds, cb) {
-          itemIds = inItemIds;
+        function readPhotoData(item, cb) {
+          Photo.read(item.sdbId, cb);
+        },
+        function deleteFile(inPhotoData, cb) {
+          photoData = inPhotoData;
           fs.unlink(file.path, cb);
-        }
+        },
       ],
       function final(err, result) {
         if (err)
@@ -66,13 +70,10 @@ router.route('/')
           res.format(
             {
               'application/json': function() {
-                res.send( { photoId: itemIds.sdbId } );
+                res.send( { msg: "Photo created", item: photoData } );
               },
               default: function() {
-                if (itemIds.s3id)
-                  res.render('photo', { photoSrc: itemIds.s3id + "~1024"});
-                else
-                  res.send('Not rendering duplicate items yet'); // TODO
+                res.render('photo', { photoSrc: photoData.s3id + "~1024"});
               }
             }
           );

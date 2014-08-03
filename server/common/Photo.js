@@ -24,8 +24,9 @@ function autoRotate(photoPath, done) {
     .on('exit', function(code, signal) {
       if (code != 0) {
         // this happens when we try to rotate a gif
-        debug("autoRotate error exit. code:" + code + " signal: " + signal);
-        done(null, photoPath);
+        var errStr = "autoRotate error exit. code:" + code + " signal: " + signal;
+        debug(errStr);
+        done(new Error(errStr), photoPath);
       }
       else
         done(null, photoPath);
@@ -239,7 +240,7 @@ function photosByUserId(userId, done) {
 /**
  * Upload file to s3, create record in SimpleDb
  * If photo already exists, returns existing item id
- * @callback ({ sdbId, s3id}) WARNING: if item is a duplicate, s3id is null, you need to load item to get s3id
+ * @callback ( { sdbId: sdbId, duplicate: bool } ) 
  */
 function createPhoto(localFile, exif, ownerId, done) {
 
@@ -310,10 +311,10 @@ function createPhoto(localFile, exif, ownerId, done) {
       function(err, data) {
         if (err) {
           rollback(); // save failed, rollback
-          done(err,  { sdbId: sdbId, s3id: attributes.s3id });
+          done(err );
         }
         else
-          done(null, { sdbId: sdbId, s3id: attributes.s3id });
+          done(null, { sdbId: sdbId, duplicate: false } );
       }
     );
   }
@@ -334,7 +335,7 @@ function createPhoto(localFile, exif, ownerId, done) {
       if (err) {
         if (err.name == "DuplicatePhoto") {
           debug("got duplicate");
-          done(null, { sdbId: err.id, s3id: null });
+          done(null, { sdbId: err.id, duplicate: true } );
         }
         else
           done(err);

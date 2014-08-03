@@ -28,6 +28,7 @@
 	(function() {
 
 	"use strict";
+
 	// Globals
 	var gUser; // Current user
 	var gPhotos; // User's photos
@@ -39,6 +40,10 @@
 		gPhotos = photos;
 	};
 
+	function getBlankImageUrl() {
+		return "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
+	}
+
 	var PookUserPrototype = {
 		publish: {
 			user: { 
@@ -47,6 +52,8 @@
 			photos: {
 				value: []
 			},
+			// images get served from here
+			s3url: "http://pookio-test.s3-website-us-west-2.amazonaws.com/",
 			debug: false
 		},
 		ready: function() {
@@ -56,6 +63,46 @@
 			}
 			else
 				setCurrentUser(this.user, this.photos);
+		},
+
+// Model manipulation
+		/** @returns img src for photo at resolution */
+		photoSrc: function(photo, resolution) {
+			if (!resolution)
+				resolution = 1024;
+			if ('s3id' in photo && photo.s3id) {
+				var suffix = "";
+				switch(resolution) {
+					case 256: // suffix  = '~256'
+					case 1024: // suffix = '~1024'
+					default: 
+						; // noop
+				}
+				return "http://pookio-test.s3-website-us-west-2.amazonaws.com/" + photo.s3id + suffix;
+			}
+			else 
+				return getBlankImageUrl();
+		},
+		createPhoto: function() {
+			var photo = {
+				createdAt: (new Date()).toISOString(),
+				displayName: "new",
+				height: "1024",
+				itemId: null,
+				md5: null,
+				ownerId: null,
+				s3id: null,
+				width: "768"
+			}
+			gPhotos.push(photo);
+			return photo;
+		},
+		/** @returns photo idx, -1 if not there */
+		findPhotoById: function(photoId) {
+			for (var i=0; i<this.photos.length; i++)
+				if (this.photos[i].itemId == photoId)
+					return i;
+			return -1;
 		}
 	};
 

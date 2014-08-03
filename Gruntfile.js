@@ -137,9 +137,17 @@ module.exports = function(grunt) {
 	grunt.registerTask('select', function() {
 		var done = this.async();
 		AWSu.sdb.select({
-			SelectExpression: 'select password from users where email="test@test.com"'
+			SelectExpression: 'select ownerId from photos '
 		}, function(err, response) {
 			console.log(response);
+			if ('Items' in response) {
+				for (var i=0; i<response.Items.length; i++) {
+					console.log(response.Items[i].Name);
+					var attrs = response.Items[i].Attributes;
+					for (var j=0; j<attrs.length; j++)
+						console.log(attrs[j].Name, ':', attrs[j].Value);
+				}
+			}
 			done(err, response);
 		});
 	});

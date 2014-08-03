@@ -1,0 +1,59 @@
+<link href="/vendor/polymer/polymer.html" rel="import">
+<!--
+/**
+	* pook-photolist displays a list of photos
+	*
+	* @element pook-photolist
+  */
+-->
+<polymer-element name='pook-photolist' attributes='photos, height'>
+	<template >
+		<pook-user id="user"></pook-user>
+		<template repeat="{{p in photos}}">
+			<style>
+				li {
+					position: relative;
+					display:inline-block;
+				}
+				.title {
+					text-shadow:1px 1px 0 rgba(255,250,92,0.5);
+					font-variant:small-caps;
+					color:#000000;
+					position: absolute;
+					bottom: -10px;
+				}
+				progress {
+					position: absolute;
+					top: 10px;
+					width:100%;
+				}
+			</style>
+			<li>
+				<img src="{{ { photo: p, s3id: p.s3id } | imgSrc}}" height="{{height}}">
+				<p class='title'>{{p.displayName}}</p>
+				<template if="{{ p.progress }}">
+					<progress value="{{p.progress | computeProgress }}"></progress>
+				</template>
+		</template>
+	</template>
+	<script>
+	Polymer('pook-photolist', {
+		publish: {
+			height: 50,
+			photos: []
+		},
+		ready: function() {
+			this.photos = this.$.user.photos;
+		},
+		imgSrc: function(query) {
+			return this.$.user.photoSrc(query.photo, 1024);
+		},
+		computeProgress: function(value) {
+			if (value == -1)
+				return null;
+			else
+				return value;
+		}
+	});
+	</script>
+</polymer-element>

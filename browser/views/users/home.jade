@@ -3,16 +3,16 @@ extends ../layout
 block content
   link(rel="import",  href="vendor/core-drag-drop/core-drag-drop.html")
   link(rel='import', href='vendor/core-toolbar/core-toolbar.html')
-  link(rel='import', href='views/el/pook-user.html')
+
   pook-user(user=JSON.stringify(user), photos=JSON.stringify(photos))
   
   core-toolbar(style='color:white;background:#4285f4')
     span(flex)= user.email
     a(href='/auth/logout', class='paper-button') logout
-
-
+  pook-flash
+  pook-photolist(height=100)
   div Upload a file
-  form(action="/photos", method="post", enctype="multipart/form-data")
+  form#upload(is='pook-form', action="/photos", method="post", enctype="multipart/form-data")
     input(type="file", name="myPhoto")
     input(type="submit")
 
@@ -38,6 +38,43 @@ block content
       cursor: move;
     }
   script.
+    // upload button handling
+    var upload = document.querySelector('#upload');
+    upload.addEventListener('beforeSubmit', function(ev) {
+      var $user = document.querySelector('pook-user');
+      // create photo
+      var photo = $user.createPhoto();
+      var xhr = ev.detail;
+      xhr.photo = photo;
+      // listen to progress events
+      xhr.upload.addEventListener('progress', function handleProgress(pe) {
+        if (pe.lengthComputable && pe.total != 0)
+          xhr.photo.progress = pe.loaded / pe.total;
+        else
+          xhr.photo.progress = -1;
+      });
+    });
+    upload.addEventListener('success', function handleUploadSuccess(ev) {
+      var oldPhoto = ev.detail.photo;
+      var newPhoto = JSON.parse(ev.detail.response).item;
+      // handle duplicates
+      var $user = document.querySelector('pook-user');
+      var duplicate = $user.findPhotoById(newPhoto.itemId);
+      if (duplicate != -1) {
+        document.querySelector('pook-flash').warn = 'Photo was a duplicate';
+        $user.photos.splice( $user.photos.indexOf(oldPhoto), 1 );
+      }
+      else {
+        debugger;
+        // no dups, update the photo
+        delete oldPhoto.progress;
+        for (p in newPhoto)
+          oldPhoto[p] = newPhoto[p];
+      }
+    });
+
+
+    // drag'n'drop
     document.querySelector('#target')
       .addEventListener('drag-start', function(e) {
         console.log("drag start");
