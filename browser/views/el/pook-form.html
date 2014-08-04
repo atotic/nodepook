@@ -25,66 +25,69 @@
 		}
 	</style>
 	<script>
-	"use strict";
+	(function() {
+		"use strict";
+			var PookFormProto = Object.create(HTMLFormElement.prototype);
 
-		var PookFormProto = Object.create(HTMLFormElement.prototype);
+			PookFormProto.submitHandler = function(ev) {
+				ev.preventDefault();
+				var form = this;
+				var xhr = new XMLHttpRequest();
+				this.clearErrors();
+				xhr.onload = function(e) {
+					switch(this.status) {
+						case 200:
+							form.fire('success', xhr);
+							break;
+						case 422:
+							form.display422error(e.target, form);
+							break;
+						default:
+							form.displayUnexpectedError(e.target);
+							break;
+					}
+				};
+				form.fire('beforeSubmit', xhr);
+				xhr.open(form.method, form.action);
+				var fd = unwrap(new FormData(form));
+				xhr.send( fd);
+			};
 
-		PookFormProto.submitHandler = function(ev) {
-			ev.preventDefault();
-			var form = this;
-			var xhr = new XMLHttpRequest();
-			this.clearErrors();
-			xhr.onload = function(e) {
-				switch(this.status) {
-					case 200:
-						form.fire('success', xhr);
-						break;
-					case 422:
-						form.display422error(e.target, form);
-						break;
-					default:
-						form.displayUnexpectedError(e.target);
-						break;
+			PookFormProto.clearErrors = function() {
+				var flash = document.querySelector('pook-flash');
+				if (flash)
+					flash.clear();
+				var errors = this.querySelectorAll('.error');
+				for (var i=0; i<errors.length; i++)
+					errors[i].parentNode.removeChild( errors[i]);
+			};
+
+			PookFormProto.display422error = function(xhr, form) {
+				try {
+					var resp422 = JSON.parse(xhr.response);
+					var flash = document.querySelector('pook-flash');
+					flash.error = resp422.errMsg;
+					for (var p in resp422.formMessages) {
+						var input = form.querySelector('[name="' + p + '"]');
+						var errDiv = document.createElement('div');
+						errDiv.className = "error";
+						errDiv.textContent = resp422.formMessages[p];
+						input.parentNode.appendChild(errDiv);
+					}
+				}
+				catch(err) {
+					console.error("Unexpected error processing 422", err);
 				}
 			};
-			form.fire('beforeSubmit', xhr);
-			xhr.open(form.method, form.action);
-			xhr.send( new FormData(form));
-		};
 
-		PookFormProto.clearErrors = function() {
-			var flash = document.querySelector('pook-flash');
-			if (flash)
-				flash.clear();
-			var errors = this.querySelectorAll('.error');
-			for (var i=0; i<errors.length; i++)
-				errors[i].parentNode.removeChild( errors[i]);
-		};
-
-		PookFormProto.display422error = function(xhr, form) {
-			try {
-				var resp422 = JSON.parse(xhr.response);
+			PookFormProto.displayUnexpectedError = function(xhr) {
 				var flash = document.querySelector('pook-flash');
-				flash.error = resp422.errMsg;
-				for (var p in resp422.formMessages) {
-					var input = form.querySelector('[name="' + p + '"]');
-					var errDiv = document.createElement('div');
-					errDiv.className = "error";
-					errDiv.innerText = resp422.formMessages[p];
-					input.parentNode.appendChild(errDiv);
-				}
-			}
-			catch(err) {
-				console.error("Unexpected error processing 422", err);
-			}
-		};
+				flash.error = "Unexpected error submitting form: " + xhr.status;
+				console.error(xhr);
+			};
 
-		PookFormProto.displayUnexpectedError = function(xhr) {
-			var flash = document.querySelector('pook-flash');
-			flash.error = "Unexpected error submitting form: " + xhr.status;
-			console.error(xhr);
-		};
+			Polymer('pook-form', PookFormProto);
 
-		Polymer('pook-form', PookFormProto);
+	})();
 	</script>
 </polymer-element> 

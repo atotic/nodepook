@@ -1,113 +1,176 @@
 <link href="/vendor/polymer/polymer.html" rel="import">
 <!--
 /**
-	* pook-user represents current user
-	* 'pook-user'.debug=true displays debug information 
-	*
-	* <pook-user user=JSON.stringify(user)>
-	*
-	* @element pook-user
+  * pook-user represents current user
+  * 'pook-user'.debug=true displays debug information 
+  *
+  * <pook-user user=JSON.stringify(user)>
+  *
+  * @element pook-user
  */
 -->
 <polymer-element name='pook-user' attributes='user, photos'>
-	<template >
-		<template if="{{debug}}" >
-			<pre>
-				Id: {{user.itemId}}
-				Email: {{user.email}}
-			</pre>
-		</template>
-	</template>
-	<style>
-		pre {
-			user-select: text;
-			webkit-user-select: text;
-		}
-	</style>
-	<script>
-	(function() {
+  <template >
+    <template if="{{debug}}" >
+      <pre>
+        Id: {{user.itemId}}
+        Email: {{user.email}}
+      </pre>
+    </template>
+  </template>
+  <style>
+    pre {
+      user-select: text;
+      webkit-user-select: text;
+    }
+  </style>
+  <script>
+  (function() {
 
-	"use strict";
+  "use strict";
 
-	// Globals
-	var gUser; // Current user
-	var gPhotos; // User's photos
+  // Globals
+  var gUser; // Current user
+  var gPhotos; // User's photos
 
-	function setCurrentUser(user, photos) {
-		if (gUser)
-			console.warn("current user declared more than once");
-		gUser = user;
-		gPhotos = photos;
-	};
+  function setCurrentUser(user, photos) {
+    if (gUser)
+      console.warn("current user declared more than once");
+    gUser = user;
+    gPhotos = photos;
+  };
 
-	function getBlankImageUrl() {
-		return "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
-	}
+  function getBlankImageUrl() {
+    return "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
+  }
 
-	var PookUserPrototype = {
-		publish: {
-			user: { 
-				value: { }
-			},
-			photos: {
-				value: []
-			},
-			// images get served from here
-			s3url: "http://pookio-test.s3-website-us-west-2.amazonaws.com/",
-			debug: false
-		},
-		ready: function() {
-			if (!('email' in this.user)) {
-				this.photos = gPhotos;
-				this.user = gUser;
-			}
-			else
-				setCurrentUser(this.user, this.photos);
-		},
+  var PookUserPrototype = {
+    publish: {
+      user: { 
+        value: { }
+      },
+      photos: {
+        value: []
+      },
+      // images get served from here
+      s3url: "http://pookio-test.s3-website-us-west-2.amazonaws.com/",
+      debug: false
+    },
+    ready: function() {
+      if (!('email' in this.user)) {
+        this.photos = gPhotos;
+        this.user = gUser;
+      }
+      else
+        setCurrentUser(this.user, this.photos);
+    },
 
 // Model manipulation
-		/** @returns img src for photo at resolution */
-		photoSrc: function(photo, resolution) {
-			if (!resolution)
-				resolution = 1024;
-			if ('s3id' in photo && photo.s3id) {
-				var suffix = "";
-				switch(resolution) {
-					case 256: // suffix  = '~256'
-					case 1024: // suffix = '~1024'
-					default: 
-						; // noop
-				}
-				return "http://pookio-test.s3-website-us-west-2.amazonaws.com/" + photo.s3id + suffix;
-			}
-			else 
-				return getBlankImageUrl();
-		},
-		createPhoto: function() {
-			var photo = {
-				createdAt: (new Date()).toISOString(),
-				displayName: "new",
-				height: "1024",
-				itemId: null,
-				md5: null,
-				ownerId: null,
-				s3id: null,
-				width: "768"
-			}
-			gPhotos.push(photo);
-			return photo;
-		},
-		/** @returns photo idx, -1 if not there */
-		findPhotoById: function(photoId) {
-			for (var i=0; i<this.photos.length; i++)
-				if (this.photos[i].itemId == photoId)
-					return i;
-			return -1;
-		}
-	};
+    /** @returns img src for photo at resolution */
+    photoSrc: function(photo, resolution) {
+      if (!resolution)
+        resolution = 1024;
+      if ('s3id' in photo && photo.s3id) {
+        var suffix = "";
+        switch(resolution) {
+          case 256: // suffix  = '~256'
+          case 1024: // suffix = '~1024'
+          default: 
+            ; // noop
+        }
+        return "http://pookio-test.s3-website-us-west-2.amazonaws.com/" + photo.s3id + suffix;
+      }
+      else 
+        return getBlankImageUrl();
+    },
+    createPhoto: function() {
+      var photo = {
+        createdAt: (new Date()).toISOString(),
+        displayName: "new",
+        height: "1024",
+        itemId: null,
+        md5: null,
+        ownerId: null,
+        s3id: null,
+        width: "768"
+      }
+      gPhotos.push(photo);
+      return photo;
+    },
+    addLocalPhotoFiles: function(files) {
+      var photos = [];
+      if (files == null)
+        return photos;
+      if (!('length' in files))
+        files = [files];
 
-	Polymer('pook-user', PookUserPrototype);
+      for (var i=0; i<files.length; i++)
+        photos.push( this.uploadPhoto(files[i]));
+      return photos;
+    },
+    /** @returns new photo */
+    uploadPhoto: function(file) {
+      var photo = this.createPhoto();
 
-	})();
-	</script>
+      var fd = new FormData();
+      fd.append('myPhoto', file);
+
+      var xhr = new XMLHttpRequest();
+      var THIS = this;
+      // success/failure
+      xhr.onload = function onload(e) { 
+        switch(this.status) {
+          case 200:
+            THIS.photoUploadSuccess(this, photo);
+            break;
+          default:
+            THIS.photoUploadFail(this, photo);
+            break;
+        }
+      };
+      // upload progress
+      xhr.upload.addEventListener('progress', function progress(ev) {
+        if (ev.lengthComputable && ev.total != 0)
+          photo.progress = ev.loaded / ev.total;
+        else
+          photo.progress = -1;
+      });
+      xhr.open('POST', '/photos');
+      xhr.send(unwrap(fd));
+      return photo;
+    },
+
+    photoUploadSuccess: function(xhr, photo) {
+      var newPhoto = JSON.parse(xhr.response).item;
+      var duplicate = this.findPhotoById( newPhoto.itemId);
+      // duplicates are removed
+      if (duplicate != -1) {
+        document.querySelector('pook-flash').warn = 'Photo ' + newPhoto.displayName + ' was a duplicate';
+        this.photos.splice(this.photos.indexOf(photo), 1);
+      }
+      else {
+        delete photo.progress;
+        for (var p in newPhoto)
+          photo[p] = newPhoto[p];
+      }
+    },
+
+    photoUploadFail: function(xhr, photo) {
+      document.querySelector('pook-flash').error = 'Photo ' + newPhoto.displayName + ' upload failed.';
+      this.photos.splice(this.photos.indexOf(photo), 1);
+    },
+
+    /** @returns photo idx, -1 if not there */
+    findPhotoById: function(photoId) {
+      for (var i=0; i<this.photos.length; i++)
+        if (this.photos[i].itemId == photoId)
+          return i;
+      return -1;
+    }
+  };
+
+  Polymer('pook-user', PookUserPrototype);
+
+  })();
+  </script>
 </polymer-element>

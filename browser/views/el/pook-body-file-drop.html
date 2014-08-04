@@ -1,0 +1,83 @@
+<link href="pook-user.html" rel="import">
+
+<!--
+/**
+	* pook-body-file-drop uploads a file dropped on body
+	*
+	* @element pook-body-file-drop
+ */
+-->
+dragenter: function(ev) { return NativeDnd.dragenter( ev ) },
+		dragover: function(ev) { return NativeDnd.dragover( ev ) },
+		dragleave: function(ev) { return NativeDnd.dragleave( ev ) },
+		drop: function(ev) { return NativeDnd.drop( ev ) }
+
+<polymer-element name='pook-body-file-drop'>
+	<template>
+		<pook-user id="user"></pook-user>
+	</template>
+	<style>
+	</style>
+	<script>
+	Polymer('pook-body-file-drop',{
+		ready: function(){
+			var listen = function(evName) {
+				document.addEventListener(evName, this[evName].bind(this));
+			}.bind(this);
+			listen('dragenter');
+			// listen('dragleave');
+			listen('dragover');
+			listen('drop');
+		},
+		dragenter: function(ev) {
+			this.isDragging = this.getDraggedFiles(ev);
+			ev.preventDefault();
+		},
+		dragover: function(ev) {
+			if (this.isDragging)
+				ev.preventDefault();
+		},
+		drop: function(ev) {
+			ev.preventDefault();
+			ev.stopPropagation();
+			console.log('drop');
+
+			var dragFiles = this.filterImageFiles( this.getDraggedFiles(ev) );
+			if (!dragFiles)
+				document.querySelector('pook-flash').warn('Files not uploaded. Files must be images (jpg/gif/png');
+			else {
+				this.$.user.addLocalPhotoFiles(dragFiles);
+			}
+		},
+		getDraggedFiles: function(ev) {
+			var dataTransfer = ev.dataTransfer;
+			if (dataTransfer.files && dataTransfer.files.length > 0) {
+				// console.log('got files');
+				return dataTransfer.files;
+			}
+			else if (dataTransfer.types) {
+				// console.log('got file type');
+				if ('contains' in dataTransfer.types)	// Firefox
+					return dataTransfer.types.contains("Files");
+				else // Chrome
+					return dataTransfer.types.indexOf("Files") != -1;
+			}
+			return null;
+		},
+		// returns only image files
+		filterImageFiles: function(draggedFiles) {
+			if (!draggedFiles)
+				return null;
+
+			mimeRegex = "image/(png|jpeg|gif)";
+			var retVal = [];
+			for (var i=0; i<draggedFiles.length; i++) {
+				var f = draggedFiles.item(i);
+				if (f.type.match( mimeRegex ))
+					retVal.push(f);
+			}
+			return retVal;
+		}
+	});
+	</script>
+</polymer-element> 

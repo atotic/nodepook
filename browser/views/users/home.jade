@@ -5,7 +5,8 @@ block content
   link(rel='import', href='vendor/core-toolbar/core-toolbar.html')
 
   pook-user(user=JSON.stringify(user), photos=JSON.stringify(photos))
-  
+  pook-body-file-drop
+
   core-toolbar(style='color:white;background:#4285f4')
     span(flex)= user.email
     a(href='/auth/logout', class='paper-button') logout
@@ -13,7 +14,7 @@ block content
   pook-photolist(height=100)
   div Upload a file
   form#upload(is='pook-form', action="/photos", method="post", enctype="multipart/form-data")
-    input(type="file", name="myPhoto")
+    input#photoPicker(type="file", name="myPhoto")
     input(type="submit")
 
   div#target I am a target
@@ -72,7 +73,10 @@ block content
       }
     });
 
-
+    // upload button, take 2
+    document.querySelector('#photoPicker').addEventListener('change', function(ev) {
+      document.querySelector('pook-user').addLocalPhotoFiles(this.files);
+    });
     // drag'n'drop
     document.querySelector('#target')
       .addEventListener('drag-start', function(e) {
