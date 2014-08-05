@@ -39,41 +39,7 @@ block content
       cursor: move;
     }
   script.
-    // upload button handling
-    var upload = document.querySelector('#upload');
-    upload.addEventListener('beforeSubmit', function(ev) {
-      var $user = document.querySelector('pook-user');
-      // create photo
-      var photo = $user.createPhoto();
-      var xhr = ev.detail;
-      xhr.photo = photo;
-      // listen to progress events
-      xhr.upload.addEventListener('progress', function handleProgress(pe) {
-        if (pe.lengthComputable && pe.total != 0)
-          xhr.photo.progress = pe.loaded / pe.total;
-        else
-          xhr.photo.progress = -1;
-      });
-    });
-    upload.addEventListener('success', function handleUploadSuccess(ev) {
-      var oldPhoto = ev.detail.photo;
-      var newPhoto = JSON.parse(ev.detail.response).item;
-      // handle duplicates
-      var $user = document.querySelector('pook-user');
-      var duplicate = $user.findPhotoById(newPhoto.itemId);
-      if (duplicate != -1) {
-        document.querySelector('pook-flash').warn = 'Photo was a duplicate';
-        $user.photos.splice( $user.photos.indexOf(oldPhoto), 1 );
-      }
-      else {
-        // no dups, update the photo
-        delete oldPhoto.progress;
-        for (p in newPhoto)
-          oldPhoto[p] = newPhoto[p];
-      }
-    });
-
-    // upload button, take 2
+    // upload button
     document.querySelector('#photoPicker').addEventListener('change', function(ev) {
       document.querySelector('pook-user').addLocalPhotoFiles(this.files);
     });
