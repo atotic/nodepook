@@ -30,7 +30,6 @@ app.use('/', routes);
 app.use('/user',   require('../routes/users'));
 app.use('/photos',  require('../routes/photos'));
 app.use('/resize',  require('../routes/resize'));
-app.use('/angular', require('../routes/angular'));
 app.use('/auth',    auth.router);
 
 app.get('/polymer', function stats(req, res, next) {

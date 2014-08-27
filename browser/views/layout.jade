@@ -2,15 +2,9 @@ doctype html
 html
   head
     title= title
-    link(rel='stylesheet', href='/vendor/normalize.css/normalize.css')
-    link(rel='stylesheet', href='/css/style.css')
+    link(rel='stylesheet', href='/css/global.css')
     script(src="/vendor/platform-dev/platform.js")
-
-    link(rel='import', href='views/el/pook-user.html')
-
-    link(rel='import', href='views/el/pook-flash.html')
-    link(rel='import', href='views/el/pook-form.html')
-    link(rel='import', href='views/el/pook-photolist.html')
-    link(rel='import', href='views/el/pook-body-file-drop.html')
+    link(rel="import", href="/vendor/firebase-elements/firebase-login.html") 
+    link(rel='import', href='/views/el/pook-all.html')
   body
     append content

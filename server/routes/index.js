@@ -6,5 +6,8 @@ router.get('/', function(req, res) {
   res.render('index', { title: 'pook.io' });
 });
 
+router.get('/firebase', function(req, res) {
+	res.render('firebase', { title: 'pookfire'});
+})
 
 module.exports = router;

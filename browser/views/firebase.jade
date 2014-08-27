@@ -1,0 +1,26 @@
+extends layout
+block content
+  h1 Here is your firebase! Not
+  pook-flash
+  script(src='https://cdn.firebase.com/js/client/1.0.21/firebase.js')
+  script(src="https://cdn.firebase.com/js/simple-login/1.6.3/firebase-simple-login.js")
+  script.
+    "use strict";
+    var firebase = new Firebase('https://torid-inferno-6070.firebaseio.com/');
+    var auth = new FirebaseSimpleLogin(firebase, function(error, user) {
+        if (error === null) {
+          console.log("FirebaseSimpleLogin", user);
+        } else {
+          console.log("FirebaseSimpleLogin Error creating user:", error);
+        }      
+    });
+    function cu(email, pw) {
+      auth.createUser(email, pw, function(error, user) {
+        if (error === null) {
+          console.log("User created successfully:", user);
+        } else {
+          console.log("Error creating user:", error);
+        }
+      });
+    }
+    cu('','');

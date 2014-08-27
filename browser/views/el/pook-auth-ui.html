@@ -1,0 +1,140 @@
+<link href="/vendor/polymer/polymer.html" rel="import">
+<link href='/vendor/paper-button/paper-button.html' rel='import'>
+<link href='/vendor/paper-input/paper-input.html' rel='import'>
+<link href='/vendor/paper-checkbox/paper-checkbox.html' rel='import'>
+<!--
+/**
+  * pook-globals wraps pook form submission
+  * *
+  * @element pook-globals
+ */
+-->
+<polymer-element name='pook-auth-ui'>
+  <template>
+    <link rel="stylesheet" href="/css/global.css" type="text/css">
+    <style>
+      paper-button {
+        text-transform: none;
+      }
+      h3 {
+        margin-top: 0px;
+        margin-bottom: 8px;
+      }
+    </style>
+    <firebase-login id='firebaseLogin' 
+      location='https://torid-inferno-6070.firebaseio.com/' 
+      provider='password'
+      on-error='{{onLoginError}}'
+      on-password-reset='{{onPasswordReset}}'
+      on-login='{{onLogin}}'
+      ></firebase-login>
+    <template if="{{mode== 'login'}}">
+      <div vertical layout>
+        <h3>Login</h3>
+        <paper-input id='loginEmail' floatinglabel label='email' type='text' required value="{{email}}"></paper-input>
+        <paper-input id='loginPassword' floatinglabel label='password' type='password' name='password' required pattern='.{8,}' value="{{password}}"></paper-input>
+        <div>
+        <paper-checkbox id='loginRemember' label='Keep me logged in for 30 days' value="{{rememberMe}}"></paper-checkbox>
+        <br>
+        </div>
+        <br>
+        <div><paper-button label="Login" raisedbutton on-click="{{loginClick}}"></paper-button></div>
+        <div><paper-button label='Forgot your password?' on-click="{{showForgotPassword}}"></paper-button></div>
+        <div><paper-button label='Register...' on-click="{{showRegister}}"></paper-button></div>
+      </div>
+    </template>
+    <template if="{{mode=='register'}}" vertical layout>
+      <div vertical layout>
+        <h3>Register</h3>
+        <paper-input id='registerEmail' floatinglabel label='email' type='email' required value="{{email}}"></paper-input>
+        <paper-input id='registerPassword' floatinglabel label='password' type='password' required pattern='.{8,}' value="{{password}}"></paper-input>
+
+        <div><paper-button label="Register" raisedbutton on-click="{{registerClick}}" ></paper-button></div>
+        <div><paper-button label="Login instead" on-click="{{showLogin}}" ></paper-button></div>
+      </div>
+    </template>
+    <template if="{{mode=='forgotPassword'}}">
+      <h3>Forgot your password</h3>
+      <paper-input id='forgotEmail' floatinglabel label='email' type='email' required value="{{email}}"></paper-input>
+      <div><paper-button label="Email me the password" raisedbutton on-click="{{forgotPasswordClick}}" ></paper-button></div>
+      <div><paper-button label="Login instead" on-click="{{showLogin}}" ></paper-button></div>
+      <div><paper-button label='Register...' on-click="{{showRegister}}"></paper-button></div>
+    </template>
+  </template>
+  <script>
+      Polymer('pook-auth-ui', {
+        publish: {
+          mode: 'login'
+        },
+        ready: function() {
+        },
+        get flash() {
+          return document.querySelector('pook-flash');
+        },
+        get emailField() {
+          return this.shadowRoot.querySelector('[value="{{email}}"]');
+        },
+        get passwordField() {
+          return this.shadowRoot.querySelector('[value="{{password}}"]');
+        },
+        clearErrors: function() {
+          this.flash.clear();
+          this.emailField.setCustomValidity("");
+          this.passwordField.setCustomValidity("");
+        },
+        loginClick: function() {
+          this.flash.clear();
+          this.$.firebaseLogin.login('password', {
+            email: this.email,
+            password: this.password,
+            rememberMe: this.rememberMe
+          });
+        },
+        registerClick: function() {
+          this.$.firebaseLogin.createUser(this.email, this.password);
+        },
+        forgotPasswordClick: function() {
+          this.$.firebaseLogin.sendPasswordResetEmail(this.email);
+        },
+        onLoginError: function(err) {
+          this.clearErrors();
+          switch(err.detail.code) {
+            case 'AUTHENTICATION_DISABLED':
+              this.flash.error = "Login failed because of unexpected server error. Please call us to fix this.";
+              break;
+            case 'INVALID_USER':
+            case 'INVALID_EMAIL':
+              this.flash.error = "Login failed. Fix your input, and try again.";
+              this.emailField.setCustomValidity("Invalid email address.");
+              break;
+            case 'INVALID_PASSWORD':
+              this.flash.error = "Login failed. Fix your input, and try again.";
+              this.passwordField.setCustomValidity('Invalid password');
+              break;
+            default:
+              console.log(err.detail.code);
+              debugger;
+         }
+        },
+        onLogin: function(data) {
+          this.clearErrors();
+          this.flash.message = "You've logged in!";
+          console.log(data.user);
+        },
+        onPasswordReset: function() {
+          this.clearErrors();
+          this.flash.message = "Check your email " + this.email + " for password reset.";
+          this.mode = 'login';
+        },
+        showForgotPassword: function() {
+          this.mode = 'forgotPassword';
+        },
+        showRegister: function() {
+          this.mode = 'register';
+        },
+        showLogin: function() {
+          this.mode = 'login';
+        }
+      });
+  </script>
+</polymer-element>

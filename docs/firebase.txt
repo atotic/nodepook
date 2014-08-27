@@ -1,0 +1,54 @@
+
+
+
+db schema
+
+user
+  books
+	photos
+
+book
+	book-mold
+  photos
+	pages
+
+page
+	page-mold
+	assets (photo|text|widget)
+
+asset
+ top,left,width,height,zindex
+ rotate
+ frame
+ 
+photo-asset
+  photoId
+	focalPoint
+	zoom
+	
+text-asset
+	content
+	
+widget-asset
+
+photo
+	createdAt
+	md5
+	s3id
+	displayName // exifData
+	width
+	height
+	dateTaken
+	caption
+	latitude
+	longitude
+	
+molds:
+
+questions:
+ - sharing: firebase access control is defined over object hierarchy
+   giving someone access to object a: give access  
+db usage:
+ - what is a page, how to display it
+ - page dom generated dynamically from js
+ 

@@ -1,36 +1,40 @@
 extends layout
 
 block content
-  link(rel='import', href='views/el/pook-flash.html')
-  link(rel='import', href='views/el/pook-form.html')
   pook-flash
+  core-style(ref="main")
   h1= title
+  pook-auth-ui
 
-  form#login(is='pook-form', action="/auth/login", method="post")
-    h3 Login
-    label Email:
+  div(style="display:none")
+    form#login(is='pook-form', action="/auth/login", method="post")
+      h3 Login
+      label Email:
+        br
+        input(type="text", name="email")
       br
-      input(type="text", name="email")
-    br
-    label Password:
+      label Password:
+        br
+        input(type="password", name="password" pattern=".{8,}")
       br
-      input(type="password", name="password" pattern=".{8,}")
-    br
-    input(type="submit", value="Login")
-    p.small Forgot your password?
-    p#showRegistration.small Would you like to register?
-  form#register(is='pook-form', action="/auth/register", method="post", style='display:none')
-    h3 Register
-    label Email:
+      label
+        input(type='checkbox')
+        | keep me logged in for 30 days
+      input(type="submit", value="Login")
+      p.small Forgot your password?
+      p#showRegistration.small Would you like to register?
+    form#register(is='pook-form', action="/auth/register", method="post", style='display:none')
+      h3 Register
+      label Email:
+        br
+        input(type="text", name="email")
       br
-      input(type="text", name="email")
-    br
-    label Password:
+      label Password:
+        br
+        input(type="password", name="password" pattern=".{8,}")
       br
-      input(type="password", name="password" pattern=".{8,}")
-    br
-    input(type="submit", value="Register")
-    p#showLogin.small Login instead?
+      input(type="submit", value="Register")
+      p#showLogin.small Login instead?
 
 
   style.
