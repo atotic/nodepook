@@ -3,7 +3,11 @@ html
   head
     title= title
     link(rel='stylesheet', href='/css/global.css')
-    script(src="/vendor/platform-dev/platform.js")
+
+    script(src="/vendor/platform/platform.js")
+    link(rel='import', href='/vendor/polymer/polymer.html')
+    link(rel='import', href='/vendor/paper-input/paper-input.html')
+
     link(rel="import", href="/vendor/firebase-elements/firebase-login.html") 
     link(rel='import', href='/views/el/pook-all.html')
   body

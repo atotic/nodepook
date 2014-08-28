@@ -1,6 +1,4 @@
-@import url('/vendor/normalize.css/normalize.css');
-
-* { box-sizing: border-box } 
+@import url('normalize.css');
 
 body {
 	background-color: #FFF;

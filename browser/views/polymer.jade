@@ -2,76 +2,16 @@ doctype html
 html
   head
     title Polymer playground
-    link(rel='stylesheet', href='/css/style.css')
+    link(rel='stylesheet', href='/css/global.css')
+      
     script(src="/vendor/platform/platform.js")
-    link(rel='import', href='vendor/polymer/polymer.html')
-    //- link(rel="import", href="vendor/core-drawer-panel/core-drawer-panel.html")
-    //- link(rel="import", href="vendor/core-field/core-field.html")
-    //- link(rel="import", href="vendor/core-icons/core-icons.html")
-    //- link(rel='import', href='vendor/core-input/core-input.html')
-    link(rel='import', href='views/el/pook-inspector.html')
-    link(rel='import', href='views/el/pook-flash.html')
-    style.
-      [drawer] {
-        border-right: 1px solid blue;
-        width: 60%;
-        background-color: white;
-      }
-      core-drawer-panel button {
-        display: none;
-      }
-      core-drawer-panel[narrow] button {
-        display: inline-block;
-      }
-      core-input {
-        width: 100%;
-        background-color: white;
-      }
-      .left, .right {
-        padding: 0 4px 0 4px;
-        display: inline-block;
-        width: 50%;
-        vertical-align: top;
-      }
+    link(rel='import', href='/vendor/polymer/polymer.html')
+    link(rel='import', href='/vendor/paper-input/paper-input.html')
   body
-    //- core-drawer-panel
-    //-   div(drawer)
-    //-     h1 core-drawer-panel
-    //-   div(main)
-    //-     button(onclick="document.querySelector('core-drawer-panel').togglePanel();") toggle drawer
-    //-     form(name='form1')
-    //-       p Username:
-    //-         input(name='username', required=true)
-    //-       p Password:
-    //-         input(name='password', ng-model='ctrl.user.password', type='password', required=true, ng-minlength=8)
-    //-       p
-    //-         input(type='submit', value='submit!')
-    //-         input(type='reset')
-    //- core-field
-    //-   core-icon(icon="menu",size="48")
-    //-   label Core field demo
-    //-   input(type="text",placeholder="I have a label", flex)
-    //- core-layout-trbl
-    //- .left
-    //-   core-input(multiline, rows='20', inputValue='{\n"a": "a",\n"b":"b"\n}',validate="validJson")
-    //- .right
-    //-   pook-inspector(freight='[{"name":"wow", "last":"cool"}]')
-    pook-flash
+    p Hi there
+    paper-input(label="hi")
     script.
       function init() {
-        var input = document.querySelector('core-input');
-        input.validate = function validJson(val) {
-          console.log("validating ", val);
-          try {
-            JSON.parse(val);
-            input.style.backgroundColor = 'white';
-            return true;
-          }
-          catch(err) {
-            console.error(err.message);
-            input.style.backgroundColor = '#FDD';
-            return false;
-          }
-        };
+        console.log("ready");
       }
       window.addEventListener('polymer-ready', init);

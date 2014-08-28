@@ -20,6 +20,9 @@
         margin-top: 0px;
         margin-bottom: 8px;
       }
+      .spacer {
+        height: 16px;
+      }
     </style>
     <firebase-login id='firebaseLogin' 
       location='https://torid-inferno-6070.firebaseio.com/' 
@@ -35,9 +38,8 @@
         <paper-input id='loginPassword' floatinglabel label='password' type='password' name='password' required pattern='.{8,}' value="{{password}}"></paper-input>
         <div>
         <paper-checkbox id='loginRemember' label='Keep me logged in for 30 days' value="{{rememberMe}}"></paper-checkbox>
-        <br>
         </div>
-        <br>
+        <div class='spacer'></div>
         <div><paper-button label="Login" raisedbutton on-click="{{loginClick}}"></paper-button></div>
         <div><paper-button label='Forgot your password?' on-click="{{showForgotPassword}}"></paper-button></div>
         <div><paper-button label='Register...' on-click="{{showRegister}}"></paper-button></div>

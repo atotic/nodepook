@@ -6,10 +6,10 @@
 	* @element pook-photolist
   */
 -->
-<polymer-element name='pook-photolist' attributes='photos, height'>
-	<template >
-		<pook-user id="user"></pook-user>
-		<style>
+<polymer-element name='pook-photolist'>
+  <template>
+ 		<pook-user id="user"></pook-user>
+ 		<style>
 			li {
 				position: relative;
 				display:inline-block;
@@ -36,9 +36,11 @@
 				<template if="{{ p.progress }}">
 					<progress value="{{p.progress | computeProgress }}"></progress>
 				</template>
+			</li>
 		</template>
-	</template>
-	<script>
+
+  </template>
+  <script>
 	Polymer('pook-photolist', {
 		publish: {
 			height: 50,
@@ -57,5 +59,6 @@
 				return value;
 		}
 	});
-	</script>
+  </script>
 </polymer-element>
+
