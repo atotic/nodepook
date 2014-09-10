@@ -6,11 +6,28 @@ html
     meta(name="viewport", content="width=device-width, initial-scale=1.0")
 
     script(src="/vendor/platform/platform.js")
+
     link(rel='import', href='/vendor/polymer/polymer.html')
-    link(rel='import', href='/vendor/paper-input/paper-input.html')
+    link(rel='import', href='/views/el/pook-all.html')
 
     link(rel="import", href="/vendor/firebase-elements/firebase-login.html") 
-    link(rel='import', href='/views/el/pook-all.html')
+
+    script.
+      // Debugging script to prevent missing imports
+      function findUnknownElements(el) {
+        if (el.constructor == HTMLElement)
+          console.error("Found unknown element:", el);
+        if (el.shadowRoot) {
+          var every = el.shadowRoot.querySelectorAll('*');
+          for (var i=0; i<every.length; i++)
+            findUnknownElements(every[i]);
+        }
+      }
+      document.addEventListener('polymer-ready', function() {
+        var every = document.querySelectorAll('*');
+        for (var i=0; i<every.length; i++)
+          findUnknownElements(every[i]);
+      });
 
   body
     append content

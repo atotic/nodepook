@@ -1,5 +1,6 @@
 <link href="/vendor/polymer/polymer.html" rel="import">
 <link href="/vendor/core-drawer-panel/core-drawer-panel.html" rel="import">
+<link href="/vendor/core-header-panel/core-header-panel.html" rel="import">
 <link href="/vendor/core-item/core-item.html" rel="import">
 <link href="/vendor/core-menu/core-menu.html" rel="import">
 <link href="/vendor/core-pages/core-pages.html" rel="import">
@@ -11,17 +12,19 @@
 
 <polymer-element name='pook-main-app'>
   <template>
-    <style>    
-      core-toolbar {
-        height: 48px;
-      }
-      core-toolbar::shadow .toolbar-tools {
+   <style>    
+      core-toolbar, core-toolbar::shadow .toolbar-tools {
         height: 48px;
       }
       [drawer] {
         background-color: white;
       }
+      paper-item.core-selected::shadow div {
+        font-weight: bold;
+      }
+
     </style>
+
     <pook-fire-user id='fireUser' anonRedirect='/'></pook-fire-user>
     <core-drawer-panel id='drawerPanel' drawerWidth="8em">
       <core-header-panel drawer>
@@ -32,7 +35,7 @@
           <paper-item icon='content-copy' label='books'></paper-item>
         </core-menu>
       </core-header-panel>
-      <core-header-panel main>
+      <core-header-panel flex main>
         <core-toolbar>
           <paper-icon-button id="navicon" 
             icon="menu" 
@@ -42,7 +45,7 @@
           <span flex>node.pook.io</span>
         </core-toolbar>
         <div class='content'>
-          <core-pages id='pages'>
+          <core-pages id='pages' selected='{{$.menu.selected}}'>
             <pook-account-editor></pook-account-editor>
             <div>
               <paper-button label='logout' on-tap='{{logout}}'></paper-button>
@@ -57,7 +60,7 @@
   <script>
   Polymer('pook-main-app', {
     selectPane: function(ev, detail) {
-      this.$.pages.selected = this.$.menu.selected;
+//      this.$.pages.selected = this.$.menu.selected;
       this.$.drawerPanel.closeDrawer();
     },
     logout: function() {
