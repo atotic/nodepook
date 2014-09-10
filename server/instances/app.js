@@ -34,7 +34,7 @@ app.use(cookieParser("WEJNSD<MVCSDKJF"));
 app.use(express.static(path.join(homepath, 'browser')));
 
 app.use('/', routes);
-app.use('/user',   require('../routes/users'));
+app.use('/user',   require('../routes/user'));
 app.use('/photos',  require('../routes/photos'));
 app.use('/resize',  require('../routes/resize'));
 app.use('/auth',    auth.router);

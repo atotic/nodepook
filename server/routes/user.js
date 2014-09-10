@@ -8,19 +8,19 @@ var Photo = require('../common/Photo.js');
 
 var router = express.Router();
 
-router.use(auth.loadUserFromCookie);
+//router.use(auth.loadUserFromCookie);
 /* GET user home page */
 
 router.get('/', function(req, res) {
 	if (!req.user)
-		res.redirect('/');
+		res.render('user/account');
 	else {
 		async.waterfall([
 				function getPhotos(cb) {
 					Photo.photosByUserId(req.user.itemId, cb);
 				},
 				function render(photos, cb) {
-					res.render('users/home', { 
+					res.render('user/home', { 
 						title: 'pook.io', 
 						user: req.user,
 						photos: photos
@@ -35,5 +35,7 @@ router.get('/', function(req, res) {
 		);
 	}
 });
+
+
 
 module.exports = router;

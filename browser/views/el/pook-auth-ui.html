@@ -2,6 +2,9 @@
 <link href='/vendor/paper-button/paper-button.html' rel='import'>
 <link href='/vendor/paper-input/paper-input.html' rel='import'>
 <link href='/vendor/paper-checkbox/paper-checkbox.html' rel='import'>
+<link href='/vendor/firebase-elements/firebase-element.html' rel='import'>
+<link href='/vendor/firebase-elements/firebase-login.html' rel='import'>
+
 <!--
 /**
   * pook-globals wraps pook form submission
@@ -30,7 +33,11 @@
       on-error='{{onLoginError}}'
       on-password-reset='{{onPasswordReset}}'
       on-login='{{onLogin}}'
+      on-user-created='{{onUserCreated}}'
       ></firebase-login>
+    <firebase-element id='firebase'
+      location='https://torid-inferno-6070.firebaseio.com/' 
+    ></firebase-element>      
     <template if="{{mode== 'login'}}">
       <div vertical layout>
         <h3>Login</h3>
@@ -102,7 +109,10 @@
           this.clearErrors();
           switch(err.detail.code) {
             case 'AUTHENTICATION_DISABLED':
-              this.flash.error = "Login failed because of unexpected server error. Please call us to fix this.";
+            case 'INVALID_FIREBASE':
+            case 'INVALID_ORIGIN':
+            case 'UNKNOWN_ERROR':
+              this.flash.error = "Login failed because of unexpected server error. Please call us to fix this. " + err.detail.code;
               break;
             case 'INVALID_USER':
             case 'INVALID_EMAIL':
@@ -113,6 +123,10 @@
               this.flash.error = "Login failed. Fix your input, and try again.";
               this.passwordField.setCustomValidity('Invalid password');
               break;
+            case 'EMAIL_TAKEN':
+              this.flash.error = "This email has already been registered. Try logging in instead";
+              this.mode = 'login';
+              break;
             default:
               console.log(err.detail.code);
               debugger;
@@ -121,7 +135,32 @@
         onLogin: function(data) {
           this.clearErrors();
           this.flash.message = "You've logged in!";
-          console.log(data.user);
+          window.location.pathname = '/user';
+        },
+        onUserCreated: function(event) {
+          this.clearErrors();
+          // create user inside the db
+          var firebase = this.$.firebase.ref;
+          var user = event.detail.user;
+          firebase.child('users').child(user.uid)
+            .set({
+                uid: user.uid,
+                account: {
+                  email: user.email
+                }
+              },
+              function(err) {
+                if (err) {
+                  console.log("New user save error", err);
+                debugger;
+              }
+            });
+          this.flash.message = "New user created";
+          this.$.firebaseLogin.login('password', {
+            email: this.email,
+            password: this.password,
+            rememberMe: this.rememberMe
+          });
         },
         onPasswordReset: function() {
           this.clearErrors();

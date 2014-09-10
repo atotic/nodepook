@@ -12,3 +12,7 @@ p {
 .small {
 	font-size: smaller;
 }
+
+paper-button {
+  text-transform: none;
+}

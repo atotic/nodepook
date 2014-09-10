@@ -1,0 +1,85 @@
+<link href="/vendor/polymer/polymer.html" rel="import">
+<!--
+/**
+  * pook-user represents current user
+  * 'pook-user'.debug=true displays debug information 
+  *
+  * <pook-user user=JSON.stringify(user)>
+  *
+  * @element pook-user
+ */
+-->
+<polymer-element name='pook-fire-user' attributes='anonRedirect'>
+  <template>
+  </template>
+  <script>
+  (function() {
+
+  "use strict";
+
+
+  // gContainer contains values shared between all instances
+  var gContainer = { uid: ''};
+
+  var gAuthClient;
+  function init() {
+    if (gAuthClient) // only init once
+      return;
+
+    var ref = new Firebase('https://torid-inferno-6070.firebaseio.com/');
+    gAuthClient = new FirebaseSimpleLogin(ref, function(err, user) {
+      if (err)
+        console.error(err);
+      else {
+        gContainer.uid = user ? user.uid : 'anonymous';
+        // console.log('got user', user);
+      }
+    });
+    // var authRef = ref.child('.info/authenticated');
+    // // watch the authentication status
+    // authRef.on('value', function(snap) {
+    //   if (snap.val() === true) {
+    //     // console.log('authenticated'); // set user somehow
+    //   }
+    //   else {
+    //     gContainer.uid = null;
+    //     // console.log('not authenticated');
+    //   }
+    // });
+    // ref.child('.info').on('value', function(snap) {
+    //   // console.log(snap.val());
+    // });
+    // console.log('done init');
+  }
+  init();
+
+  var PookFireUser = {
+    publish: {
+      container: gContainer
+    },
+    computed: {
+      uid: 'container.uid'
+    },
+    ready: function() {
+//      init();
+    },
+    logout: function() {
+      gAuthClient.logout();
+      window.location.pathname = '/';
+    },
+    uidChanged: function() {
+      if (this.uid === 'anonymous' && this.anonRedirect)
+      {
+        document.querySelector('pook-flash').warn = 'not logged in';
+        window.location.href = this.anonRedirect;
+      }
+    }
+  }
+
+  Polymer('pook-fire-user', PookFireUser);
+
+})();
+
+
+  </script>
+</polymer-element>

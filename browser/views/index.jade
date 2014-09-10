@@ -6,12 +6,6 @@ block content
   h1= title
   pook-auth-ui
 
-  script.
-    function init() {
-      console.log("ready");
-    }
-    window.addEventListener('polymer-ready', init);
-
   div(style="display:none")
     form#login(is='pook-form', action="/auth/login", method="post")
       h3 Login
