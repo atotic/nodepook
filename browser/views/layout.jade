@@ -12,22 +12,6 @@ html
 
     link(rel="import", href="/vendor/firebase-elements/firebase-login.html") 
 
-    script.
-      // Debugging script to prevent missing imports
-      function findUnknownElements(el) {
-        if (el.constructor == HTMLElement)
-          console.error("Found unknown element:", el);
-        if (el.shadowRoot) {
-          var every = el.shadowRoot.querySelectorAll('*');
-          for (var i=0; i<every.length; i++)
-            findUnknownElements(every[i]);
-        }
-      }
-      document.addEventListener('polymer-ready', function() {
-        var every = document.querySelectorAll('*');
-        for (var i=0; i<every.length; i++)
-          findUnknownElements(every[i]);
-      });
-
   body
+    pook-debug
     append content

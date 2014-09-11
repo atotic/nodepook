@@ -1,0 +1,30 @@
+<polymer-element name='pook-debug'>
+  <template></template>
+  <script>
+    (function() {
+
+      function findUnregisteredCustomElements(el) {
+        if (el.constructor == HTMLElement) {
+          console.error("Found unregistered custom element:", el);
+        }
+      }
+      
+      function isCustomEl(el) {
+        return el.localName.indexOf('-') != -1 || el.getAttribute('is');
+      }
+      
+      document.addEventListener('polymer-ready', function() {
+        var allCustomElements = document.querySelectorAll('html /deep/ *');
+        allCustomElements = Array.prototype.slice.call(allCustomElements).filter(function(el) {
+          return isCustomEl(el);
+        });
+
+        for (var i = 0, el; el = allCustomElements[i]; ++i)
+          findUnregisteredCustomElements(el);
+        });
+        Polymer('pook-debug', {});
+
+      })();
+  </script>
+
+</polymer-element>
