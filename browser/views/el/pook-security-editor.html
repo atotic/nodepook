@@ -1,0 +1,64 @@
+<link href="/vendor/polymer/polymer.html" rel="import">
+<link href="/views/el/pook-fire-user.html" rel="import">
+
+<link href="/vendor/paper-input/paper-input.html" rel="import">
+<link href
+<!--
+/**
+  * Security editor 
+  *
+  * @element pook-security-editor
+  */
+-->
+<polymer-element name='pook-security-editor'>
+  <template>
+    <style>
+      paper-button {
+        margin: 8px;
+      }
+    </style>
+    <firebase-login id='firebaseLogin' 
+      location='https://torid-inferno-6070.firebaseio.com/' 
+      provider='password'
+      on-error='{{firebaseError}}'
+      on-password-changed='{{passwordChanged}}'
+    ></firebase-login>
+    <div vertical layout>
+      <p>Change your password?</p>
+      <paper-input id='oldPassword' label='Old password' type='password' required floatingLabel></paper-input> 
+      <paper-input id='newPassword' label='New password' type='password' required floatingLabel></paper-input>
+      <paper-button label='Change password' on-click='{{changePassword}}' raisedButton></paper-button>
+      <paper-button label='Logout' on-tap='{{logout}}' raisedButton></paper-button>
+    </div>
+  </template>
+  <script>
+  Polymer('pook-security-editor', {
+    publish: {
+      fireAccount: null,
+      userElement: null
+    },
+    ready: function() {
+      this.userElement = document.createElement('pook-fire-user');
+    },
+    get flash() {
+      return document.querySelector('pook-flash');
+    },
+    changePassword: function() {
+      this.$.firebaseLogin.changePassword( this.userElement.email, 
+        this.$.oldPassword.value, 
+        this.$.newPassword.value );
+    },
+    firebaseError: function(errorEv) {
+      this.flash.error = 'Password could not be changed. Try again.\n' + errorEv.detail.message;
+    },
+    passwordChanged: function() {
+      debugger;
+      this.flash.message = 'Password changed succcesfully.'
+    },
+    logout: function() {
+       this.$.firebaseLogin.logout();
+    }
+  });
+  </script>
+</polymer-element>
+

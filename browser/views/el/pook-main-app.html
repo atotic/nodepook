@@ -7,8 +7,10 @@
 <link href="/vendor/core-toolbar/core-toolbar.html" rel="import">
 <link href="/vendor/paper-icon-button/paper-icon-button.html" rel="import">
 <link href="/vendor/paper-item/paper-item.html" rel="import">
+
 <link href="/views/el/pook-account-editor.html" rel="import">
 <link href="/views/el/pook-fire-user.html" rel="import">
+<link href="/views/el/pook-security-editor.html" rel="import">
 
 <polymer-element name='pook-main-app'>
   <template>
@@ -47,9 +49,7 @@
         <div class='content'>
           <core-pages id='pages' selected='{{$.menu.selected}}'>
             <pook-account-editor></pook-account-editor>
-            <div>
-              <paper-button label='logout' on-tap='{{logout}}'></paper-button>
-            </div>
+            <pook-security-editor></pook-security-editor>
             <div>photos</div>
             <div>books</div>
           </core-pages>

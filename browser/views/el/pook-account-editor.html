@@ -1,6 +1,9 @@
 <link href="/vendor/polymer/polymer.html" rel="import">
+<link href="/vendor/paper-input/paper-input.html" rel="import">
+
 <link href="/views/el/pook-fire-user.html" rel="import">
 <link href="/views/el/pook-state-dropdown.html" rel="import">
+
 <!--
 /**
   * User account 
@@ -12,10 +15,13 @@
   <template>
     <style>
       paper-input[label='Zip'] {
-        width: 6em;
+        width: 5em;
       }
       paper-input::shadow span {
          color: #BBB;
+      }
+      pook-state-dropdown {
+        margin-right: 16px;
       }
     </style>
     <div vertical layout>
@@ -25,11 +31,11 @@
       <paper-input label='Street' value='{{fireAccount.data.street1}}' ></paper-input> 
       <paper-input label='Street line 2' value='{{fireAccount.data.street2}}' ></paper-input>
       <paper-input label='City' value='{{fireAccount.data.city}}'></paper-input>
-      <div style=''>
+      <div horizontal layout>
         <pook-state-dropdown selected='{{fireAccount.data.state}}'></pook-state-dropdown>
         <paper-input label='Zip' value='{{fireAccount.data.zip}}'  maxlength=5 pattern='\d\d\d\d\d'></paper-input>
       </div>
-      <paper-input label='id' value='{{userElement.uid}}' disabled></paper-input>
+      <!--- <paper-input label='id' value='{{userElement.uid}}' disabled></paper-input> -->
     </div>
   </template>
   <script>
@@ -45,8 +51,12 @@
       this.userElement = document.createElement('pook-fire-user');
     },
     uidChanged: function(data) {
-      this.fireAccount = document.createElement('firebase-element');
-      this.fireAccount.location = 'https://torid-inferno-6070.firebaseio.com/users/' + this.uid + '/account';
+      if (this.userElement.uid) {
+        this.fireAccount = document.createElement('firebase-element');
+        this.fireAccount.location = this.userElement.uidUrl + '/account';
+      }
+      else
+        this.fireAccount = null;
     }
   });
   </script>

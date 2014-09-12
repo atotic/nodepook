@@ -1,15 +1,13 @@
 <link href="/vendor/polymer/polymer.html" rel="import">
 <!--
 /**
-  * pook-user represents current user
-  * 'pook-user'.debug=true displays debug information 
+  * pook-fire-user represents current user
+  * publishes uid
   *
-  * <pook-user user=JSON.stringify(user)>
-  *
-  * @element pook-user
+  * @element pook-fire-user
  */
 -->
-<polymer-element name='pook-fire-user' attributes='anonRedirect'>
+<polymer-element name='pook-fire-user' attributes='uid, anonRedirect'>
   <template>
   </template>
   <script>
@@ -19,7 +17,7 @@
 
 
   // gContainer contains values shared between all instances
-  var gContainer = { uid: ''};
+  var gContainer = { uid: '', email: ''};
 
   var gAuthClient;
   function init() {
@@ -32,24 +30,18 @@
         console.error(err);
       else {
         gContainer.uid = user ? user.uid : 'anonymous';
+        gContainer.email = user ? user.email : '';
         // console.log('got user', user);
+        /* user object is {
+          email: "b@totic.org",
+          id: "4", 
+          isTemporaryPassword: false, 
+          provider: "password", 
+          uid: "simplelogin:4"
+        }*/
       }
     });
-    // var authRef = ref.child('.info/authenticated');
-    // // watch the authentication status
-    // authRef.on('value', function(snap) {
-    //   if (snap.val() === true) {
-    //     // console.log('authenticated'); // set user somehow
-    //   }
-    //   else {
-    //     gContainer.uid = null;
-    //     // console.log('not authenticated');
-    //   }
-    // });
-    // ref.child('.info').on('value', function(snap) {
-    //   // console.log(snap.val());
-    // });
-    // console.log('done init');
+    // Magic firebase location contains authentication status
   }
   init();
 
@@ -58,7 +50,9 @@
       container: gContainer
     },
     computed: {
-      uid: 'container.uid'
+      uid: 'container.uid',
+      uidUrl: '"https://torid-inferno-6070.firebaseio.com/users/" + container.uid',
+      email: 'container.email'
     },
     ready: function() {
 //      init();
