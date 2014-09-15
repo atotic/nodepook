@@ -15,6 +15,11 @@
     <style>
       paper-button {
         margin: 8px;
+        min-width: 200px;
+        width: auto;
+      }
+      paper-input {
+        width: auto;
       }
     </style>
     <firebase-login id='firebaseLogin' 
@@ -30,6 +35,12 @@
       <paper-button label='Change password' on-click='{{changePassword}}' raisedButton></paper-button>
       <paper-button label='Logout' on-tap='{{logout}}' raisedButton></paper-button>
     </div>
+    <!--
+    Changing email, got to wait for Firebase to do it:
+    Sorry for taking a few days to get back to you. The current login API does not offer a method to change a user's email address. If you want that functionality at the moment, you need to manage it yourself. Using a guid sounds like a good way to do that. You will just need some way to map the user's current and previous email address to the same user.
+
+This is definitely high on our list of features to implement for Simple Login. As you can imagine, there are many edge cases here and it is not a minor feature. We do have it on our longterm roadmap though and you will hopefully be seeing it sooner rather than later.
+    -->
   </template>
   <script>
   Polymer('pook-security-editor', {

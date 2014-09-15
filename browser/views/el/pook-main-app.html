@@ -16,13 +16,19 @@
   <template>
    <style>    
       core-toolbar, core-toolbar::shadow .toolbar-tools {
-        height: 48px;
+        height: 36px;
       }
       [drawer] {
-        background-color: white;
+        background-color: #E9EDEF;
+      }
+      core-pages {
       }
       paper-item.core-selected::shadow div {
         font-weight: bold;
+      }
+
+      core-pages > * {
+        margin: 0 8px 0 8px;
       }
 
     </style>
@@ -30,6 +36,8 @@
     <pook-fire-user id='fireUser' anonRedirect='/'></pook-fire-user>
     <core-drawer-panel id='drawerPanel' drawerWidth="8em">
       <core-header-panel drawer>
+        <core-toolbar></core-toolbar>
+
         <core-menu id='menu' on-core-select="{{selectPane}}" selected="0">
           <paper-item icon='account-box' label='account'></paper-item>
           <paper-item icon='https' label='security'></paper-item>
