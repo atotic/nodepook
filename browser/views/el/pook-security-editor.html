@@ -17,10 +17,12 @@
         margin: 8px;
         min-width: 200px;
         width: auto;
+        text-transform: none;
       }
       paper-input {
         width: auto;
       }
+
     </style>
     <firebase-login id='firebaseLogin' 
       location='https://torid-inferno-6070.firebaseio.com/' 
@@ -33,7 +35,6 @@
       <paper-input id='oldPassword' label='Old password' type='password' required floatingLabel></paper-input> 
       <paper-input id='newPassword' label='New password' type='password' required floatingLabel></paper-input>
       <paper-button label='Change password' on-click='{{changePassword}}' raisedButton></paper-button>
-      <paper-button label='Logout' on-tap='{{logout}}' raisedButton></paper-button>
     </div>
     <!--
     Changing email, got to wait for Firebase to do it:
@@ -65,9 +66,6 @@ This is definitely high on our list of features to implement for Simple Login. A
     passwordChanged: function() {
       debugger;
       this.flash.message = 'Password changed succcesfully.'
-    },
-    logout: function() {
-       this.$.firebaseLogin.logout();
     }
   });
   </script>

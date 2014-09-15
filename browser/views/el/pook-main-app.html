@@ -53,6 +53,7 @@
             style="display:{{$.drawerPanel.narrow ? 'inline-block' : 'none'}}"
           ></paper-icon-button>
           <span flex>node.pook.io</span>
+          <paper-button label='logout' on-click='{{logout}}'></paper-button>
         </core-toolbar>
         <div class='content'>
           <core-pages id='pages' selected='{{$.menu.selected}}'>

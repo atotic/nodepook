@@ -13,6 +13,6 @@ p {
 	font-size: smaller;
 }
 
-paper-button {
+* /deep/ paper-button {
   text-transform: none;
 }

@@ -7,18 +7,15 @@
 
 <!--
 /**
-  * pook-globals wraps pook form submission
+  * pook-auth-ui authorization user interface
   * *
-  * @element pook-globals
+  * @element pook-auth-ui
  */
 -->
 <polymer-element name='pook-auth-ui'>
   <template>
     <link rel="stylesheet" href="/css/global.css" type="text/css">
     <style>
-      paper-button {
-        text-transform: none;
-      }
       h3 {
         margin-top: 0px;
         margin-bottom: 8px;
@@ -132,35 +129,40 @@
               debugger;
          }
         },
-        onLogin: function(data) {
+        onLogin: function(event) {
           this.clearErrors();
           this.flash.message = "You've logged in!";
-          window.location.pathname = '/user';
-        },
-        onUserCreated: function(event) {
-          this.clearErrors();
-          // create user inside the db
-          var firebase = this.$.firebase.ref;
-          var user = event.detail.user;
-          firebase.child('users').child(user.uid)
+          if (this.createUserInDb) {
+            delete this.createUserInDb;
+            var user = event.detail.user;
+            this.$.firebase.ref.child('users').child(user.uid)
             .set({
-                uid: user.uid,
                 account: {
                   email: user.email
                 }
               },
               function(err) {
-                if (err) {
-                  console.log("New user save error", err);
-                debugger;
-              }
+                if (err)
+                  console.log("Unexpected error saving users data in database", err);
+                window.location.pathname = '/user';
             });
-          this.flash.message = "New user created";
+          }
+          else {
+            window.location.pathname = '/user';
+          }
+        },
+        onUserCreated: function(event) {
+          this.clearErrors();
+          // sets a flag to create user inside db upon login
+          this.createUserInDb = true;
+          // login user
           this.$.firebaseLogin.login('password', {
             email: this.email,
             password: this.password,
             rememberMe: this.rememberMe
           });
+          this.flash.message = "Account registered";
+
         },
         onPasswordReset: function() {
           this.clearErrors();
