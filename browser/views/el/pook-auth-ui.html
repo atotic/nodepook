@@ -32,9 +32,6 @@
       on-login='{{onLogin}}'
       on-user-created='{{onUserCreated}}'
       ></firebase-login>
-    <firebase-element id='firebase'
-      location='https://torid-inferno-6070.firebaseio.com/' 
-    ></firebase-element>      
     <template if="{{mode== 'login'}}">
       <div vertical layout>
         <h3>Login</h3>
@@ -135,17 +132,15 @@
           if (this.createUserInDb) {
             delete this.createUserInDb;
             var user = event.detail.user;
-            this.$.firebase.ref.child('users').child(user.uid)
-            .set({
-                account: {
-                  email: user.email
-                }
-              },
-              function(err) {
+            var firebase = new Firebase('https://torid-inferno-6070.firebaseio.com/users');
+            var record = {};
+            record[user.uid] = { account: { email: user.email }};
+            firebase.update( record, function(err) {
                 if (err)
                   console.log("Unexpected error saving users data in database", err);
                 window.location.pathname = '/user';
-            });
+              }
+            );
           }
           else {
             window.location.pathname = '/user';

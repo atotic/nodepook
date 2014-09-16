@@ -15,14 +15,12 @@
     <style>
       paper-button {
         margin: 8px;
-        min-width: 200px;
+        min-width: 300px;
         width: auto;
-        text-transform: none;
       }
       paper-input {
         width: auto;
       }
-
     </style>
     <firebase-login id='firebaseLogin' 
       location='https://torid-inferno-6070.firebaseio.com/' 
@@ -34,7 +32,9 @@
       <p>Change your password?</p>
       <paper-input id='oldPassword' label='Old password' type='password' required floatingLabel></paper-input> 
       <paper-input id='newPassword' label='New password' type='password' required floatingLabel></paper-input>
-      <paper-button label='Change password' on-click='{{changePassword}}' raisedButton></paper-button>
+      <div>
+        <paper-button label='Change password' on-click='{{changePassword}}' raisedButton></paper-button>
+      </div>
     </div>
     <!--
     Changing email, got to wait for Firebase to do it:
