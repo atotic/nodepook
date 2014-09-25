@@ -134,7 +134,10 @@
             var user = event.detail.user;
             var firebase = new Firebase('https://torid-inferno-6070.firebaseio.com/users');
             var record = {};
-            record[user.uid] = { account: { email: user.email }};
+            record[user.uid] = { account: { 
+              created_at: Firebase.ServerValue.TIMESTAMP, 
+              email: user.email 
+            }};
             firebase.update( record, function(err) {
                 if (err)
                   console.log("Unexpected error saving users data in database", err);

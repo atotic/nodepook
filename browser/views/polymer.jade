@@ -1,15 +1,22 @@
 doctype html
 html
   head
-    title Polymer playground
+    title Polymer data binding
     link(rel='stylesheet', href='/css/global.css')
       
     script(src="/vendor/platform/platform.js")
     link(rel='import', href='/vendor/polymer/polymer.html')
     link(rel='import', href='/vendor/paper-input/paper-input.html')
+    link(rel='import', href='/vendor/paper-button/paper-button.html')
+    link(rel='import', href='/views/el/test.html')
+    link(rel='import', href='/views/el/pook-debug.html')
   body
-    p Hi there
-    paper-input(label="hi")
+    p Polymer data binding
+    pook-debug
+    test-globals()
+    test-firebase2()
+    test-destination2
+    test-fire-observer
     script.
       function init() {
         console.log("ready");

@@ -1,5 +1,4 @@
 var debug = require('debug')('pook:routes:photos');
-
 "use strict";
 
 var async = require('async');
@@ -16,19 +15,8 @@ var router = express.Router();
 
 var uploadDir = path.resolve(__dirname, '../../uploads');
 
-
-function extensionFromName(name) {
-  var ext = '.img';
-  if (name) {
-    var m = name.match(/.*\.(.*)$/);
-    if (m && m.length == 2 && m[1].length > 0 && m[1].length < 5) {
-      var e =  ('.' + m[1]).toLowerCase();
-      if (['.jpg','.png','.gif'].indexOf(e) != -1)
-        ext = ('.' + m[1]).toLowerCase();
-    }
-  }
-  return ext;
-}
+router.use('/', express.static( uploadDir ));
+router.use(auth.loadUserFromCookie);
 
 router.route('/')
   .post( function uploadPhoto(req, res, next) {
@@ -41,9 +29,16 @@ router.route('/')
 
     var exifData;
     var file;
+    var photoData;
 
     async.waterfall(
       [
+        function validateUser(cb) {
+          if (!req.user)
+            cb(new Error("user must be logged in"));
+          else
+            cb();
+        },
         function parseForm(cb) {
           form.parse(req, cb);
         },
@@ -54,13 +49,17 @@ router.route('/')
         function readExifData(ignore, cb) {
           Photo.readExifData(file.path, cb);
         },
-        function uploadPhoto(inExifData, cb) {
+        function createPhoto(inExifData, cb) {
           exifData = inExifData;
+          exifData.displayName = file.name;
           exifData.md5 = file.hash;
-          Photo.uploadToS3(file.path, exifData.contentType, cb);
+          Photo.create(file.path, exifData, req.user.itemId, cb);
         },
-        function deleteFile(s3id, cb) {
-          exifData.s3id = s3id;
+        function readPhotoData(item, cb) {
+          Photo.read(item.sdbId, cb);
+        },
+        function deleteFile(inPhotoData, cb) {
+          photoData = inPhotoData;
           fs.unlink(file.path, cb);
         },
       ],
@@ -71,7 +70,7 @@ router.route('/')
           res.format(
             {
               'application/json': function() {
-                res.send( { msg: "Photo created", item: exifData } );
+                res.send( { msg: "Photo created", item: photoData } );
               },
               default: function() {
                 res.render('photo', { photoSrc: photoData.s3id + "~1024"});

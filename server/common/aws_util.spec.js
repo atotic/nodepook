@@ -24,7 +24,7 @@ describe('aws_util.js, and various aws calls', function() {
 						fs.readFile(src, callback);
 					},
 					function upload(buffer, callback) {
-						AWSu.s3.client.putObject({
+						AWSu.s3.putObject({
 								Bucket: AWSu.buckets.test,
 								Key: key,
 								Body: buffer
@@ -34,7 +34,7 @@ describe('aws_util.js, and various aws calls', function() {
 					},
 					function del(data, callback) {
 						return callback();
-						AWSu.s3.client.deleteObject( {
+						AWSu.s3.deleteObject( {
 								Bucket: AWSu.buckets.test,
 								Key: key
 							},
@@ -54,7 +54,7 @@ describe('aws_util.js, and various aws calls', function() {
 			var key = "s3uploadStreamtest-" + util.randomString(6);
 			async.waterfall([
 					function upload(callback) {
-						AWSu.s3.client.putObject( {
+						AWSu.s3.putObject( {
 								Bucket: AWSu.buckets.test,
 								Key: key,
 								Body: fs.createReadStream(src)
@@ -63,7 +63,7 @@ describe('aws_util.js, and various aws calls', function() {
 						)
 					},
 					function del(data, callback) {
-						AWSu.s3.client.deleteObject( {
+						AWSu.s3.deleteObject( {
 							Bucket: AWSu.buckets.test,
 							Key: key
 						},
@@ -77,7 +77,7 @@ describe('aws_util.js, and various aws calls', function() {
 		});
 
 		it ('listObjects', function(done) {
-			AWSu.s3.client.listObjects({
+			AWSu.s3.listObjects({
 					Bucket: AWSu.buckets.photos,
 					Delimiter: '/'
 				},
@@ -86,14 +86,14 @@ describe('aws_util.js, and various aws calls', function() {
 		});
 
 		it ('#headObject', function(done) {
-			var p = AWSu.s3.client.headObject({
+			var p = AWSu.s3.headObject({
 					Bucket: AWSu.buckets.photos,
 					Key:'404.jpg'
 				}, done);
 		});
 
 		it ('#getObject', function(done) {
-			AWSu.s3.client.getObject({
+			AWSu.s3.getObject({
 					Bucket: AWSu.buckets.photos,
 					Key: '404.jpg'
 				},

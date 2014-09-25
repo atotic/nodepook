@@ -6,20 +6,18 @@ sudo chkconfig --add s53hostname # adds init.d script to startup
 ssh -i ~/.ssh/AmazonEC2KeyPair_May2014.pem ec2-user@AmazonHost
 
 # Testing
+find server -name "*spec.js" | xargs mocha
 
-DEBUG=pook* mocha test/*/**_test
 grunt # has a bunch of command-line utilities
 grunt eraseDatabase
 grunt readItem:photos:id
 
 # Database
 
-SimpleDb, s3. Use aws_util module
+s3. Use aws_util module
 
 s3
 	photos, resized photos
-sdb
-	photo meta information
 
 # AWS
 Using IAM. pookio_dev has access to everything
@@ -51,12 +49,3 @@ sudo chkconfig --add s53hostname
 
 # make grunt update route53 on startup
 
-jsgroupdoc
-what library to use for synchronization:
-http://strongloop.com/strongblog/node-js-replication-mobile-offline-sync-loopback/?utm_source=feedly&utm_reader=feedly&utm_medium=rss&utm_campaign=node-js-replication-mobile-offline-sync-loopback
-
-ui->data binding:
-constraintjs http://cjs.from.so/
-
-object.observe
-http://www.html5rocks.com/en/tutorials/es7/observe/

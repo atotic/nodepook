@@ -34,10 +34,10 @@
     </style>
 
     <pook-fire-user id='fireUser' anonRedirect='/'></pook-fire-user>
+    <pook-body-file-drop on-file-dropped='{{fileDropped}}'></pook-body-file-drop>
     <core-drawer-panel id='drawerPanel' drawerWidth="8em">
       <core-header-panel drawer>
         <core-toolbar></core-toolbar>
-
         <core-menu id='menu' on-core-select="{{selectPane}}" selected="0">
           <paper-item icon='account-box' label='account'></paper-item>
           <paper-item icon='https' label='security'></paper-item>
@@ -57,9 +57,9 @@
         </core-toolbar>
         <div class='content'>
           <core-pages id='pages' selected='{{$.menu.selected}}'>
-            <pook-account-editor></pook-account-editor>
-            <pook-security-editor></pook-security-editor>
-            <div>photos</div>
+            <pook-account-editor hash='account'></pook-account-editor>
+            <pook-security-editor hash='security'></pook-security-editor>
+            <pook-photos-page hash='photos'></pook-photos-page>
             <div>books</div>
           </core-pages>
         </div>
@@ -68,7 +68,21 @@
   </template>
   <script>
   Polymer('pook-main-app', {
+    ready: function() {
+      this.selectPaneByHash();
+    },
+    selectPaneByHash: function() {
+      if (!window.location.hash)
+        return;
+      var pane = this.$.pages.querySelector('[hash=' + window.location.hash.slice(1) + ']');
+      if (pane) {
+        for (var i=0; i<pane.parentNode.children.length; i++)
+          if (pane.parentNode.children.item(i) == pane)
+            this.$.menu.selected = i;
+      }
+    },
     selectPane: function(ev, detail) {
+      window.location.hash = ev.detail.item.label;
       this.$.drawerPanel.closeDrawer();
     },
     logout: function() {
@@ -76,6 +90,9 @@
     },
     toggleDrawer: function() {
       this.$.drawerPanel.togglePanel();
+    },
+    fileDropped: function(ev) {
+      this.$.fireUser.addPhotoFile(ev.detail);
     }
   });
   </script>

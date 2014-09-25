@@ -62,7 +62,7 @@ router.get('*', function conversion(req, res, next) {
 			[
 				function fetch(fn) {
 					debug('fetch', ks.key);
-					AWSu.s3.client.getObject({
+					AWSu.s3.getObject({
 							Bucket: AWSu.buckets.photos,
 							Key: ks.key
 						},
@@ -107,7 +107,7 @@ router.get('*', function conversion(req, res, next) {
 		);
 	}
 
-	AWSu.s3.client.headObject( {
+	AWSu.s3.headObject( {
 			Bucket: AWSu.buckets.photos,
 			Key: s3resizedKey
 		},

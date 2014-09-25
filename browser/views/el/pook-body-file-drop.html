@@ -1,15 +1,14 @@
 
 <!--
-/**
-	* pook-body-file-drop uploads a file dropped on body
-	*
-	* @element pook-body-file-drop
+	pook-body-file-drop broadcasts file drops on body.
+
+	@element pook-body-file-drop
+
+	@event file-dropped
+	Fire when file has been dropped, event.detail is FileObject
+
  */
 -->
-dragenter: function(ev) { return NativeDnd.dragenter( ev ) },
-		dragover: function(ev) { return NativeDnd.dragover( ev ) },
-		dragleave: function(ev) { return NativeDnd.dragleave( ev ) },
-		drop: function(ev) { return NativeDnd.drop( ev ) }
 
 <polymer-element name='pook-body-file-drop'>
 	<template>
@@ -18,6 +17,15 @@ dragenter: function(ev) { return NativeDnd.dragenter( ev ) },
 	</style>
 	<script>
 	Polymer('pook-body-file-drop',{
+		publish: {
+			/** 
+			 * filter acceptable file types, default to images 
+			 * @attribute fileTypeRegex
+			 * @type string
+			 * @default image files
+			 */
+			fileTypeRegex: "image/(png|jpeg|gif)"
+		},
 		ready: function(){
 			var listen = function(evName) {
 				document.addEventListener(evName, this[evName].bind(this));
@@ -26,28 +34,39 @@ dragenter: function(ev) { return NativeDnd.dragenter( ev ) },
 			// listen('dragleave');
 			listen('dragover');
 			listen('drop');
+			listen('dragleave');
 		},
 		dragenter: function(ev) {
-			this.isDragging = this.getDraggedFiles(ev);
+			this.isDragging = this.getFiles(ev);
 			ev.preventDefault();
 		},
 		dragover: function(ev) {
-			if (this.isDragging)
+			if (this.isDragging) {
+				document.body.setAttribute('drop-active', 1);
 				ev.preventDefault();
+			}
+		},
+		dragleave: function(ev) {
+			if (this.isDragging)
+				document.body.removeAttribute('drop-active');
+			console.log('dragleave');
 		},
 		drop: function(ev) {
 			ev.preventDefault();
 			ev.stopPropagation();
-			console.log('drop');
+			document.body.removeAttribute('drop-active');
+			// console.log('drop');
 
-			var dragFiles = this.filterImageFiles( this.getDraggedFiles(ev) );
-			if (!dragFiles)
-				document.querySelector('pook-flash').warn('Files not uploaded. Files must be images (jpg/gif/png');
+			var files = this.applyFileTypeFilter( this.getFiles(ev) );
+			if (!files)
+				document.querySelector('pook-flash').warn = 'Files not uploaded. Files must be images (jpg/gif/png';
 			else {
-				this.$.user.addLocalPhotoFiles(dragFiles);
+	      for (var i=0; i<files.length; i++)
+	      	this.fire('file-dropped', files[i]);
 			}
 		},
-		getDraggedFiles: function(ev) {
+		// returns array of files, or null
+		getFiles: function(ev) {
 			var dataTransfer = ev.dataTransfer;
 			if (dataTransfer.files && dataTransfer.files.length > 0) {
 				// console.log('got files');
@@ -62,16 +81,14 @@ dragenter: function(ev) { return NativeDnd.dragenter( ev ) },
 			}
 			return null;
 		},
-		// returns only image files
-		filterImageFiles: function(draggedFiles) {
-			if (!draggedFiles)
+		// filters
+		applyFileTypeFilter: function(files) {
+			if (!files)
 				return null;
-
-			mimeRegex = "image/(png|jpeg|gif)";
 			var retVal = [];
-			for (var i=0; i<draggedFiles.length; i++) {
-				var f = draggedFiles.item(i);
-				if (f.type.match( mimeRegex ))
+			for (var i=0; i<files.length; i++) {
+				var f = files.item(i);
+				if (f.type.match( this.fileTypeRegex ))
 					retVal.push(f);
 			}
 			return retVal;

@@ -1,0 +1,76 @@
+<link href="/vendor/polymer/polymer.html" rel="import">
+<link href='/vendor/paper-button/paper-button.html' rel='import'>
+<link rel='import' href='/views/el/pook-fire-user.html'>
+<!--
+  pook-photos-page displays all the user's photos
+
+  @element pook-photos-page
+
+-->
+
+<polymer-element name='pook-photos-page'>
+  <template>
+    <paper-button label='upload more' on-click='{{createPhotoThing}}' raisedButton></paper-button>
+    <p> Here are all your photos</p>
+    <template repeat="{{k in userPhotoKeys}}">
+      <p>Key {{k}}</p>
+    </template>
+  </template>
+  <style>
+  </style>
+  <script>
+  "use strict";
+  Polymer('pook-photos-page',{
+    publish: {
+      /** 
+       * filter acceptable file types, default to images 
+       * @attribute fileTypeRegex
+       * @type string
+       * @default image files
+       */
+      fileTypeRegex: "image/(png|jpeg|gif)",
+      user: false,
+      forceUserPhotos: 0
+    },
+    computed: {
+      userPhotoKeys: '{ obj: user.userPhotos, force: forceUserPhotos } | keysToArray'
+    },
+    observe: {
+      'user.userPhotos': 'userPhotosChanged'
+    },
+    created: function() {
+      this.user = document.createElement('pook-fire-user');
+      this.user.requestDatabase('userPhotos');
+
+      this.userPhotoObserver = null;
+    },
+    userPhotosChanged: function() {
+      if (!this.user.userPhotos) {
+        if (this.userPhotoObserver) {
+          this.userPhotoObserver.close();
+          this.userPhotoObserver = null;
+          this.forceUserPhotos += 1;
+        }
+        return;
+      }
+      if (this.userPhotoObserver)
+        return;
+      var THIS = this;
+      this.userPhotoObserver = new ObjectObserver(this.user.userPhotos);
+      this.userPhotoObserver.open(function(added, removed, changed, getOldValue) {
+        console.log('userPhotos observed');
+        THIS.forceUserPhotos += 1;
+      });
+    },
+    createPhotoThing: function() {
+      debugger;
+    },
+    keysToArray: function(o) {
+      var retVal = [];
+      for (var k in o.obj)
+        retVal.push(k);
+      return retVal;
+    }
+  });
+  </script>
+</polymer-element> 

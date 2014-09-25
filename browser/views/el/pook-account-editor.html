@@ -28,15 +28,15 @@
       }
     </style>
     <div vertical layout>
-      <paper-input label='Email' value='{{fireAccount.data.email}}' ></paper-input> 
-      <paper-input label='First name' value='{{fireAccount.data.firstName}}' ></paper-input> 
-      <paper-input label='Last name' value='{{fireAccount.data.lastName}}' ></paper-input> 
-      <paper-input label='Street' value='{{fireAccount.data.street1}}' ></paper-input> 
-      <paper-input label='Street line 2' value='{{fireAccount.data.street2}}' ></paper-input>
-      <paper-input label='City' value='{{fireAccount.data.city}}'></paper-input>
+      <paper-input label='Email' value='{{user.account.email}}' ></paper-input> 
+      <paper-input label='First name' value='{{user.account.firstName}}' ></paper-input> 
+      <paper-input label='Last name' value='{{user.account.lastName}}' ></paper-input> 
+      <paper-input label='Street' value='{{user.account.street1}}' ></paper-input> 
+      <paper-input label='Street line 2' value='{{user.account.street2}}' ></paper-input>
+      <paper-input label='City' value='{{user.account.city}}'></paper-input>
       <div horizontal layout>
-        <pook-state-dropdown selected='{{fireAccount.data.state}}'></pook-state-dropdown>
-        <paper-input label='Zip' value='{{fireAccount.data.zip}}'  maxlength=5 pattern='\d\d\d\d\d'></paper-input>
+        <pook-state-dropdown selected='{{user.account.state}}'></pook-state-dropdown>
+        <paper-input label='Zip' value='{{user.account.zip}}'  maxlength=5 pattern='\d\d\d\d\d'></paper-input>
       </div>
       <!--- <paper-input label='id' value='{{userElement.uid}}' disabled></paper-input> -->
     </div>
@@ -44,22 +44,11 @@
   <script>
   Polymer('pook-account-editor', {
     publish: {
-      fireAccount: null, // users/
-      userElement: null
+      user: false
     },
-    computed: {
-      uid: 'userElement.uid'
-    },
-    ready: function() {
-      this.userElement = document.createElement('pook-fire-user');
-    },
-    uidChanged: function(data) {
-      if (this.userElement.uid) {
-        this.fireAccount = document.createElement('firebase-element');
-        this.fireAccount.location = this.userElement.uidUrl + '/account';
-      }
-      else
-        this.fireAccount = null;
+    created: function() {
+      this.user = document.createElement('pook-fire-user');
+      this.user.requestDatabase('account');
     }
   });
   </script>

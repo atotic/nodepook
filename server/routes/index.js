@@ -7,7 +7,10 @@ router.get('/', function(req, res) {
 });
 
 router.get('/firebase', function(req, res) {
-	res.render('firebase', { title: 'pookfire'});
-})
+	res.render('firebase', { title: 'Fireplay'});
+});
 
+router.get('/polymer', function(req, res) {;
+  res.render('polymer', {title: 'Polyplay'});
+});
 module.exports = router;

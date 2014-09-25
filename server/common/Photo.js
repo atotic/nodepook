@@ -196,45 +196,53 @@ function rejectDuplicates(md5, ownerId, done) {
   );
 }
 
-function extensionFromName(name) {
-  var ext = '.img';
-  if (name) {
-    var m = name.match(/.*\.(.*)$/);
-    if (m && m.length == 2 && m[1].length > 0 && m[1].length < 5) {
-      var e =  ('.' + m[1]).toLowerCase();
-      if (['.jpg','.png','.gif'].indexOf(e) != -1)
-        ext = ('.' + m[1]).toLowerCase();
-    }
+// Uploads photo to s3
+function uploadToS3(filePath, contentType, cb) {
+  var extension;
+  switch(contentType) {
+    case 'image/jpeg': extension = '.jpg'; break;
+    case 'image/gif': extension = '.gif'; break;
+    case 'image/png': extension = '.png'; break;
+    default: extension = '.img'; break;
   }
-  return ext;
-}
-
-/**
- *
- * @callback (err, [photo*])
- */
-function photosByUserId(userId, done) {
-  var photos = [];
-  var selEx = 'select * from ' + AWSu.domains.photos + ' where ownerId=' + AWSu.quoteForSelect(userId);
-  async.waterfall([
-    function getPhotos(cb) {
-      AWSu.sdb.select({
-        SelectExpression: 'select * from ' + AWSu.domains.photos + ' where ownerId=' + AWSu.quoteForSelect(userId)
-      }, cb)
+  var s3id = utils.randomString(6) + "_" + AWSu.uniqueId + extension;  
+  AWSu.s3.putObject({
+    Bucket: AWSu.buckets.photos,
+    Key: s3id,
+    Body: fs.createReadStream(filePath),
+    ContentType: contentType
     },
-    function readPhotos(result, cb) {
-      if ('Items' in result) 
-        for (var i=0; i<result.Items.length; i++) {
-          var item = result.Items[i];
-          photos.push( AWSu.attributesToObject( item.Attributes, item.Name));
-        }
-      cb();
-    }
+    function(err) {
+      if (err)
+        debug("unexpected error uploading a file", err);
+      cb(err, s3id);
+    });
+};
+
+// Deletes all possible photo sizes
+function deleteFromS3(s3id, callback) {
+  async.parallel( [
+      function(cb) {
+        AWSu.s3.deleteObject({
+          Bucket: AWSu.buckets.photos,
+          Key: s3id
+        }, cb);
+      },
+      function(cb) {
+        AWSu.s3.deleteObject({
+          Bucket: AWSu.buckets.photos,
+          Key: s3id + separator + "256"
+        }, cb);
+      },
+      function(cb) {
+        AWSu.s3.deleteObject({
+          Bucket: AWSu.buckets.photos,
+          Key: s3id + separator + "1024"
+        }, cb);
+      },
     ],
-    function complete(err, result) {
-      done(err, photos);
-    }
-  )
+    callback
+  );
 }
 
 /**
@@ -290,7 +298,7 @@ function createPhoto(localFile, exif, ownerId, done) {
     async.waterfall(
       [
         function puts3(callback) {
-          AWSu.s3.client.putObject({
+          AWSu.s3.putObject({
               Bucket: AWSu.buckets.photos,
               Key: attributes.s3id,
               Body: fs.createReadStream(localFile),
@@ -358,19 +366,19 @@ function deletePhoto(sdbId, done) {
     function deleteS3(photo, callback) {
       async.parallel( [
           function(callback) {
-            AWSu.s3.client.deleteObject({
+            AWSu.s3.deleteObject({
               Bucket: AWSu.buckets.photos,
               Key: photo.s3id
             }, callback);
           },
           function(callback) {
-            AWSu.s3.client.deleteObject({
+            AWSu.s3.deleteObject({
               Bucket: AWSu.buckets.photos,
               Key: photo.s3id + separator + "256"
             }, callback);
           },
           function(callback) {
-            AWSu.s3.client.deleteObject({
+            AWSu.s3.deleteObject({
               Bucket: AWSu.buckets.photos,
               Key: photo.s3id + separator + "1024"
             }, callback);
@@ -407,12 +415,11 @@ module.exports = {
   readExifData: readExifData,
   resize: resize,
 
-  // database queries
-  photosByUserId: photosByUserId,
-
+  uploadToS3: uploadToS3,
+  deleteFromS3: deleteFromS3
   // CRUD
-  create: createPhoto,
-  read: readPhoto,
-  delete: deletePhoto
+  // create: createPhoto,
+  // read: readPhoto,
+  // delete: deletePhoto
 }
 

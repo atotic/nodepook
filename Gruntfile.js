@@ -102,7 +102,7 @@ module.exports = function(grunt) {
 		var done = this.async();
 		async.waterfall([
 				function listBucket(cb) {
-					AWSu.s3.client.listObjects({
+					AWSu.s3.listObjects({
 						Bucket: bucket,
 						Delimiter: '/'
 					},
@@ -112,7 +112,7 @@ module.exports = function(grunt) {
 					async.map(data.Contents, function(item, callback) {
 							if ( ['404.jpg', 'index.jpg'].indexOf(item.Key) == -1) {
 								console.log('deleting key ', item.Key);
-								AWSu.s3.client.deleteObject(
+								AWSu.s3.deleteObject(
 									{
 										Bucket: bucket,
 										Key: item.Key

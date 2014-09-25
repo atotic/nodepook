@@ -11,7 +11,7 @@ var utils = require("./util.js");
 var datadir = path.resolve(__dirname, '../../test/data');
 var testPath = path.join(datadir,'orient6.jpg');
 
-describe('Photo.js', function() {
+describe('Photo.js image manipulation', function() {
 	it ('#autoRotate', function(done) {
 		var src = testPath;
 		var dest = path.join(datadir, 'rotatetest.jpg');
@@ -59,42 +59,19 @@ describe('Photo.js', function() {
 					done(new Error('did not get width in exif'));
 		});
 	});
-
 });
 
-describe('Photo.js crud', function() {
-	it ('#createPhoto', function(done) {
-		this.timeout(30 * 1000);
-		var src = path.resolve(__dirname, '../../test/data/orient3.jpg');
-		async.waterfall(
-			[
-				function readExif(cb) {
-					Photo.readExifData(src, cb);
-				},
-				function createPhoto(exif, cb) {
-					exif.displayName = "orient3.jpg";
-					debug("creating photo");
-					Photo.create(src, exif, 0, function(err, data) {
-						if (err && err.name == 'DuplicatePhoto')
-							Photo.delete(err.id, cb);
-						else
-							cb(err, data);
-					});
-				},
-				function readPhoto(item, cb) {
-					debug('reading photo', item.sdbId);
-					if (item.duplicate)
-						cb( new Error("Photo was a duplicate " + item.sdbId));
-					else
-						Photo.read(item.sdbId, cb);
-				},
-				function deletePhoto(data, cb) {
-					debug('deleting photo', data.itemId);
-					Photo.delete( data.itemId, cb);
-				}
-			],
-			done
-		);
+describe('Photo.js s3', function() {
+	it('#uploadToS3/deleteFromS3', function(done) {
+		this.timeout(30*1000);
+		var src = path.resolve(__dirname, '../../test/data/tiny.jpg');
+		Photo.uploadToS3(src, 'image/jpg', function(err, s3id) {
+			if (err)
+				done(err);
+			else {
+				Photo.deleteFromS3(s3id, done);
+			}
+		});
 	});
-
 });
+

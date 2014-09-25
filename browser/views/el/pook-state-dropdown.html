@@ -1,12 +1,12 @@
 <link href="/vendor/polymer/polymer.html" rel="import">
-<link href="/vendor/paper-dropdown/paper-dropdown.html" rel="import">
+<link href="/vendor/paper-dropdown-menu/paper-dropdown-menu.html" rel="import">
 <link href="/vendor/paper-item/paper-item.html" rel="import">
 <!--
   Simple state dropdown
 -->
 <polymer-element name='pook-state-dropdown' attributes='selected' noscript>
 <template>
-  <paper-dropdown label='State...' selected="{{selected}}" valueattr='code'>
+  <paper-dropdown-menu label='State...' selected="{{selected}}" valueattr='code'>
     <paper-item label="Alabama" code="AL"></paper-item>
     <paper-item label="Alaska" code="AK"></paper-item>
     <paper-item label="Arizona" code="AZ"></paper-item>
@@ -58,6 +58,6 @@
     <paper-item label="West Virginia" code="WV"></paper-item>
     <paper-item label="Wisconsin" code="WI"></paper-item>
     <paper-item label="Wyoming" code="WY"></paper-item>
-  </paper-dropown>
+  </paper-dropown-menu>
 </template>
 </polymer-element>

@@ -7,7 +7,7 @@
   * @element pook-fire-user
  */
 -->
-<polymer-element name='pook-fire-user' attributes='uid, anonRedirect'>
+<polymer-element name='pook-fire-user'>
   <template>
   </template>
   <script>
@@ -15,58 +15,167 @@
 
   "use strict";
 
+  // Shared user information
+  var gUserInfo = {
+    /**
+     * uid can have three values:
+     * '' means uninitialized
+     * 'anonymous' means user not logged in
+     * everything else is auth.uid
+     */
+      uid: '',
+      email: '' 
+  }
+ 
+  // Shared databases
+  // state can have 3 values:
+  // false: database has not been requested
+  // true: database has been requested
+  // object: this is the database
+  // databases are created when requested, and user is logged in, 
+  var gDatabases = {
+    account: false,
+    user: false,
+    userPhotos: false,
+    allPhotos: false
+  }
 
-  // gContainer contains values shared between all instances
-  var gContainer = { uid: '', email: ''};
+  // Firebase
+  var gFireLoc = 'https://torid-inferno-6070.firebaseio.com/';
 
   var gAuthClient;
+
   function init() {
     if (gAuthClient) // only init once
       return;
-
-    var ref = new Firebase('https://torid-inferno-6070.firebaseio.com/');
-    gAuthClient = new FirebaseSimpleLogin(ref, function(err, user) {
+    // Monitor user's login status
+    gAuthClient = new FirebaseSimpleLogin( new Firebase(gFireLoc),
+      function(err, user) {
       if (err)
         console.error(err);
       else {
-        gContainer.uid = user ? user.uid : 'anonymous';
-        gContainer.email = user ? user.email : '';
-        // console.log('got user', user);
-        /* user object is {
-          email: "b@totic.org",
-          id: "4", 
-          isTemporaryPassword: false, 
-          provider: "password", 
-          uid: "simplelogin:4"
-        }*/
+        // console.log("got user", user);
+        gUserInfo.uid = user ? user.uid : 'anonymous';
+        gUserInfo.email = user ? user.email : '';
       }
     });
-    // Magic firebase location contains authentication status
   }
+
   init();
 
   var PookFireUser = {
     publish: {
-      container: gContainer
+      /** if true, will redirect to home if user is anonymous */
+      anonRedirect: false,
+      fireLoc: gFireLoc,
+      userInfo: false,
+      databases: false
     },
     computed: {
-      uid: 'container.uid',
-      uidUrl: '"https://torid-inferno-6070.firebaseio.com/users/" + container.uid',
-      email: 'container.email'
+      uid: 'userInfo.uid',
+      email: 'userInfo.email',
+      account: "databases['account'].data",
+      userPhotos: "databases['userPhotos'].data",
+      allPhotos: "database['allPhotos'].data",
     },
-    ready: function() {
-//      init();
+    observe: {
+      uid: 'userStatusChanged',
+      "databases['userPhotos'].data": 'userPhotosChanged'
+    },
+    created: function() {
+      this.userInfo = gUserInfo;
+      this.databases = gDatabases;
+    },
+    userStatusChanged: function() {
+      // console.log("userStatusChanged", this.uid);
+      this.connectActiveDatabases();
+    },
+    userPhotosChanged: function() {
+      console.log('userPhotosChanged');
+    },
+    requestDatabase: function(type) {
+      if (!(type in this.databases))
+        return console.error("bad database request", type);
+      console.log('requestDatabase:', type);
+      if (this.databases[type] === false)
+        this.databases[type] = true;
+      this.connectActiveDatabases();
+    },
+    connectActiveDatabases: function() {
+      if (this.uid === 'anonymous' || this.uid === '') {
+        // no user, remove active databases
+        for (var k in this.databases)
+          if ((typeof this.databases[k]) === 'object')
+            this.databases[k] = true;
+      }
+      else {
+        for (var k in this.databases)
+          if (this.databases[k] === true) {
+            this.databases[k] = document.createElement('firebase-element');
+            this.databases[k].location = this.getDatabaseUrl(k);
+            // this.databases[k].log = true;
+          }
+      }
+    },
+    getDatabaseUrl: function(type) {
+      switch(type) {
+        case 'user':
+          return this.fireLoc + "users/" + this.uid;
+        case 'account':
+          return this.fireLoc + "users/" + this.uid + "/account";
+        case 'userPhotos':
+          return this.fireLoc + "users/" + this.uid + "/photos";
+        case 'allPhotos':
+          return this.fireLoc + "photos";
+        default:
+          console.error("unknown database type", type);
+      }
     },
     logout: function() {
       gAuthClient.logout();
       window.location.pathname = '/';
     },
-    uidChanged: function() {
-      if (this.uid === 'anonymous' && this.anonRedirect)
-      {
-        document.querySelector('pook-flash').warn = 'not logged in';
-        window.location.href = this.anonRedirect;
+    addPhotoFile: function(file) {
+      this.requestDatabase('userPhotos');
+      this.requestDatabase('allPhotos');
+
+      // if databases not ready, reschedule
+      if (!this.databases['userPhotos'] || 
+          !this.databases['userPhotos'].ref ||
+          !this.databases['allPhotos'] || 
+          !this.databases['allPhotos'].ref) {
+        this.async(function() {
+          this.addPhotoFile(file);
+        }, null, 1000);
+        return;
       }
+      var photoRec = {
+        owner: this.uid,
+        createdAt: Firebase.ServerValue.TIMESTAMP,
+        displayName: file.name,
+        width: 256,
+        height: 144
+      }
+      // add to all photos
+      var photoRef = this.databases['allPhotos'].ref.push(photoRec);
+      // add to user photos
+      // var userPhotoRec = {};
+      // userPhotoRec[ photoRef.name() ] = true;
+      if (this.userPhotos == null)
+        this.databases['userPhotos'].data = {};
+      this.userPhotos[photoRef.name() ] = true;
+      // this.databases['userPhotos'].ref.update( userPhotoRec );
+      // upload via xhr
+      console.log("pook-user file dropped");      
+    },
+    randomString: function (len, charSet) {
+      charSet = charSet || 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+      var randomString = '';
+      for (var i = 0; i < len; i++) {
+          var randomPoz = Math.floor(Math.random() * charSet.length);
+          randomString += charSet.substring(randomPoz,randomPoz+1);
+      }
+      return randomString;
     }
   }
 

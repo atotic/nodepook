@@ -17,6 +17,8 @@ if (app.get('env') === 'development') {
 
 var homepath = path.resolve(__dirname, '../..');
 
+// MIDDLEWARE
+
 // view engine setup
 app.set('views', path.join(homepath, 'browser/views'));
 app.set('view engine', 'jade');
@@ -37,11 +39,9 @@ app.use('/', routes);
 app.use('/user',   require('../routes/user'));
 app.use('/photos',  require('../routes/photos'));
 app.use('/resize',  require('../routes/resize'));
-app.use('/auth',    auth.router);
+// app.use('/auth',    auth.router);
 
-app.get('/polymer', function stats(req, res, next) {
-   res.render('polymer');
- });
+// ERROR HANDLERS
 
 /// catch 404 and forwarding to error handler
 app.use(function(req, res, next) {
@@ -50,22 +50,19 @@ app.use(function(req, res, next) {
   next(err);
 });
 
-/// error handlers
-
 // development error handler
-// will print stacktrace
 if (app.get('env') === 'development') {
   app.use(function(err, req, res, next) {
       res.status(err.status || 500);
       res.render('error', {
           message: err.message,
-          error: err
+          error: err  // leaks stacktrace
       });
   });
 }
 // production error handler
-// no stacktraces leaked to user
 app.use(function(err, req, res, next) {
+  // no stacktraces leaked to user
   res.status(err.status || 500);
   res.render('error', {
       message: err.message,
