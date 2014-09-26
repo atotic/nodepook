@@ -10,10 +10,50 @@
 
 <polymer-element name='pook-photos-page'>
   <template>
+    <style>
+      .photoDiv {
+        display: inline-block;
+        margin: 2px;
+        position: relative;
+      }
+      .photoDiv > .info {
+        position: absolute;
+        bottom: 4px;
+        width: 100%;
+        color: orange;
+        text-align: right;
+        text-shadow: black 0.1em 0.1em 0.2em;
+        text-overflow: ellipsis;
+        overflow:hidden;
+      }
+      .photoDiv > img {
+        position: relative;
+      }
+      .photoDiv > .progress {
+        position: absolute;
+        bottom: -4px;
+        width: 100%;
+        height: 12px;
+      }
+
+    </style>
     <paper-button label='upload more' on-click='{{createPhotoThing}}' raisedButton></paper-button>
     <p> Here are all your photos</p>
-    <template repeat="{{k in userPhotoKeys}}">
-      <p>Key {{k}}</p>
+    <template repeat="{{k, index in userPhotoKeys}}">
+      {{ requestPhotoProxy(k) }}
+      <template bind="{{calculateIconDims(user.photoCache[k].iconUrl, user.photoCache[k].iconWidth, user.photoCache[k].iconHeight, iconHeight) as photo}}">
+        <div class='photoDiv'>
+          <img src="{{photo.iconUrl}}" width="{{photo.iconWidth / 2}}" height="{{photo.iconHeight / 2}}">
+          <div class='info'>
+            {{user.photoCache[k].data.displayName}}
+          </div>
+        </div>
+  <!---
+      <template if="{{ p.progress }}">
+        <progress value="{{p.progress | computeProgress }}"></progress>
+      </template>
+      -->
+      </template>
     </template>
   </template>
   <style>
@@ -30,9 +70,11 @@
        */
       fileTypeRegex: "image/(png|jpeg|gif)",
       user: false,
-      forceUserPhotos: 0
+      forceUserPhotos: 0,
+      iconHeight: 256
     },
     computed: {
+      // have to force recomputation of userPhotos
       userPhotoKeys: '{ obj: user.userPhotos, force: forceUserPhotos } | keysToArray'
     },
     observe: {
@@ -41,7 +83,6 @@
     created: function() {
       this.user = document.createElement('pook-fire-user');
       this.user.requestDatabase('userPhotos');
-
       this.userPhotoObserver = null;
     },
     userPhotosChanged: function() {
@@ -70,6 +111,19 @@
       for (var k in o.obj)
         retVal.push(k);
       return retVal;
+    },
+    requestPhotoProxy: function(photoId) {
+      this.user.requestPhotoProxy(photoId);
+    },
+    calculateIconDims: function(src, width, height) {
+      var enclosure = new Rect({width: this.iconHeight * 1.33, height: this.iconHeight });
+      var iconRect = new Rect( { width: width, height: height });
+      iconRect = iconRect.scaleBy(iconRect.fitInside(enclosure));
+      return {
+        iconUrl: src,
+        iconWidth: iconRect.width,
+        iconHeight: iconRect.height
+      }
     }
   });
   </script>

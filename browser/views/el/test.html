@@ -121,8 +121,8 @@
      from element definition:
        2) polymer-element html attribute, fires changed
           must declare property in attributes, or priority unknown
-       3) ready() assignment, fires changed
-       4) publish block, does not fire changed. Use this one
+       3) created() assignment
+       4) publish block, does not fire changed. USE THIS
   - attribute values are converted to 'preferred' type. 
       json strings become objects, numbers be numbers
   computed properties
@@ -130,7 +130,7 @@
   object-valued properties
     - default values should be initialized in create() (otherwise shared state)
     - do not get changed events when modifying subproperties
-    - bindings to nested properties works two-way. TODO: How?
+    - bindings to nested properties works two-way
     - observes to nested properties must be explicitly declared:
       observe: { 'address.sublet.tenant' : 'tenantChanged'}
   templates

@@ -25,23 +25,32 @@
      */
       uid: '',
       email: '' 
-  }
+  };
  
-  // Shared databases
+  // Shared databases, firebase-element objects
   // state can have 3 values:
   // false: database has not been requested
   // true: database has been requested
   // object: this is the database
-  // databases are created when requested, and user is logged in, 
+  // databases are created when requested with requestDatabase, and user is logged in, 
   var gDatabases = {
     account: false,
     user: false,
-    userPhotos: false,
+    userPhotos: false
+  };
+
+  // Shared databases, Firebase objects
+  // when all data should not be loaded into memory, use Firebase objects
+  var gFirebases = {
     allPhotos: false
   }
 
-  // Firebase
-  var gFireLoc = 'https://torid-inferno-6070.firebaseio.com/';
+  // 
+  var gPhotoCache = {
+  }
+
+  // Firebase server
+  var gFireServer = 'https://torid-inferno-6070.firebaseio.com/';
 
   var gAuthClient;
 
@@ -49,7 +58,7 @@
     if (gAuthClient) // only init once
       return;
     // Monitor user's login status
-    gAuthClient = new FirebaseSimpleLogin( new Firebase(gFireLoc),
+    gAuthClient = new FirebaseSimpleLogin( new Firebase(gFireServer),
       function(err, user) {
       if (err)
         console.error(err);
@@ -65,38 +74,42 @@
 
   var PookFireUser = {
     publish: {
-      /** if true, will redirect to home if user is anonymous */
-      anonRedirect: false,
-      fireLoc: gFireLoc,
+      /** if set, will redirect to anonRedirect path if user is 'anonymous' */
+      anonRedirect: '',
+      fireServer: gFireServer,
       userInfo: false,
-      databases: false
+      databases: false,
+      photoCache: { value: {}}
     },
     computed: {
       uid: 'userInfo.uid',
       email: 'userInfo.email',
       account: "databases['account'].data",
-      userPhotos: "databases['userPhotos'].data",
-      allPhotos: "database['allPhotos'].data",
+      userPhotos: "databases['userPhotos'].data"
     },
     observe: {
-      uid: 'userStatusChanged',
-      "databases['userPhotos'].data": 'userPhotosChanged'
+      uid: 'userStatusChanged'
     },
     created: function() {
       this.userInfo = gUserInfo;
       this.databases = gDatabases;
+      this.firebases = gFirebases;
+      this.photoCache = gPhotoCache;
     },
     userStatusChanged: function() {
       // console.log("userStatusChanged", this.uid);
       this.connectActiveDatabases();
+      // redirect anonymous if necessary
+      if (this.uid === 'anonymous' && this.anonRedirect != '')
+        window.location.replace(window.location.origin + this.anonRedirect);
     },
     userPhotosChanged: function() {
-      console.log('userPhotosChanged');
+      // console.log('userPhotosChanged');
     },
     requestDatabase: function(type) {
       if (!(type in this.databases))
         return console.error("bad database request", type);
-      console.log('requestDatabase:', type);
+      // console.log('requestDatabase:', type);
       if (this.databases[type] === false)
         this.databases[type] = true;
       this.connectActiveDatabases();
@@ -117,33 +130,47 @@
           }
       }
     },
-    getDatabaseUrl: function(type) {
+    getDatabaseUrl: function(type, options) {
       switch(type) {
         case 'user':
-          return this.fireLoc + "users/" + this.uid;
+          return this.fireServer + "users/" + this.uid;
         case 'account':
-          return this.fireLoc + "users/" + this.uid + "/account";
+          return this.fireServer + "users/" + this.uid + "/account";
         case 'userPhotos':
-          return this.fireLoc + "users/" + this.uid + "/photos";
+          return this.fireServer + "users/" + this.uid + "/photos";
         case 'allPhotos':
-          return this.fireLoc + "photos";
+          return this.fireServer + "photos";
+        case 'onePhoto': // options is photoId
+          return this.fireServer + "photos/" + options;
         default:
           console.error("unknown database type", type);
       }
     },
+    getFirebase: function(type) {
+      if (!(type in this.firebases))
+        return console.error('bad firebase type', type);
+      if (!this.firebases[type])
+        this.firebases[type] = new Firebase(this.getDatabaseUrl(type));
+      return this.firebases[type];
+    },
+    requestPhotoProxy: function(photoId) {
+      if (photoId in this.photoCache)
+        return;
+      this.photoCache[photoId] = document.createElement('pook-photo-proxy');
+      this.photoCache[photoId].user = this;
+      this.photoCache[photoId].photoId = photoId;
+    },
     logout: function() {
       gAuthClient.logout();
-      window.location.pathname = '/';
+      // window.location.hash = '';
+      // window.location.pathname = '/';
     },
     addPhotoFile: function(file) {
       this.requestDatabase('userPhotos');
-      this.requestDatabase('allPhotos');
 
       // if databases not ready, reschedule
       if (!this.databases['userPhotos'] || 
-          !this.databases['userPhotos'].ref ||
-          !this.databases['allPhotos'] || 
-          !this.databases['allPhotos'].ref) {
+          !this.databases['userPhotos'].ref) {
         this.async(function() {
           this.addPhotoFile(file);
         }, null, 1000);
@@ -152,19 +179,14 @@
       var photoRec = {
         owner: this.uid,
         createdAt: Firebase.ServerValue.TIMESTAMP,
-        displayName: file.name,
-        width: 256,
-        height: 144
+        displayName: file.name
       }
       // add to all photos
-      var photoRef = this.databases['allPhotos'].ref.push(photoRec);
+      var photoRef = this.getFirebase('allPhotos').push(photoRec);
       // add to user photos
-      // var userPhotoRec = {};
-      // userPhotoRec[ photoRef.name() ] = true;
       if (this.userPhotos == null)
         this.databases['userPhotos'].data = {};
       this.userPhotos[photoRef.name() ] = true;
-      // this.databases['userPhotos'].ref.update( userPhotoRec );
       // upload via xhr
       console.log("pook-user file dropped");      
     },
@@ -181,8 +203,6 @@
 
   Polymer('pook-fire-user', PookFireUser);
 
-})();
-
-
+  })();
   </script>
 </polymer-element>

@@ -1,0 +1,33 @@
+<link href='/vendor/firebase-elements/firebase-element.html' rel='import'>
+
+<polymer-element name='pook-photo-proxy' extends='firebase-element'>
+  <template></template>
+  <script>
+  (function() {
+    "use strict";
+    Polymer('pook-photo-proxy', {
+      publish: {
+        photoId: '',
+        user: null,
+        s3url: "http://pookio-test.s3-website-us-west-2.amazonaws.com/"
+      },
+      computed: {
+        iconUrl: "s3url + 'loading.png'",
+        iconWidth: '256',
+        iconHeight: '144'
+      },
+      userChanged: function() {
+        this.openFirebase();
+      },
+      photoIdChanged: function() {
+        this.openFirebase();
+      },
+      openFirebase: function() {
+        if (this.photoId == '' || this.user == null )
+          return;
+        this.location = this.user.getDatabaseUrl('onePhoto', this.photoId)
+      },
+    });
+  })();
+  </script>
+</polymer-element>
