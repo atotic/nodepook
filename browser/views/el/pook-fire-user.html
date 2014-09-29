@@ -15,6 +15,9 @@
 
   "use strict";
 
+  // Firebase server
+  var gFireServer = 'https://torid-inferno-6070.firebaseio.com/';
+
   // Shared user information
   var gUserInfo = {
     /**
@@ -27,11 +30,11 @@
       email: '' 
   };
  
-  // Shared databases, firebase-element objects
+  // Shared databases as firebase-element objects
   // state can have 3 values:
   // false: database has not been requested
   // true: database has been requested
-  // object: this is the database
+  // object: this is the database, firebase-element
   // databases are created when requested with requestDatabase, and user is logged in, 
   var gDatabases = {
     account: false,
@@ -39,25 +42,25 @@
     userPhotos: false
   };
 
-  // Shared databases, Firebase objects
-  // when all data should not be loaded into memory, use Firebase objects
+  // Shared databases as Firebase objects
+  // Firebase objects are used instead of firebase-element
+  // for optimization, when all data should not be loaded.
+  // Ex: /photos should never load all, but we need database to add items to it
   var gFirebases = {
     allPhotos: false
   }
 
-  // 
+  // Cache of pook-photo-proxy objects
+  // Use this to access photo data. requestPhotoProxy() requests data in cache
   var gPhotoCache = {
   }
 
-  // Firebase server
-  var gFireServer = 'https://torid-inferno-6070.firebaseio.com/';
-
-  var gAuthClient;
+  var gAuthClient;  // FirebaseSimpleLogin, used to listen to authentication events
 
   function init() {
     if (gAuthClient) // only init once
       return;
-    // Monitor user's login status
+    // Listen to authentication events
     gAuthClient = new FirebaseSimpleLogin( new Firebase(gFireServer),
       function(err, user) {
       if (err)
@@ -66,6 +69,29 @@
         // console.log("got user", user);
         gUserInfo.uid = user ? user.uid : 'anonymous';
         gUserInfo.email = user ? user.email : '';
+      }
+    });
+  }
+
+  // exif parser worker
+  var gExifWorker;
+  function initExifWorker() {
+    if (gExifWorker !== undefined)
+      return console.error("initExifWorker called multiple times");
+
+    gExifWorker = new Worker('/views/el/exif-worker.js');
+    gExifWorker.addEventListener('message', function(ev) {
+      switch(ev.data.action) {
+        case 'parsed':
+          if (gPhotoCache[ev.data.photoId]) {
+            // console.log('got exifParse', ev.data.exif);
+            gPhotoCache[ ev.data.photoId ].setLocalExifData(ev.data.exif);
+          }
+          else
+            console.warn('photo parsed, but no photo in cache', photoId);
+          break;
+        default:
+          console.warn('unknown message', ev.data);
       }
     });
   }
@@ -187,8 +213,12 @@
       if (this.userPhotos == null)
         this.databases['userPhotos'].data = {};
       this.userPhotos[photoRef.name() ] = true;
+      // request a proxy
+      this.requestPhotoProxy(photoRef.name());
+      this.exifWorker.postMessage({action: 'parse', file: file, photoId: photoRef.name() });
       // upload via xhr
-      console.log("pook-user file dropped");      
+
+      // console.log("pook-user file dropped");      
     },
     randomString: function (len, charSet) {
       charSet = charSet || 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -198,6 +228,11 @@
           randomString += charSet.substring(randomPoz,randomPoz+1);
       }
       return randomString;
+    },
+    get exifWorker() {
+      if (gExifWorker === undefined)
+        initExifWorker();
+      return gExifWorker;
     }
   }
 

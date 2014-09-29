@@ -41,9 +41,9 @@
     <p> Here are all your photos</p>
     <template repeat="{{k, index in userPhotoKeys}}">
       {{ requestPhotoProxy(k) }}
-      <template bind="{{calculateIconDims(user.photoCache[k].iconUrl, user.photoCache[k].iconWidth, user.photoCache[k].iconHeight, iconHeight) as photo}}">
+      <template bind="{{calculateIconDims(user.photoCache[k].iconInfo, iconHeight) as info}}">
         <div class='photoDiv'>
-          <img src="{{photo.iconUrl}}" width="{{photo.iconWidth / 2}}" height="{{photo.iconHeight / 2}}">
+          <img src="{{info.src}}" width="{{info.width}}" height="{{info.height}}">
           <div class='info'>
             {{user.photoCache[k].data.displayName}}
           </div>
@@ -62,16 +62,9 @@
   "use strict";
   Polymer('pook-photos-page',{
     publish: {
-      /** 
-       * filter acceptable file types, default to images 
-       * @attribute fileTypeRegex
-       * @type string
-       * @default image files
-       */
-      fileTypeRegex: "image/(png|jpeg|gif)",
-      user: false,
-      forceUserPhotos: 0,
-      iconHeight: 256
+      user: null,
+      forceUserPhotos: 0, // increment to force userPhotos sync
+      iconHeight: 128
     },
     computed: {
       // have to force recomputation of userPhotos
@@ -99,7 +92,7 @@
       var THIS = this;
       this.userPhotoObserver = new ObjectObserver(this.user.userPhotos);
       this.userPhotoObserver.open(function(added, removed, changed, getOldValue) {
-        console.log('userPhotos observed');
+        // console.log('userPhotos observed');
         THIS.forceUserPhotos += 1;
       });
     },
@@ -115,14 +108,14 @@
     requestPhotoProxy: function(photoId) {
       this.user.requestPhotoProxy(photoId);
     },
-    calculateIconDims: function(src, width, height) {
-      var enclosure = new Rect({width: this.iconHeight * 1.33, height: this.iconHeight });
-      var iconRect = new Rect( { width: width, height: height });
+    calculateIconDims: function(iconInfo, iconHeight) {
+      var enclosure = new Rect({width: iconHeight * 1.33, height: iconHeight });
+      var iconRect = new Rect( iconInfo);
       iconRect = iconRect.scaleBy(iconRect.fitInside(enclosure));
       return {
-        iconUrl: src,
-        iconWidth: iconRect.width,
-        iconHeight: iconRect.height
+        src: iconInfo.src,
+        width: iconRect.width,
+        height: iconRect.height
       }
     }
   });

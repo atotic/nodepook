@@ -9,12 +9,24 @@
       publish: {
         photoId: '',
         user: null,
-        s3url: "http://pookio-test.s3-website-us-west-2.amazonaws.com/"
+        s3url: "http://pookio-test.s3-website-us-west-2.amazonaws.com/",
+        /*
+        localExif information:
+        dateTime: "2014:09:24 08:02:21"
+        dateTimeOriginal: "2014:09:24 08:02:21"
+        description: null
+        displayName: "IMG_3232.JPG"
+        orientation: 6
+        thumbnail_url: "data:image/jpeg,%ff%dc%d7%23%36%3f%ff%d9"
+        title: null
+        userComment: undefined
+        */        
+        localExif: null,
+        localImage: null,
+        maxLocalImageHeight: 512
       },
       computed: {
-        iconUrl: "s3url + 'loading.png'",
-        iconWidth: '256',
-        iconHeight: '144'
+        iconInfo: 'computeIconInfo(data.s3, localImage)'
       },
       userChanged: function() {
         this.openFirebase();
@@ -27,6 +39,120 @@
           return;
         this.location = this.user.getDatabaseUrl('onePhoto', this.photoId)
       },
+      setLocalExifData: function(exif, file) {
+        this.localExif = exif;
+        this.localFile = file;
+        this.generateLocalThumbnail();
+      },
+      dataThumbnailFromImage: function(img) {
+        // skip if we have real thumbnails
+        if (this.data && this.data.s3) 
+          return;
+        var desiredHeight = Math.min( this.maxLocalImageHeight, img.naturalHeight);
+        var orientation = this.localExif.orientation;
+        var swapAxes = orientation == 6 || orientation == 8
+        var imageWidth = img.naturalWidth;
+        var imageHeight = img.naturalHeight;
+        var scale = Math.min(1, desiredHeight / imageHeight);
+        var rot = 0;
+        var trans = {x:0, y:0};
+        var drawLoc = {x:0, y:0};
+
+        var canvasWidth = imageWidth * scale;
+        var canvasHeight = imageHeight * scale;
+
+        function swapWidthHeight() {
+          var tmp = canvasWidth;
+          canvasWidth = canvasHeight;
+          canvasHeight = tmp;
+        }
+
+        switch (orientation) {
+        case 1: // no rotation
+          break;
+        case 6:
+            rot = Math.PI / 2; // 90deg
+            swapWidthHeight();
+            trans = { x: canvasWidth / 2, y: canvasHeight/2 };
+            drawLoc = { x: -imageWidth * scale /2, y: -imageHeight * scale /2 };
+            break;
+        case 3:
+            rot = Math.PI;
+            trans = {x:canvasWidth / 2, y:canvasHeight / 2};
+            drawLoc = { x: -imageWidth * scale / 2, y: -imageHeight * scale / 2 };
+            break;
+        case 8:
+            rot = Math.PI * 3 / 2;
+            swapWidthHeight();
+            trans = {x:canvasWidth / 2, y:canvasHeight / 2};
+            drawLoc = {x:-imageWidth * scale /2, y:-imageHeight * scale /2};
+            break;
+        default:
+          console.warn("unknown orientation", orientation);break;
+        }
+
+        var c = document.createElement('canvas');
+        c.setAttribute('width', canvasWidth);
+        c.setAttribute('height', canvasHeight);
+        var ctx = c.getContext('2d');
+        ctx.translate(trans.x,trans.y)
+        ctx.rotate(rot);
+        ctx.drawImage(img,drawLoc.x,drawLoc.y, imageWidth * scale, imageHeight * scale);
+
+        this.localImage = {
+          src: c.toDataURL('image/jpeg'),
+          width: canvasWidth,
+          height: canvasHeight
+        }
+        // this._setDataUrl( c.toDataURL('image/jpeg'), canvasWidth, canvasHeight);
+      },
+      dataThumbnailFromFile: function() {
+        console.log("dataThumbnailFromFile");
+        var img = new Image();
+        var fileUrl = window.URL.createObjectURL(this.localFile);
+        if (!fileUrl)
+          return console.error('cant create localFile url');
+        var THIS = this;
+        img.onload = function() {
+          THIS.dataThumbnailFromFile(img);
+          window.URL.revokeObjectURL(fileUrl);
+        };
+        img.onerror = function() {
+          THIS.revokeFileUrl(fileUrl);
+          console.warn("Error loading image from local file");
+        };
+        img.src = fileUrl; // TODO throttle
+      },
+      generateLocalThumbnail: function() {
+        if (this.localExif.thumbnail_url) {
+          var THIS = this;
+          var img = new Image();
+          img.onload = function() { THIS.dataThumbnailFromImage(img); };
+          img.onerror = function() { THIS._createDataUrlFromLocalFile(); };
+          img.src = this.localExif.thumbnail_url;
+        }
+        else
+          this.dataThumbnailFromFile();
+      },
+      computeIconInfo: function(s3, localImage) {
+        if (s3) {
+          return {
+            src: this.s3url + s3 + "~256",
+            height: 256,
+            width: Math.round( 256 * this.data.width / this.data.height)
+          }
+        }
+        else if (localImage) {
+          return localImage;
+        }
+        else {
+          return  {
+            src: this.s3url + 'loading.png',
+            width: 256,
+            height: 144
+          }
+        }
+      }
     });
   })();
   </script>
