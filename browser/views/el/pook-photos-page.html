@@ -29,9 +29,9 @@
       .photoDiv > img {
         position: relative;
       }
-      .photoDiv > .progress {
+      .photoDiv /deep/ progress {
         position: absolute;
-        bottom: -4px;
+        top: 8px;
         width: 100%;
         height: 12px;
       }
@@ -43,18 +43,16 @@
       {{ requestPhotoProxy(k) }}
       <template bind="{{calculateIconDims(user.photoCache[k].iconInfo, iconHeight) as info}}">
         <div class='photoDiv'>
-          <img src="{{info.src}}" width="{{info.width}}" height="{{info.height}}">
+          <img src="{{info.src}}" width="{{info.width}}" height="{{info.height}}"></img>
           <div class='info'>
             {{user.photoCache[k].data.displayName}}
           </div>
+          <template if="{{user.photoCache[k].progress != -1}}">
+            <progress value="{{user.photoCache[k].progress}}"></progress>
+          </template>
         </div>
-  <!---
-      <template if="{{ p.progress }}">
-        <progress value="{{p.progress | computeProgress }}"></progress>
       </template>
-      -->
-      </template>
-    </template>
+   </template>
   </template>
   <style>
   </style>
@@ -64,7 +62,7 @@
     publish: {
       user: null,
       forceUserPhotos: 0, // increment to force userPhotos sync
-      iconHeight: 128
+      iconHeight: 196
     },
     computed: {
       // have to force recomputation of userPhotos

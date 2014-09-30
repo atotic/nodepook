@@ -23,7 +23,8 @@
         */        
         localExif: null,
         localImage: null,
-        maxLocalImageHeight: 512
+        maxLocalImageHeight: 512,
+        progress: -1 // progress 0-100, -1 when inactive
       },
       computed: {
         iconInfo: 'computeIconInfo(data.s3, localImage)'
@@ -147,9 +148,9 @@
         }
         else {
           return  {
-            src: this.s3url + 'loading.png',
+            src: this.s3url + 'loading.jpg',
             width: 256,
-            height: 144
+            height: 256
           }
         }
       }

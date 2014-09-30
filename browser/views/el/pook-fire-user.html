@@ -55,30 +55,13 @@
   var gPhotoCache = {
   }
 
-  var gAuthClient;  // FirebaseSimpleLogin, used to listen to authentication events
-
-  function init() {
-    if (gAuthClient) // only init once
-      return;
-    // Listen to authentication events
-    gAuthClient = new FirebaseSimpleLogin( new Firebase(gFireServer),
-      function(err, user) {
-      if (err)
-        console.error(err);
-      else {
-        // console.log("got user", user);
-        gUserInfo.uid = user ? user.uid : 'anonymous';
-        gUserInfo.email = user ? user.email : '';
-      }
-    });
-  }
-
-  // exif parser worker
+  /*
+   * exif parser worker
+   */
   var gExifWorker;
   function initExifWorker() {
     if (gExifWorker !== undefined)
       return console.error("initExifWorker called multiple times");
-
     gExifWorker = new Worker('/views/el/exif-worker.js');
     gExifWorker.addEventListener('message', function(ev) {
       switch(ev.data.action) {
@@ -96,7 +79,89 @@
     });
   }
 
-  init();
+  /*
+   * PhotoUploader
+   * TODO online/offline/retry
+   */
+  var PhotoUploader = {
+    uploadSuccess: function(photoId, file, xhr) {
+      if (!gPhotoCache[photoId])
+        return console.warn("missing photo after upload");
+/* xhr response:
+{"msg":"Photo created","item":{"dateTime":"2011:04:19 20:59:58","dateTimeOriginal":"2010:12:20 17:00:00","width":3648,"height":2736,"contentType":"image/jpeg","dateTaken":"2010-12-21T01:00:00.000Z","md5":"82cb9d01c03c7c80e3d1852ae205671a","s3id":"PoLBWE_fiXbmipGaaa.jpg"}
+*/
+      var response = JSON.parse(xhr.response);
+      var item = response.item;
+      var newData = {
+        s3: item.s3id,
+        width: item.width,
+        height: item.height
+      };
+      ['dateTaken', 'caption', 'latitude', 'longitude','latitudeRef','longitudeRef'].forEach( function(k) {
+        if (k in item)
+          newData[k] = item[k];
+      });
+      gPhotoCache[photoId].progress = -1;
+      gPhotoCache[photoId].ref.update(newData);
+    },
+    uploadFail: function(photoId, file, ev) {
+      debugger;
+      gPhotoCache[photoId].progress = -1;
+      console.error('photo upload failed');
+    },
+    upload: function(photoId, file) {
+      var fd = new FormData();
+      fd.append('myPhoto', file);
+
+      var xhr = new XMLHttpRequest();
+      var THIS = this;
+      // success/failure
+      xhr.onload = function onload(e) { 
+        switch(this.status) {
+          case 200:
+            THIS.uploadSuccess(photoId, file, xhr);
+            break;
+          default:
+            THIS.uploadFail(photoId, file, this, e);
+            break;
+        }
+      };
+      // upload progress
+      xhr.upload.addEventListener('progress', function progress(ev) {
+        var photo = gPhotoCache[photoId];
+        if (!photo)
+          return;
+        if (ev.lengthComputable && ev.total != 0)
+          photo.progress = ev.loaded / ev.total;
+        else
+          photo.progress = -1;
+      });
+      xhr.open('POST', '/photos');
+      xhr.send(unwrap(fd));
+    }
+  }
+
+  /* 
+   * authClient listens to authentication events
+   */
+  var gAuthClient;  // FirebaseSimpleLogin, used to listen to authentication events
+  function initAuth() {
+    if (gAuthClient) // only init once
+      return;
+    // Listen to authentication events
+    gAuthClient = new FirebaseSimpleLogin( new Firebase(gFireServer),
+      function(err, user) {
+      if (err)
+        console.error(err);
+      else {
+        // console.log("got user", user);
+        gUserInfo.uid = user ? user.uid : 'anonymous';
+        gUserInfo.email = user ? user.email : '';
+      }
+    });
+  }
+
+  initAuth();
 
   var PookFireUser = {
     publish: {
@@ -217,6 +282,7 @@
       this.requestPhotoProxy(photoRef.name());
       this.exifWorker.postMessage({action: 'parse', file: file, photoId: photoRef.name() });
       // upload via xhr
+      PhotoUploader.upload(photoRef.name(), file);
 
       // console.log("pook-user file dropped");      
     },

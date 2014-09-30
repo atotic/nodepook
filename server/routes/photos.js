@@ -6,6 +6,7 @@ var async = require('async');
 var express = require('express');
 var formidable = require('formidable');
 var fs = require('fs');
+var gm = require('gm');
 var path = require('path');
 
 var auth = require('./auth');
@@ -59,8 +60,34 @@ router.route('/')
           exifData.md5 = file.hash;
           Photo.uploadToS3(file.path, exifData.contentType, cb);
         },
-        function deleteFile(s3id, cb) {
+        function resizeTo1024(s3id, cb) {
           exifData.s3id = s3id;
+          gm(file.path).resize(1024 * 1.33, 1024, '>').toBuffer(cb);
+        },
+        function upload1024(buffer, cb) {
+          AWSu.s3.putObject({
+            Bucket: AWSu.buckets.photos,
+            Key: exifData.s3id + Photo.separator + '1024',
+            Body: buffer,
+            ContentType: exifData.contentType,
+            StorageClass: 'REDUCED_REDUNDANCY'
+            },
+            cb);
+        },
+        function resizeTo256(ignore, cb) {
+          gm(file.path).resize(256 * 1.33, 256, '>').toBuffer(cb);
+        },
+        function upload256(buffer, cb) {
+          AWSu.s3.putObject({
+            Bucket: AWSu.buckets.photos,
+            Key: exifData.s3id + Photo.separator + '256',
+            Body: buffer,
+            ContentType: exifData.contentType,
+            StorageClass: 'REDUCED_REDUNDANCY'
+            },
+            cb);         
+        },
+        function deleteFile(ingore, cb) {
           fs.unlink(file.path, cb);
         },
       ],
