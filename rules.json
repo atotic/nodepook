@@ -7,9 +7,15 @@
           ".write": "auth.uid === $userId && ( data.exists() || (!data.exists() && newData.child('email').exists()))",
           ".read": "auth.uid === $userId",
           "email": { ".validate" : "true" },
+          "createdAt": { ".validate": "newData.isNumber()"},
           "firstName": { ".validate" : "newData.isString()"},
+          "lastName": { ".validate" : "newData.isString()"},
+          "street1": { ".validate" : "newData.isString()"},
+          "street2": { ".validate" : "newData.isString()"},
+          "city": { ".validate" : "newData.isString()"},
           "state": { ".validate": "newData.isString() && newData.val().length === 2" },
-          "zip": { ".validate": "newData.isString()"}
+          "zip": { ".validate": "newData.isString()"},
+          "$other": { ".validate": false }
         }
       }
     },
@@ -19,7 +25,18 @@
         ".write": "auth.uid === $userId",
         "$photoId": {
           ".read": "true",
-          ".write": "auth.uid === $userId"
+          ".write": "auth.uid === $userId",
+          "displayName": { ".validate": "newData.isString()"},
+          "s3": { ".validate": "newData.isString()"},
+          "width": { ".validate": "newData.isNumber()"},
+          "height": { ".validate": "newData.isNumber()"},
+          "dateTaken": { ".validate": "newData.isString()"},
+          "caption": { ".validate": "newData.isString()"},
+          "latitude": { ".validate": "newData.isString()"},
+          "latitudeRef": { ".validate": "newData.isString()"},
+          "longitude": { ".validate": "newData.isString()"},
+          "longitudeRef": { ".validate": "newData.isString()"},
+          "$other": {".validate": false }
         }
       }
     }

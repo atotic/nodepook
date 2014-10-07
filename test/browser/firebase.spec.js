@@ -17,7 +17,6 @@ describe('firebase', function() {
   };
 
   var photoPrototype = {
-    ownerId: goodCred.uid,
     createdAt: Firebase.ServerValue.TIMESTAMP,
     displayName: "One",
     s3: "s3id",
