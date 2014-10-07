@@ -6,7 +6,7 @@
         "account": {
           ".write": "auth.uid === $userId && ( data.exists() || (!data.exists() && newData.child('email').exists()))",
           ".read": "auth.uid === $userId",
-          "email": { ".validate" : "true" },
+          "email": { ".validate" : true },
           "createdAt": { ".validate": "newData.isNumber()"},
           "firstName": { ".validate" : "newData.isString()"},
           "lastName": { ".validate" : "newData.isString()"},
@@ -26,6 +26,7 @@
         "$photoId": {
           ".read": "true",
           ".write": "auth.uid === $userId",
+          "createdAt": { ".validate": "newData.isNumber()"},
           "displayName": { ".validate": "newData.isString()"},
           "s3": { ".validate": "newData.isString()"},
           "width": { ".validate": "newData.isNumber()"},

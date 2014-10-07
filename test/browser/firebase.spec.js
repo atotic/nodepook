@@ -283,7 +283,14 @@ describe('firebase', function() {
     );
   });
 
+  it('#createBook', function() {
+  });
 
+  it('#shareBook', function() {
+  });
+
+  it('#shareBook BADGUY', function() {
+  });
 
 });
 
