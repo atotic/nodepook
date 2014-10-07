@@ -16,15 +16,17 @@ module.exports = function(config) {
 
     files: [
       // setup
-      { pattern: 'browser/vendor/angular/angular.js' },
-      { pattern: 'browser/vendor/angular-mocks/angular-mocks.js' },
+      { pattern: 'test/testUtils.js'},
+      { pattern: 'browser/vendor/async/lib/async.js' },
       { pattern: 'browser/vendor/chai/chai.js' },
+      { pattern: 'browser/vendor/firebase/firebase-debug.js'},
 
       // application files, everything but spec
       { pattern: 'browser/views/*!(spec).js'},
 
       // test files
-      { pattern: 'browser/**/*.spec.js' }
+      { pattern: 'browser/**/*.spec.js' },
+      { pattern: 'test/browser/*.spec.js' }
     ],
 
     // list of files to exclude

@@ -2,27 +2,25 @@
   "rules": {
     "users": {
       "$userId": {
+        ".write": "auth.uid === $userId",
         "account": {
-          ".write": "auth.uid === $userId && ( data.exists() || data.parent().child('email').exists() || (!data.exists() && newData.child('email').exists()))",
+          ".write": "auth.uid === $userId && ( data.exists() || (!data.exists() && newData.child('email').exists()))",
           ".read": "auth.uid === $userId",
-          "email": { ".validate" : "newData.val() === auth.email" },
+          "email": { ".validate" : "true" },
           "firstName": { ".validate" : "newData.isString()"},
-          "zip": { ".validate": "newData.isString() && newData.val().length === 2" }
-        },
-        "photos": {
-          ".read": "auth.uid === $userId",
-          ".write": "auth.uid === $userId",
-          "$photoId": {
-            ".validate" : "newData.isBoolean()"
-          }
+          "state": { ".validate": "newData.isString() && newData.val().length === 2" },
+          "zip": { ".validate": "newData.isString()"}
         }
       }
     },
     "photos": {
-      "$photoId": {
-        ".read": true,
-        ".write": "(data.exists() && auth.uid === data.child('ownerId').val()) || (!data.exists() && newData.child('ownerId').val() === auth.uid)",
-        "ownerId": { ".validate": "newData.val() === auth.uid"}
+      "$userId": {
+        ".read": "auth.uid === $userId",
+        ".write": "auth.uid === $userId",
+        "$photoId": {
+          ".read": "true",
+          ".write": "auth.uid === $userId"
+        }
       }
     }
   }

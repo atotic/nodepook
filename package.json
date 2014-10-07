@@ -36,5 +36,5 @@
     "requirejs": "^2.1.14",
     "supertest": "0.13.0"
   },
-  "engine": "node >= 0.10.26"
+  "engine": "node >= 0.10.32"
 }

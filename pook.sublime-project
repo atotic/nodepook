@@ -5,5 +5,21 @@
 			"follow_symlinks": true,
 			"path": "."
 		}
-	]
+	],
+  "settings":
+  {
+    "tab_size": 2
+  },
+  "build_systems":
+  [
+    {
+      "name": "List",
+      "shell_cmd": "ls -l"
+    },
+    {
+      "name": "Blaze (firebase rules)",
+      "shell_cmd": ["blaze", "$file"],
+      "selector": "rules.yaml"
+    }
+  ]
 }

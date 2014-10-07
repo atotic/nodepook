@@ -81,42 +81,41 @@
 
   /*
    * PhotoUploader
-   * TODO online/offline/retry
+   * upload queue scheduler. 
    */
   var PhotoUploader = {
-    uploadSuccess: function(photoId, file, xhr) {
-      if (!gPhotoCache[photoId])
-        return console.warn("missing photo after upload");
-/* xhr response:
-{"msg":"Photo created","item":{"dateTime":"2011:04:19 20:59:58","dateTimeOriginal":"2010:12:20 17:00:00","width":3648,"height":2736,"contentType":"image/jpeg","dateTaken":"2010-12-21T01:00:00.000Z","md5":"82cb9d01c03c7c80e3d1852ae205671a","s3id":"PoLBWE_fiXbmipGaaa.jpg"}
-*/
-      var response = JSON.parse(xhr.response);
-      var item = response.item;
-      var newData = {
-        s3: item.s3id,
-        width: item.width,
-        height: item.height
-      };
-      ['dateTaken', 'caption', 'latitude', 'longitude','latitudeRef','longitudeRef'].forEach( function(k) {
-        if (k in item)
-          newData[k] = item[k];
-      });
-      gPhotoCache[photoId].progress = -1;
-      gPhotoCache[photoId].ref.update(newData);
+    /*
+     * Task API
+     */
+    tasks:[], // Task queue
+    maxConcurrentTasks: 1,
+    liveTasks: 0,
+    queueTask: function(task) {
+      console.log('queueTask');
+      this.tasks.push(task);
+      this.scheduleTasks();
     },
-    uploadFail: function(photoId, file, ev) {
-      debugger;
-      gPhotoCache[photoId].progress = -1;
-      console.error('photo upload failed');
+    scheduleTasks: function() {
+      console.log('scheduleTasks');
+      if (this.liveTasks < this.maxConcurrentTasks && this.tasks.length > 0) {
+        var task = this.tasks.pop();
+        this.startUpload(task.photoId, task.file);
+        this.liveTasks++;
+      }
     },
-    upload: function(photoId, file) {
+    completedTask: function(task) {
+      console.log('completedTask');
+      this.liveTasks--;
+      this.scheduleTasks();
+    },
+    startUpload: function(photoId, file) {
       var fd = new FormData();
       fd.append('myPhoto', file);
 
       var xhr = new XMLHttpRequest();
       var THIS = this;
       // success/failure
-      xhr.onload = function onload(e) { 
+      xhr.addEventListener('load', function onload(e) {
         switch(this.status) {
           case 200:
             THIS.uploadSuccess(photoId, file, xhr);
@@ -125,7 +124,11 @@
             THIS.uploadFail(photoId, file, this, e);
             break;
         }
-      };
+      });
+      xhr.addEventListener('readystatechange', function readystate(ev) {
+        if (xhr.readystate === 4) // DONE
+          THIS.completedTask();
+      });
       // upload progress
       xhr.upload.addEventListener('progress', function progress(ev) {
         var photo = gPhotoCache[photoId];
@@ -137,7 +140,39 @@
           photo.progress = -1;
       });
       xhr.open('POST', '/photos');
-      xhr.send(unwrap(fd));
+      xhr.send(unwrap(fd));     
+    },
+
+    uploadSuccess: function(photoId, file, xhr) {
+      if (!gPhotoCache[photoId])
+        return console.warn("missing photo after upload");
+/* xhr response:
+{"msg":"Photo created","item":{"dateTime":"2011:04:19 20:59:58","dateTimeOriginal":"2010:12:20 17:00:00","width":3648,"height":2736,"contentType":"image/jpeg","dateTaken":"2010-12-21T01:00:00.000Z","md5":"82cb9d01c03c7c80e3d1852ae205671a","s3id":"PoLBWE_fiXbmipGaaa.jpg"}
+*/
+      var response = JSON.parse(xhr.response);
+      var item = response.item;
+      var newData = {
+        ownerId: gUserInfo.uid,
+        s3: item.s3id,
+        width: item.width,
+        height: item.height
+      };
+      ['dateTaken', 'caption', 'latitude', 'longitude','latitudeRef','longitudeRef'].forEach( function(k) {
+        if (k in item)
+          newData[k] = item[k];
+      });
+      gPhotoCache[photoId].progress = -1;
+      gPhotoCache[photoId].ref.update(newData, function(err) {
+        if (err)
+          console.error("error updating ", gPhotoCache[photoId].location, err);
+      });
+    },
+    uploadFail: function(photoId, file, ev) {
+      gPhotoCache[photoId].progress = -1;
+      console.error('photo upload failed');
+    },
+    upload: function(photoId, file) {
+      this.queueTask({ photoId: photoId, file: file});
     }
   }
 
@@ -302,7 +337,7 @@
     }
   }
 
-  Polymer('pook-fire-user', PookFireUser);
+  Polymer(PookFireUser);
 
   })();
   </script>

@@ -362,8 +362,8 @@
 <polymer-element name='test-fire-observer'>
   <template>
     <p class='heading'>test-fire-observer</p>
-    <paper-button label="add user photo" on-click='{{addUserPhoto}}' raisedButton></paper-button>
-    <paper-button label="remove photo" on-click='{{removePhoto}}' raisedButton></paper-button>
+    <paper-button label="add user photo" on-click='{{addUserPhoto}}' raised></paper-button>
+    <paper-button label="remove photo" on-click='{{removePhoto}}' raised></paper-button>
     <template repeat="{{k, index in userPhotoKeys }}">
       <p>{{index}}:{{k}}</p>
     </template>

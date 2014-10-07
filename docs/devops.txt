@@ -1,4 +1,4 @@
-# Comon commands 
+# Common commands 
 chrome://net-internals/#dns  # chrome dns cache clear
 sudo dscacheutil -flushcache # clear dns cache
 curl -D - http://localhost -o /dev/null # curl headers
@@ -8,9 +8,8 @@ ssh -i ~/.ssh/AmazonEC2KeyPair_May2014.pem ec2-user@AmazonHost
 # Testing
 find server -name "*spec.js" | xargs mocha
 
-grunt # has a bunch of command-line utilities
+# Grunt
 grunt eraseDatabase
-grunt readItem:photos:id
 
 # Database
 

@@ -22,80 +22,6 @@ module.exports = function(grunt) {
 		pkg: grunt.file.readJSON('package.json')
 	});
 
-	grunt.registerTask('sdbListDomains', function() {
-		var done = this.async();
-		AWSu.sdb.listDomains({}, function(err, data) {
-			console.log(data);
-			done(err, data);
-		});
-	});
-
-	grunt.registerTask('readItem', function(domain, itemId) {
-		var done =  this.async();
-
-		AWSu.sdbReadItem( domain, itemId, function(err, item) {
-			if (err)
-				console.error(err);
-			else
-				console.log(item);
-			done(err);
-		});
-	});
-
-	grunt.registerTask('deleteItem', function(domain, itemName) {
-		var done =  this.async();
-		AWSu.sdb.deleteAttributes({
-			DomainName: domain,
-			ItemName: itemName
-		}, function(err, data) {
-			if (err)
-				console.error(err);
-			else
-				console.log(data);
-			done(err);
-		});
-	});
-
-	grunt.registerTask('dumpDomain', function(domain) {
-		var done =  this.async();
-		AWSu.sdb.select(
-			{
-				SelectExpression: 'select * from ' + domain
-			},
-			function(err, data) {
-				console.log(data);
-				done(err);
-		});
-	});
-
-	grunt.registerTask('cleanDomain', function(domain) {
-		console.log('SDB clean domain', domain);
-		var done =  this.async();
-		async.waterfall(
-			[
-				function selectItems(cb) {
-					AWSu.sdb.select({
-						SelectExpression: 'select itemName() from ' + domain
-					}, cb);
-				},
-				function deleteItems(data, cb) {
-					if (!('Items' in data))
-						return cb();
-					async.map(data.Items, function(item, callback) {
-						console.log("deleting item ", item.Name);
-						AWSu.sdb.deleteAttributes(
-							{
-								DomainName: domain,
-								ItemName: item.Name
-							},
-							callback
-						)
-					}, cb);
-				}
-			],
-			done);
-	});
-
 	grunt.registerTask('cleanBucket', function(bucket) {
 		console.log('S3 clean bucket: ', bucket);
 
@@ -110,7 +36,7 @@ module.exports = function(grunt) {
 				},
 				function deleteKeys(data, cb) {
 					async.map(data.Contents, function(item, callback) {
-							if ( ['404.jpg', 'index.jpg'].indexOf(item.Key) == -1) {
+							if ( ['404.jpg', 'index.jpg', 'loading.jpg'].indexOf(item.Key) == -1) {
 								console.log('deleting key ', item.Key);
 								AWSu.s3.deleteObject(
 									{
@@ -134,25 +60,7 @@ module.exports = function(grunt) {
 		);
 	});
 
-	grunt.registerTask('select', function() {
-		var done = this.async();
-		AWSu.sdb.select({
-			SelectExpression: 'select ownerId from photos '
-		}, function(err, response) {
-			console.log(response);
-			if ('Items' in response) {
-				for (var i=0; i<response.Items.length; i++) {
-					console.log(response.Items[i].Name);
-					var attrs = response.Items[i].Attributes;
-					for (var j=0; j<attrs.length; j++)
-						console.log(attrs[j].Name, ':', attrs[j].Value);
-				}
-			}
-			done(err, response);
-		});
-	});
-
-	grunt.registerTask('eraseEverything', ['cleanBucket:pookio-test', 'cleanDomain:photos', 'cleanDomain:users']);
+	grunt.registerTask('eraseEverything', ['cleanBucket:pookio-test']);
 
 	grunt.registerTask('netRegisterHostAs', function(hostname) {
 
@@ -185,5 +93,5 @@ module.exports = function(grunt) {
 			],done);
 	});
 
-	grunt.registerTask('default', 'sdbListDomains');
+//	grunt.registerTask('default', );
 };

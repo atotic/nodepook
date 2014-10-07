@@ -37,7 +37,7 @@
       }
 
     </style>
-    <paper-button label='upload more' on-click='{{createPhotoThing}}' raisedButton></paper-button>
+    <paper-button on-click='{{createPhotoThing}}' raised>upload more</paper-button>
     <p> Here are all your photos</p>
     <template repeat="{{k, index in userPhotoKeys}}">
       {{ requestPhotoProxy(k) }}

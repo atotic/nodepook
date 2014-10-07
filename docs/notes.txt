@@ -1,3 +1,7 @@
+COMMANDS
+updates node to latest stable:
+sudo npm cache clean -f;sudo npm install -g n; sudo n stable 
+
 TODO:
 pm2 inside pookio.initd
 jsdoc: my own, or existing frameworks

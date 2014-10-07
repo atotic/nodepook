@@ -41,9 +41,9 @@
         <paper-checkbox id='loginRemember' label='Keep me logged in for 30 days' value="{{rememberMe}}"></paper-checkbox>
         </div>
         <div class='spacer'></div>
-        <div><paper-button label="Login" raisedbutton on-click="{{loginClick}}"></paper-button></div>
-        <div><paper-button label='Forgot your password?' on-click="{{showForgotPassword}}"></paper-button></div>
-        <div><paper-button label='Register...' on-click="{{showRegister}}"></paper-button></div>
+        <div><paper-button on-click="{{loginClick}}" raised>Login</paper-button></div>
+        <div><paper-button on-click="{{showForgotPassword}}">Forgot your password?</paper-button></div>
+        <div><paper-button on-click="{{showRegister}}">Register...</paper-button></div>
       </div>
     </template>
     <template if="{{mode=='register'}}" vertical layout>
@@ -52,16 +52,18 @@
         <paper-input id='registerEmail' floatinglabel label='email' type='email' required value="{{email}}"></paper-input>
         <paper-input id='registerPassword' floatinglabel label='password' type='password' required pattern='.{8,}' value="{{password}}"></paper-input>
 
-        <div><paper-button label="Register" raisedbutton on-click="{{registerClick}}" ></paper-button></div>
-        <div><paper-button label="Login instead" on-click="{{showLogin}}" ></paper-button></div>
+        <div><paper-button raised on-click="{{registerClick}}" >Register</paper-button></div>
+        <div><paper-button on-click="{{showLogin}}" >Login instead</paper-button></div>
       </div>
     </template>
     <template if="{{mode=='forgotPassword'}}">
       <h3>Forgot your password</h3>
       <paper-input id='forgotEmail' floatinglabel label='email' type='email' required value="{{email}}"></paper-input>
-      <div><paper-button label="Email me the password" raisedbutton on-click="{{forgotPasswordClick}}" ></paper-button></div>
-      <div><paper-button label="Login instead" on-click="{{showLogin}}" ></paper-button></div>
-      <div><paper-button label='Register...' on-click="{{showRegister}}"></paper-button></div>
+      <div><paper-button raised on-click="{{forgotPasswordClick}}" >
+        Email me the password
+        </paper-button></div>
+      <div><paper-button on-click="{{showLogin}}" >Login instead</paper-button></div>
+      <div><paper-button on-click="{{showRegister}}">Register...</paper-button></div>
     </template>
   </template>
   <script>
@@ -132,21 +134,20 @@
           if (this.createUserInDb) {
             delete this.createUserInDb;
             var user = event.detail.user;
-            var firebase = new Firebase('https://torid-inferno-6070.firebaseio.com/users');
-            var record = {};
-            record[user.uid] = { account: { 
-              created_at: Firebase.ServerValue.TIMESTAMP, 
-              email: user.email 
-            }};
-            firebase.update( record, function(err) {
+            var firebase = new Firebase('https://torid-inferno-6070.firebaseio.com/users/' + user.uid + '/account/');
+            firebase.update( {
+              createdAt: Firebase.ServerValue.TIMESTAMP, 
+              email: user.email              
+            }, function(err) {
                 if (err)
                   console.log("Unexpected error saving users data in database", err);
-                window.location.pathname = '/user';
+                else
+                  window.location.replace( window.location.origin + '/user');
               }
             );
           }
           else {
-            window.location.pathname = '/user';
+            window.location.replace( window.location.origin + '/user');
           }
         },
         onUserCreated: function(event) {

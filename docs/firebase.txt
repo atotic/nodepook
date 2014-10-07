@@ -1,3 +1,63 @@
+# Firebase security definitils
+# https://github.com/firebase/blaze_compiler
+functions:            #reusable boolean functions
+  - createOnly():      next.exists() && !prev.exists()
+  - deleteOnly():      prev.exists() && !next.exists()
+  - createOrDelete():  createOnly() || deleteOnly()
+  - isUser(userId):    auth.uid === userId
+  - ownerIdCreate():   !prev.exists() && next[ownerId] === auth.uid
+  - ownerIdRead():     prev.exists() && prev[ownerId] === auth.uid
+  - isLoggedIn():      auth !== null
+schema:
+  type: object
+  properties:
+    users: # the users subtree is a collection of users
+      type: object
+      $userId:
+        type: object
+        properties:
+          account:
+            type: object
+            properties:
+              email: { type: string }
+              firstName: { type: string }
+              lastName: { type: string }
+              street1: { type: string }
+              street2: { type: string }
+              city: { type: string }
+              state: { type: string }
+              zip: { type: string }
+            additionalProperties: false
+          photos:
+            type: object
+            $photoId:
+              type: boolean
+          books:
+            type: object
+        additionalProperties: false
+    photos:
+      type: object
+      $photoId:
+        type: object
+        properties:
+          ownerId: { type: string }
+
+access:
+  - location: users
+    read: isLoggedIn()
+    write: isLoggedIn()
+  - location: users/$userId/account
+    read: isUser($userId)
+    write: isUser($userId)
+  - location: users/$userId/photos
+    read: isUser($userId)
+    write: isUser($userId)
+  - location: photos/$photoId
+    read: ownerIdRead()
+    write: ownerIdCreate() || ownerIdRead()
+
+
+
 what do routes look like?
 
 / - index.jade
@@ -116,3 +176,6 @@ db usage:
  - what is a page, how to display it
  - page dom generated dynamically from js
  
+
+
+
