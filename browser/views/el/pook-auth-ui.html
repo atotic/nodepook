@@ -24,14 +24,6 @@
         height: 16px;
       }
     </style>
-    <firebase-login id='firebaseLogin' 
-      location='https://torid-inferno-6070.firebaseio.com/' 
-      provider='password'
-      on-error='{{onLoginError}}'
-      on-password-reset='{{onPasswordReset}}'
-      on-login='{{onLogin}}'
-      on-user-created='{{onUserCreated}}'
-      ></firebase-login>
     <template if="{{mode== 'login'}}">
       <div vertical layout>
         <h3>Login</h3>
@@ -71,7 +63,8 @@
         publish: {
           mode: 'login'
         },
-        ready: function() {
+        created: function() {
+          this.firebase = new Firebase("https://torid-inferno-6070.firebaseio.com/");
         },
         get flash() {
           return document.querySelector('pook-flash');
@@ -89,21 +82,75 @@
         },
         loginClick: function() {
           this.flash.clear();
-          this.$.firebaseLogin.login('password', {
-            email: this.email,
-            password: this.password,
-            rememberMe: this.rememberMe
-          });
+          var THIS = this;
+          this.firebase.authWithPassword( {
+              email: this.email,
+              password: this.password            
+            },
+            this.loginComplete.bind(this),
+            { rememberMe: this.rememberMe }
+          );
+        },
+        loginComplete: function(err, data) {
+          if (err)
+            return this.onFirebaseError(err);
+
+          this.clearErrors();
+          this.flash.message = "You've logged in!";
+          window.location.replace( window.location.origin + '/user');
         },
         registerClick: function() {
-          this.$.firebaseLogin.createUser(this.email, this.password);
+          var THIS = this;
+          this.firebase.createUser( {
+              email: this.email,
+              password: this.password
+            },
+            this.registerComplete.bind(this)
+          );
+        },
+        registerComplete: function() {
+          this.clearErrors();
+          // login user
+          this.firebase.authWithPassword({
+              email: this.email,
+              password: this.password,
+              rememberMe: this.rememberMe
+            }, 
+            this.createUserInDb.bind(this)
+          );
+          this.flash.message = "Account registered";
+        },
+        createUserInDb: function(data) {
+          var auth = this.firebase.getAuth();
+          var userRef = this.firebase.child('users').child(auth.uid).child('account');
+          var THIS = this;
+          userRef.update( {
+              createdAt: Firebase.ServerValue.TIMESTAMP, 
+              email: auth.password.email              
+            }, 
+            function(err) {
+              if (err) {
+                console.log("Unexpected error saving users data in database", err);
+                THIS.onFirebaseError(err);
+              }
+              else
+                window.location.replace( window.location.origin + '/user');
+            }
+          );          
         },
         forgotPasswordClick: function() {
-          this.$.firebaseLogin.sendPasswordResetEmail(this.email);
+          this.firebase.resetPassword({
+              email: this.email,
+              password: this.password
+            },
+            this.onFirebaseError.bind(this)
+          );
         },
-        onLoginError: function(err) {
+        onFirebaseError: function(err) {
           this.clearErrors();
-          switch(err.detail.code) {
+          if (!err)
+            return;
+          switch(err.code) {
             case 'AUTHENTICATION_DISABLED':
             case 'INVALID_FIREBASE':
             case 'INVALID_ORIGIN':
@@ -127,41 +174,6 @@
               console.log(err.detail.code);
               debugger;
          }
-        },
-        onLogin: function(event) {
-          this.clearErrors();
-          this.flash.message = "You've logged in!";
-          if (this.createUserInDb) {
-            delete this.createUserInDb;
-            var user = event.detail.user;
-            var firebase = new Firebase('https://torid-inferno-6070.firebaseio.com/users/' + user.uid + '/account/');
-            firebase.update( {
-              createdAt: Firebase.ServerValue.TIMESTAMP, 
-              email: user.email              
-            }, function(err) {
-                if (err)
-                  console.log("Unexpected error saving users data in database", err);
-                else
-                  window.location.replace( window.location.origin + '/user');
-              }
-            );
-          }
-          else {
-            window.location.replace( window.location.origin + '/user');
-          }
-        },
-        onUserCreated: function(event) {
-          this.clearErrors();
-          // sets a flag to create user inside db upon login
-          this.createUserInDb = true;
-          // login user
-          this.$.firebaseLogin.login('password', {
-            email: this.email,
-            password: this.password,
-            rememberMe: this.rememberMe
-          });
-          this.flash.message = "Account registered";
-
         },
         onPasswordReset: function() {
           this.clearErrors();

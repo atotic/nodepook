@@ -42,14 +42,6 @@
     userPhotos: false
   };
 
-  // Shared databases as Firebase objects
-  // Firebase objects are used instead of firebase-element
-  // for optimization, when all data should not be loaded.
-  // Ex: /photos should never load all, but we need database to add items to it
-  var gFirebases = {
-    allPhotos: false
-  }
-
   // Cache of pook-photo-proxy objects
   // Use this to access photo data. requestPhotoProxy() requests data in cache
   var gPhotoCache = {
@@ -184,16 +176,12 @@
     if (gAuthClient) // only init once
       return;
     // Listen to authentication events
-    gAuthClient = new FirebaseSimpleLogin( new Firebase(gFireServer),
-      function(err, user) {
-      if (err)
-        console.error(err);
-      else {
-        // console.log("got user", user);
+    gAuthClient = new Firebase(gFireServer);
+    gAuthClient.onAuth( function(user) {
         gUserInfo.uid = user ? user.uid : 'anonymous';
-        gUserInfo.email = user ? user.email : '';
+        gUserInfo.email = user ? user.password.email : '';
       }
-    });
+    );
   }
 
   initAuth();
@@ -202,7 +190,6 @@
     publish: {
       /** if set, will redirect to anonRedirect path if user is 'anonymous' */
       anonRedirect: '',
-      fireServer: gFireServer,
       userInfo: false,
       databases: false,
       photoCache: { value: {}}
@@ -219,7 +206,6 @@
     created: function() {
       this.userInfo = gUserInfo;
       this.databases = gDatabases;
-      this.firebases = gFirebases;
       this.photoCache = gPhotoCache;
     },
     userStatusChanged: function() {
@@ -259,15 +245,13 @@
     getDatabaseUrl: function(type, options) {
       switch(type) {
         case 'user':
-          return this.fireServer + "users/" + this.uid;
+          return gFireServer + "users/" + this.uid;
         case 'account':
-          return this.fireServer + "users/" + this.uid + "/account";
+          return gFireServer + "users/" + this.uid + "/account";
         case 'userPhotos':
-          return this.fireServer + "users/" + this.uid + "/photos";
-        case 'allPhotos':
-          return this.fireServer + "photos";
+          return gFireServer + "photos/" + this.uid;
         case 'onePhoto': // options is photoId
-          return this.fireServer + "photos/" + options;
+          return gFireServer + "photos/" + this.uid + "/" + options;
         default:
           console.error("unknown database type", type);
       }
@@ -287,9 +271,7 @@
       this.photoCache[photoId].photoId = photoId;
     },
     logout: function() {
-      gAuthClient.logout();
-      // window.location.hash = '';
-      // window.location.pathname = '/';
+      gAuthClient.unauth();
     },
     addPhotoFile: function(file) {
       this.requestDatabase('userPhotos');
@@ -307,12 +289,9 @@
         createdAt: Firebase.ServerValue.TIMESTAMP,
         displayName: file.name
       }
-      // add to all photos
-      var photoRef = this.getFirebase('allPhotos').push(photoRec);
-      // add to user photos
-      if (this.userPhotos == null)
-        this.databases['userPhotos'].data = {};
-      this.userPhotos[photoRef.name() ] = true;
+
+      // add to user's photos
+      var photoRef = this.databases['userPhotos'].ref.push(photoRec);
       // request a proxy
       this.requestPhotoProxy(photoRef.name());
       this.exifWorker.postMessage({action: 'parse', file: file, photoId: photoRef.name() });
