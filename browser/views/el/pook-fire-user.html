@@ -1,4 +1,5 @@
 <link href="/vendor/polymer/polymer.html" rel="import">
+<link href="/views/el/async.html" rel="import">
 <!--
 /**
   * pook-fire-user represents current user
@@ -144,7 +145,6 @@
       var response = JSON.parse(xhr.response);
       var item = response.item;
       var newData = {
-        ownerId: gUserInfo.uid,
         s3: item.s3id,
         width: item.width,
         height: item.height
@@ -153,6 +153,7 @@
         if (k in item)
           newData[k] = item[k];
       });
+      console.log(newData);
       gPhotoCache[photoId].progress = -1;
       gPhotoCache[photoId].ref.update(newData, function(err) {
         if (err)
@@ -285,7 +286,6 @@
         return;
       }
       var photoRec = {
-        owner: this.uid,
         createdAt: Firebase.ServerValue.TIMESTAMP,
         displayName: file.name
       }

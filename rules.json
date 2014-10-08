@@ -33,9 +33,9 @@
           "height": { ".validate": "newData.isNumber()"},
           "dateTaken": { ".validate": "newData.isString()"},
           "caption": { ".validate": "newData.isString()"},
-          "latitude": { ".validate": "newData.isString()"},
+          "latitude": { ".validate": "newData.isNumber()"},
           "latitudeRef": { ".validate": "newData.isString()"},
-          "longitude": { ".validate": "newData.isString()"},
+          "longitude": { ".validate": "newData.isNumber()"},
           "longitudeRef": { ".validate": "newData.isString()"},
           "$other": {".validate": false }
         }
