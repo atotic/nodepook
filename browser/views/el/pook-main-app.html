@@ -21,14 +21,24 @@
       [drawer] {
         background-color: #E9EDEF;
       }
-      core-pages {
-      }
       paper-item.core-selected::shadow div {
         font-weight: bold;
       }
-
+      core-header-panel[main] /deep/ #mainContainer {
+        display: flex;
+      }
+      .content {
+        display: flex;
+        flex: 1;
+        overflow: hidden;
+      }
+      core-pages {
+        flex: 1;
+        display: flex;
+      }
       core-pages > * {
         margin: 0 8px 0 8px;
+        overflow: scroll;
       }
 
     </style>
@@ -67,9 +77,12 @@
     </core-drawer-panel>
   </template>
   <script>
-  Polymer('pook-main-app', {
+  Polymer({
     ready: function() {
       this.selectPaneByHash();
+      this.addEventListener('scroll', function(ev) {
+        console.log('scroll');
+      });
     },
     selectPaneByHash: function() {
       if (!window.location.hash)

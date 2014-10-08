@@ -1,5 +1,6 @@
 <link href="/vendor/polymer/polymer.html" rel="import">
 <link href="/views/el/async.html" rel="import">
+
 <!--
 /**
   * pook-fire-user represents current user
@@ -31,21 +32,26 @@
       email: '' 
   };
  
-  // Shared databases as firebase-element objects
-  // state can have 3 values:
-  // false: database has not been requested
-  // true: database has been requested
-  // object: this is the database, firebase-element
-  // databases are created when requested with requestDatabase, and user is logged in, 
+  /* 
+  Shared databases as firebase-element objects
+  state can have 3 values:
+  false: database has not been requested
+  true: database has been requested
+  object: this is the database, firebase-element
+  databases are created when user logged in && requested with requestDatabase  user is logged in, 
+  */  
   var gDatabases = {
     account: false,
     user: false,
     userPhotos: false
   };
 
-  // Cache of pook-photo-proxy objects
-  // Use this to access photo data. requestPhotoProxy() requests data in cache
+  /* 
+    Cache of pook-photo-proxy objects
+     Use this to access photo data. requestPhotoProxy() requests data in cache
+  */
   var gPhotoCache = {
+    // photoId: pook-photo-proxy
   }
 
   /*
@@ -72,59 +78,77 @@
     });
   }
 
-  /*
-   * PhotoUploader
-   * upload queue scheduler. 
+  /**
+   * task: { photoId: id, file: FileObject }
    */
-  var PhotoUploader = {
-    /*
-     * Task API
-     */
-    tasks:[], // Task queue
-    maxConcurrentTasks: 1,
-    liveTasks: 0,
-    queueTask: function(task) {
-      console.log('queueTask');
-      this.tasks.push(task);
-      this.scheduleTasks();
-    },
-    scheduleTasks: function() {
-      console.log('scheduleTasks');
-      if (this.liveTasks < this.maxConcurrentTasks && this.tasks.length > 0) {
-        var task = this.tasks.pop();
-        this.startUpload(task.photoId, task.file);
-        this.liveTasks++;
+  var PhotoUploadProcessor = function(task, done) {
+
+    function processSuccess(xhr) {
+      if (gPhotoCache[task.photoId]) {
+        /* xhr response:
+        {"msg":"Photo created","item":{"dateTime":"2011:04:19 20:59:58","dateTimeOriginal":"2010:12:20 17:00:00","width":3648,"height":2736,"contentType":"image/jpeg","dateTaken":"2010-12-21T01:00:00.000Z","md5":"82cb9d01c03c7c80e3d1852ae205671a","s3id":"PoLBWE_fiXbmipGaaa.jpg"}
+        */
+        var response = JSON.parse(xhr.response);
+        var item = response.item;
+        var newData = {
+          s3: item.s3id,
+          width: item.width,
+          height: item.height
+        };
+        ['dateTaken', 'caption', 'latitude', 'longitude','latitudeRef','longitudeRef'].forEach( function(k) {
+          if (k in item)
+            newData[k] = item[k];
+        });
+        // console.log(newData);
+        gPhotoCache[task.photoId].progress = -1;
+        gPhotoCache[task.photoId].ref.update(newData, function(err) {
+          if (err)
+            console.error("error updating ", gPhotoCache[taskphotoId].location, err);
+        });
       }
-    },
-    completedTask: function(task) {
-      console.log('completedTask');
-      this.liveTasks--;
-      this.scheduleTasks();
-    },
-    startUpload: function(photoId, file) {
+      else {
+        console.warn("missing photo after upload");
+      }
+      done();
+    };
+
+    function processFaiure(xhr, ev) {
+      console.error('photo upload failed', task);
+      if (gPhotoCache[task.photoId]) {
+        gPhotoCache[photoId].progress = -1;
+      }
+      done(new Error("Task failed"));
+      // push the task back on the queue
+      task.failCount = ('failCount' in task) ? ( task.failCount + 1 ) : 1;
+      if (task.failCount < 5)
+        PhotoUploadQueue.unshift(task);
+      else if (gPhotoCache[task.photoId])
+        gPhotoCache[task.photoId].uploadFailed();
+    }
+
+    function start() {
       var fd = new FormData();
-      fd.append('myPhoto', file);
+      fd.append('myPhoto', task.file);
 
       var xhr = new XMLHttpRequest();
-      var THIS = this;
       // success/failure
       xhr.addEventListener('load', function onload(e) {
         switch(this.status) {
           case 200:
-            THIS.uploadSuccess(photoId, file, xhr);
+            processSuccess(xhr);
             break;
           default:
-            THIS.uploadFail(photoId, file, this, e);
+            processFaiure(xhr, e);
             break;
         }
       });
-      xhr.addEventListener('readystatechange', function readystate(ev) {
-        if (xhr.readystate === 4) // DONE
-          THIS.completedTask();
-      });
+      // xhr.addEventListener('readystatechange', function readystate(ev) {
+      //   if (xhr.readystate === 4) // DONE
+      //     THIS.completedTask();
+      // });
       // upload progress
       xhr.upload.addEventListener('progress', function progress(ev) {
-        var photo = gPhotoCache[photoId];
+        var photo = gPhotoCache[task.photoId];
         if (!photo)
           return;
         if (ev.lengthComputable && ev.total != 0)
@@ -134,41 +158,13 @@
       });
       xhr.open('POST', '/photos');
       xhr.send(unwrap(fd));     
-    },
+    };
 
-    uploadSuccess: function(photoId, file, xhr) {
-      if (!gPhotoCache[photoId])
-        return console.warn("missing photo after upload");
-/* xhr response:
-{"msg":"Photo created","item":{"dateTime":"2011:04:19 20:59:58","dateTimeOriginal":"2010:12:20 17:00:00","width":3648,"height":2736,"contentType":"image/jpeg","dateTaken":"2010-12-21T01:00:00.000Z","md5":"82cb9d01c03c7c80e3d1852ae205671a","s3id":"PoLBWE_fiXbmipGaaa.jpg"}
-*/
-      var response = JSON.parse(xhr.response);
-      var item = response.item;
-      var newData = {
-        s3: item.s3id,
-        width: item.width,
-        height: item.height
-      };
-      ['dateTaken', 'caption', 'latitude', 'longitude','latitudeRef','longitudeRef'].forEach( function(k) {
-        if (k in item)
-          newData[k] = item[k];
-      });
-      console.log(newData);
-      gPhotoCache[photoId].progress = -1;
-      gPhotoCache[photoId].ref.update(newData, function(err) {
-        if (err)
-          console.error("error updating ", gPhotoCache[photoId].location, err);
-      });
-    },
-    uploadFail: function(photoId, file, ev) {
-      gPhotoCache[photoId].progress = -1;
-      console.error('photo upload failed');
-    },
-    upload: function(photoId, file) {
-      this.queueTask({ photoId: photoId, file: file});
-    }
+    start();
   }
 
+  var PhotoUploadQueue = async.queue( PhotoUploadProcessor, 2);
+  
   /* 
    * authClient listens to authentication events
    */
@@ -184,7 +180,6 @@
       }
     );
   }
-
   initAuth();
 
   var PookFireUser = {
@@ -296,9 +291,7 @@
       this.requestPhotoProxy(photoRef.name());
       this.exifWorker.postMessage({action: 'parse', file: file, photoId: photoRef.name() });
       // upload via xhr
-      PhotoUploader.upload(photoRef.name(), file);
-
-      // console.log("pook-user file dropped");      
+      PhotoUploadQueue.push( {photoId: photoRef.name(), file: file});
     },
     randomString: function (len, charSet) {
       charSet = charSet || 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';

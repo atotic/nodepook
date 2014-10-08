@@ -22,12 +22,6 @@
         width: auto;
       }
     </style>
-    <firebase-login id='firebaseLogin' 
-      location='https://torid-inferno-6070.firebaseio.com/' 
-      provider='password'
-      on-error='{{firebaseError}}'
-      on-password-changed='{{passwordChanged}}'
-    ></firebase-login>
     <div vertical layout>
       <p>Change your password?</p>
       <paper-input id='oldPassword' label='Old password' type='password' required floatingLabel></paper-input> 
@@ -47,25 +41,31 @@ This is definitely high on our list of features to implement for Simple Login. A
   Polymer('pook-security-editor', {
     publish: {
       fireAccount: null,
-      userElement: null
+      user: null
     },
-    ready: function() {
-      this.userElement = document.createElement('pook-fire-user');
+    created: function() {
+      this.user = document.createElement('pook-fire-user');
+      this.user.requestDatabase('account');
     },
     get flash() {
       return document.querySelector('pook-flash');
     },
     changePassword: function() {
-      this.$.firebaseLogin.changePassword( this.userElement.email, 
-        this.$.oldPassword.value, 
-        this.$.newPassword.value );
+      var ref = this.user.databases['account'].ref;
+      var auth = ref.getAuth();
+      ref.changePassword( {
+          email: auth.password.email,
+          oldPassword: this.$.oldPassword.value,
+          newPassword: this.$.newPassword.value
+        },
+        this.changePasswordComplete.bind(this)
+      );
     },
-    firebaseError: function(errorEv) {
-      this.flash.error = 'Password could not be changed. Try again.\n' + errorEv.detail.message;
-    },
-    passwordChanged: function() {
-      debugger;
-      this.flash.message = 'Password changed succcesfully.'
+    changePasswordComplete: function(err) {
+      if (err)
+        this.flash.error = 'Password could not be changed. Try again.';
+      else
+        this.flash.message = "Password changed succcesfully";
     }
   });
   </script>
