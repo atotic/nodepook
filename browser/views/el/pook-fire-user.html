@@ -164,7 +164,17 @@
   }
 
   var PhotoUploadQueue = async.queue( PhotoUploadProcessor, 2);
-  
+
+  // Pause photo uploads when not online
+  window.addEventListener('offline', function(ev) {
+    console.log('paused');
+    PhotoUploadQueue.pause();
+  });
+  window.addEventListener('online', function(ev) {
+    console.log('resumed');
+    PhotoUploadQueue.resume();
+  });
+
   /* 
    * authClient listens to authentication events
    */
