@@ -47,11 +47,11 @@
   };
 
   /* 
-    Cache of pook-photo-proxy objects
+    Cache of pook-proxy-photo objects
      Use this to access photo data. requestPhotoProxy() requests data in cache
   */
   var gPhotoCache = {
-    // photoId: pook-photo-proxy
+    // photoId: pook-proxy-photo
   }
 
   /*
@@ -251,6 +251,7 @@
     getDatabaseUrl: function(type, options) {
       switch(type) {
         case 'user':
+          console.error('user not writable by security rules');
           return gFireServer + "users/" + this.uid;
         case 'account':
           return gFireServer + "users/" + this.uid + "/account";
@@ -272,7 +273,7 @@
     requestPhotoProxy: function(photoId) {
       if (photoId in this.photoCache)
         return;
-      this.photoCache[photoId] = document.createElement('pook-photo-proxy');
+      this.photoCache[photoId] = document.createElement('pook-proxy-photo');
       this.photoCache[photoId].user = this;
       this.photoCache[photoId].photoId = photoId;
     },

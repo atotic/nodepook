@@ -8,10 +8,10 @@
 /**
   * User account 
   *
-  * @element pook-account-editor
+  * @element pook-page-account
   */
 -->
-<polymer-element name='pook-account-editor'>
+<polymer-element name='pook-page-account'>
   <template>
     <style>
       paper-input {
@@ -42,9 +42,9 @@
     </div>
   </template>
   <script>
-  Polymer('pook-account-editor', {
+  Polymer( {
     publish: {
-      user: false
+      user: null
     },
     created: function() {
       this.user = document.createElement('pook-fire-user');

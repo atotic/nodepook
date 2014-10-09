@@ -8,9 +8,10 @@
 <link href="/vendor/paper-icon-button/paper-icon-button.html" rel="import">
 <link href="/vendor/paper-item/paper-item.html" rel="import">
 
-<link href="/views/el/pook-account-editor.html" rel="import">
 <link href="/views/el/pook-fire-user.html" rel="import">
-<link href="/views/el/pook-security-editor.html" rel="import">
+<link href="/views/el/pook-page-account.html" rel="import">
+<link href="/views/el/pook-page-security.html" rel="import">
+<link href="/views/el/pook-page-photos.html" rel="import">
 
 <polymer-element name='pook-main-app'>
   <template>
@@ -67,9 +68,9 @@
         </core-toolbar>
         <div class='content'>
           <core-pages id='pages' selected='{{$.menu.selected}}'>
-            <pook-account-editor hash='account'></pook-account-editor>
-            <pook-security-editor hash='security'></pook-security-editor>
-            <pook-photos-page hash='photos'></pook-photos-page>
+            <pook-page-account hash='account'></pook-page-account>
+            <pook-page-security hash='security'></pook-page-security>
+            <pook-page-photos hash='photos'></pook-page-photos>
             <div>books</div>
           </core-pages>
         </div>

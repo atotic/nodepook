@@ -1,14 +1,14 @@
 <link href="/vendor/polymer/polymer.html" rel="import">
 <link href='/vendor/paper-button/paper-button.html' rel='import'>
 <link rel='import' href='/views/el/pook-fire-user.html'>
+
 <!--
-  pook-photos-page displays all the user's photos
+  pook-page-photos displays all the user's photos
 
-  @element pook-photos-page
-
+  @element pook-page-photos
 -->
 
-<polymer-element name='pook-photos-page'>
+<polymer-element name='pook-page-photos'>
   <template>
     <style>
       .photoDiv {
@@ -58,7 +58,7 @@
   </style>
   <script>
   "use strict";
-  Polymer('pook-photos-page',{
+  Polymer({
     publish: {
       user: null,
       forceUserPhotos: 0, // increment to force userPhotos sync

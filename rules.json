@@ -16,6 +16,18 @@
           "state": { ".validate": "newData.isString() && newData.val().length === 2" },
           "zip": { ".validate": "newData.isString()"},
           "$other": { ".validate": false }
+        },
+        "books": {
+          "$bookId": {
+            ".read": "auth.uid === $userId",
+            ".write": "auth.uid === $userId",
+            "info": {
+              "width": { ".validate": "newData.isNumber()" },
+              "height": { ".validate": "newData.isNumber()" },
+              "title": { ".validate": "newData.isNumber()" },
+              "$other": { ".validate": false }
+            }
+          }
         }
       }
     },
@@ -39,6 +51,27 @@
           "longitudeRef": { ".validate": "newData.isString()"},
           "$other": {".validate": false }
         }
+      }
+    },
+    "books": {
+      "$userId": {
+        ".read": "auth.uid === $userId",
+        ".write": "auth.uid === $userId",
+        "$bookId": {
+          "sides": {
+            "$sideId": {
+              "left": { ".validate": "newData.isString()"},
+              "right": { ".validate": "newData.isString()"}
+            }
+          },
+          "pages": {
+            "$pageId": {            
+            }
+          },
+          "photos": {
+            "$photoId": {}
+          }
+        }        
       }
     }
   }

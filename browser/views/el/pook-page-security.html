@@ -2,15 +2,14 @@
 <link href="/views/el/pook-fire-user.html" rel="import">
 
 <link href="/vendor/paper-input/paper-input.html" rel="import">
-<link href
 <!--
 /**
   * Security editor 
   *
-  * @element pook-security-editor
+  * @element pook-page-security
   */
 -->
-<polymer-element name='pook-security-editor'>
+<polymer-element name='pook-page-security'>
   <template>
     <style>
       paper-button {
@@ -38,7 +37,7 @@ This is definitely high on our list of features to implement for Simple Login. A
     -->
   </template>
   <script>
-  Polymer('pook-security-editor', {
+  Polymer({
     publish: {
       fireAccount: null,
       user: null

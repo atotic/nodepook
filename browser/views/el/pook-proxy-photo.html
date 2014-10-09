@@ -1,11 +1,18 @@
 <link href='/vendor/firebase-elements/firebase-element.html' rel='import'>
 
-<polymer-element name='pook-photo-proxy' extends='firebase-element'>
+<!--
+  pook-proxy-photo wraps native firebase photo object with 
+  utility routhines
+  
+  @element pook-proxy-photo
+-->
+
+<polymer-element name='pook-proxy-photo' extends='firebase-element'>
   <template></template>
   <script>
   (function() {
     "use strict";
-    Polymer('pook-photo-proxy', {
+    Polymer({
       publish: {
         photoId: '',
         user: null,
