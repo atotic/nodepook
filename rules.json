@@ -69,7 +69,7 @@
             }
           },
           "photos": {
-            "$photoId": {}
+            "$photoId": { ".validate": "newData.isBoolean()"}
           }
         }        
       }
