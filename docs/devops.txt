@@ -13,10 +13,10 @@ grunt eraseDatabase
 
 # Database
 
-s3. Use aws_util module
-
 s3
 	photos, resized photos
+firebase
+  everything else
 
 # AWS
 Using IAM. pookio_dev has access to everything

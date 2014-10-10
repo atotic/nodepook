@@ -1,5 +1,5 @@
-<link href="/vendor/polymer/polymer.html" rel="import">
-<link href="/views/el/async.html" rel="import">
+<link href="../vendor/polymer/polymer.html" rel="import">
+<link href="async.html" rel="import">
 
 <!--
 /**
@@ -61,7 +61,7 @@
   function initExifWorker() {
     if (gExifWorker !== undefined)
       return console.error("initExifWorker called multiple times");
-    gExifWorker = new Worker('/views/el/exif-worker.js');
+    gExifWorker = new Worker('/elements/exif-worker.js');
     gExifWorker.addEventListener('message', function(ev) {
       switch(ev.data.action) {
         case 'parsed':
