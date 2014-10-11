@@ -30,7 +30,7 @@
         <paper-input id='loginEmail' floatinglabel label='email' type='text' required value="{{email}}"></paper-input>
         <paper-input id='loginPassword' floatinglabel label='password' type='password' name='password' required pattern='.{8,}' value="{{password}}"></paper-input>
         <div>
-        <paper-checkbox id='loginRemember' label='Keep me logged in for 30 days' value="{{rememberMe}}"></paper-checkbox>
+        <paper-checkbox id='rememberMe' label='Keep me logged in for 30 days' checked="{{rememberMe}}"></paper-checkbox>
         </div>
         <div class='spacer'></div>
         <div><paper-button on-click="{{loginClick}}" raised>Login</paper-button></div>
@@ -61,7 +61,13 @@
   <script>
       Polymer('pook-auth-ui', {
         publish: {
-          mode: 'login'
+          mode: 'login',
+          password: '',
+          email: '',
+          rememberMe: false
+        },
+        computed: {
+          remember: "rememberMe === true ? 'default' : 'sessionOnly'"
         },
         created: function() {
           this.firebase = new Firebase("https://torid-inferno-6070.firebaseio.com/");
@@ -88,7 +94,7 @@
               password: this.password            
             },
             this.loginComplete.bind(this),
-            { rememberMe: this.rememberMe }
+            { 'remember': this.remember }
           );
         },
         loginComplete: function(err, data) {
