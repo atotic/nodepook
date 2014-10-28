@@ -1,15 +1,21 @@
 {
   "rules": {
     "users": {
+      ".indexOn": ["email"],
       "$userId": {
         ".write": "auth.uid === $userId",
+        ".read": "auth.uid === $userId",
+        "createdAt": { ".validate": "newData.isNumber()"},
+        "email": { ".validate" : "newData.isString()" },        
+        "firstName": {
+          ".read": "auth !== null", 
+          ".validate" : "newData.isString()" 
+        },
+        "lastName": {
+          ".read": "auth !== null", 
+          ".validate" : "newData.isString()" 
+        },
         "account": {
-          ".write": "auth.uid === $userId && ( data.exists() || (!data.exists() && newData.child('email').exists()))",
-          ".read": "auth.uid === $userId",
-          "email": { ".validate" : true },
-          "createdAt": { ".validate": "newData.isNumber()"},
-          "firstName": { ".validate" : "newData.isString()"},
-          "lastName": { ".validate" : "newData.isString()"},
           "street1": { ".validate" : "newData.isString()"},
           "street2": { ".validate" : "newData.isString()"},
           "city": { ".validate" : "newData.isString()"},
@@ -17,18 +23,14 @@
           "zip": { ".validate": "newData.isString()"},
           "$other": { ".validate": false }
         },
-        "books": {
-          "$bookId": {
-            ".read": "auth.uid === $userId",
-            ".write": "auth.uid === $userId",
-            "info": {
-              "width": { ".validate": "newData.isNumber()" },
-              "height": { ".validate": "newData.isNumber()" },
-              "title": { ".validate": "newData.isNumber()" },
-              "$other": { ".validate": false }
+        "sharedBooks": {
+          "$userId": {
+            "$bookId": {
+              ".validate": "newData.isBoolean() && root.child('books').child($userId).child($bookId).exists()"
             }
           }
-        }
+        },
+        "$other": { ".validate": false}
       }
     },
     "photos": {
@@ -58,6 +60,14 @@
         ".read": "auth.uid === $userId",
         ".write": "auth.uid === $userId",
         "$bookId": {
+          ".read": "data.child('sharing').child(auth.uid).val() === true",
+          ".write": "data.child('sharing').child(auth.uid).val() === true",
+          "info": {
+            "width": { ".validate": "newData.isNumber()" },
+            "height": { ".validate": "newData.isNumber()" },
+            "title": { ".validate": "newData.isString()" },
+            "$other": { ".validate": false }
+          },
           "sides": {
             "$sideId": {
               "left": { ".validate": "newData.isString()"},
@@ -70,8 +80,21 @@
           },
           "photos": {
             "$photoId": { ".validate": "newData.isBoolean()"}
+          },
+          "sharing": {
+            "$uid": { ".validate": "newData.isBoolean()" }
           }
         }        
+      }
+    },
+    "requestShareBook": {
+      "$requestId": {
+        ".write": "auth !== null && !data.exists() && newData.child('madeBy').exists()",
+        "type": { ".validate": "newData.val() === 'stop' || newData.val() === 'start'"},
+        "madeBy": { ".validate": "newData.isString() && newData.val() === auth.uid" },
+        "bookId": { ".validate": "newData.isString()"},
+        "shareWith": {".validate": "newData.isString()"}
+        
       }
     }
   }

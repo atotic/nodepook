@@ -128,7 +128,7 @@
         },
         createUserInDb: function(data) {
           var auth = this.firebase.getAuth();
-          var userRef = this.firebase.child('users').child(auth.uid).child('account');
+          var userRef = this.firebase.child('users').child(auth.uid);
           var THIS = this;
           userRef.update( {
               createdAt: Firebase.ServerValue.TIMESTAMP, 
@@ -175,6 +175,9 @@
             case 'EMAIL_TAKEN':
               this.flash.error = "This email has already been registered. Try logging in instead";
               this.mode = 'login';
+              break;
+            case 'PERMISSION_DENIED':
+              this.flash.error = "Unable to create user, permission denied";
               break;
             default:
               console.log(err.detail.code);

@@ -1,9 +1,8 @@
 
 describe('firebase', function() {
 
-  var location = 'https://torid-inferno-6070.firebaseio.com/';
   // Firebase.enableLogging(true);
-  var ref = new Firebase(location);
+  var ref = new Firebase(TestUtils.firebaseLoc);
 
   var goodCred = {
     email: "good@test.com",
@@ -24,13 +23,13 @@ describe('firebase', function() {
     height: 200,
     dateTaken: '11-24-2005',
     caption: 'oh caption, my caption',
-    latitude: 'lat',
-    longitude: 'long',
+    latitude: 15,
+    longitude: 20,
     latitudeRef: 'latRef',
     longitudeRef: 'longRef'
   };
 
-  function createAccount(cred, done) {
+  function createAccount(cred, done, userProps) {
     async.waterfall([
       function createUser(cb) {
         ref.createUser( cred, function(err) {
@@ -43,13 +42,12 @@ describe('firebase', function() {
       },
       function createDbUser(auth, cb) {
         var a = ref.getAuth();
-        accountRef = ref.child('users').child(a.auth.uid).child('account');
-        accountRef.update( {
+        userRef = ref.child('users').child(a.auth.uid);
+        var user = TestUtils.extend( {
           createdAt: Firebase.ServerValue.TIMESTAMP,
           email: cred.email
-          },
-          cb
-        );
+        }, userProps);
+        userRef.update( user, cb);
       }
       ],
       function complete(err, result) {
@@ -78,23 +76,44 @@ describe('firebase', function() {
       function complete(err) {
         if (err)
           console.warn('Error deleting account', cred.email);
-        else
-        done();
+        done(err);
       }
     );
   }
+
+  // callback(err, bookRef)
+  function createBook(uid, callback, bookProps) {
+    var bookJs = TestUtils.extend( {
+      info: {
+        width: 8,
+        height: 11.5,
+        title: "new book"
+      }
+    }, bookProps);
+    bookRef = ref.child('books').child(uid).push();
+    bookRef.update(bookJs, function(err) {
+        callback(err, bookRef);
+    });
+  }
+  /********************************************
+   * SETUP
+   ********************************************/
 
   // create good guy, bad guy accounts
   before( function(done) {
     this.timeout(10*1000);
     async.waterfall([
       function createGood(cb) {
-        createAccount(goodCred, cb);
+        createAccount(goodCred, cb, {firstName: "Good", lastName: "Fella"});
       },
       function createBad(cb) {
         goodCred.uid = ref.getAuth().uid;
-        createAccount(badCred,cb);
+        createAccount(badCred,cb, {firstName: "Bad", lastName: "Boyo"});
       },
+      function badDone(cb) {
+        badCred.uid = ref.getAuth().uid;
+        cb();
+      }
       ],
       function complete(err, results) {
         done(err);
@@ -104,7 +123,6 @@ describe('firebase', function() {
 
   // remove good guy, bad guy accounts
   after( function(done) {
-    // return done();
     this.timeout(10*1000);
     async.waterfall([
         function deleteGood(cb) {
@@ -122,6 +140,9 @@ describe('firebase', function() {
     );
   });
 
+  /******************************
+   * TESTS
+   ******************************/
   it("#registerUser", function(done) {
     this.timeout(10*1000);
     var testCred = {
@@ -165,7 +186,7 @@ describe('firebase', function() {
     );
   });
 
-  it("#modifyAccount BADGUY", function(done) {
+  it.skip("#modifyAccount BADGUY", function(done) {
     async.waterfall([
         function login(cb) {
           ref.authWithPassword(badCred, cb);
@@ -184,6 +205,35 @@ describe('firebase', function() {
       ],
       function complete(err) {
         done();
+      }
+    );
+  });
+
+  it("#readFirstLast as public", function(done) {
+    async.waterfall([
+        function login(cb) {
+          ref.authWithPassword(badCred, cb);
+        },
+        function getFirst(ignore, cb) {
+          var firstRef = ref.child('users').child(goodCred.uid).child('firstName');
+          firstRef.once('value', 
+            function(snap) {
+              if (snap.val() != "Good")
+                cb(new Error('got bad value' + snap.val()));
+              else
+                cb();
+            }, 
+            function(err) {
+              console.log("Got error reading name", err);
+            }
+          );
+        }
+      ],
+      function complete(err, result) {
+        if (err)
+          done(err);
+        else
+          done();
       }
     );
   });
@@ -212,7 +262,7 @@ describe('firebase', function() {
     );
   });
 
-  it("#createPhotos BADGUY", function(done) {
+  it.skip("#createPhotos BADGUY", function(done) {
     async.waterfall([
         function login(cb) { 
           ref.authWithPassword(badCred, cb);
@@ -240,11 +290,11 @@ describe('firebase', function() {
         },
         function list(ignore, cb) {
           var photosRef = ref.child('photos').child(goodCred.uid);
-          photosRef.on('value', function(snapshot) {
+          photosRef.once('value', function(snapshot) {
             var v = snapshot.val();
             var i = 0;
             for (k in v) {
-              console.log(k);
+              // console.log(k);
               i++;
             }
             if (i < 5)
@@ -260,7 +310,7 @@ describe('firebase', function() {
     );
   });
 
-  it("#listPhotos BADGUY", function(done) {
+  it.skip("#listPhotos BADGUY", function(done) {
     async.waterfall([
         function login(cb) {
           ref.authWithPassword(badCred, cb);
@@ -283,13 +333,69 @@ describe('firebase', function() {
     );
   });
 
-  it('#createBook', function() {
+  it('#createBook', function(done) {
+    async.waterfall([
+      function login(cb) {
+        ref.authWithPassword(goodCred, cb);
+      },
+      function myCreateBook(ignore, cb) {
+        createBook(goodCred.uid, cb);
+      },
+      function deleteBook(bookRef, cb) {
+        bookRef.remove(cb);
+      }
+      ],
+      function complete(err) {
+        done(err);
+      }
+    )
   });
 
-  it('#shareBook', function() {
+  it.skip('#createShareBookRequest', function(done) {
+    this.timeout(10*1000);
+    var shareRequestRef;
+    var bookRef;
+    async.waterfall([
+        function login(cb) {
+          ref.authWithPassword(goodCred, cb);
+        },
+        function myCreateBook(ignore, cb) {
+          createBook(goodCred.uid, cb);
+        },
+        function shareBook(myBookRef, cb) {
+          bookRef = myBookRef;
+          var shareRef = ref.child('requestShareBook');
+          var share = {
+            type: 'start',
+            madeBy: goodCred.uid,
+            bookId: goodCred.uid + "/" + bookRef.name(),
+            shareWith: "bad@test.com"
+          };
+          shareRequestRef = shareRef.push( share, cb);
+        },
+        function shareDone(ingore,cb) {
+          bookRef.child('sharing').once('child_added', function(snapshot) {
+            if (badCred.uid == snapshot.name())
+              cb();
+            else 
+              cb(new Error('sharing bits not set on a book'));
+          });
+        },
+        function removeBook(cb) {
+          bookRef.remove(cb);
+        }
+      ],
+      function complete(err) {
+        done(err);
+      }
+    );
   });
 
-  it('#shareBook BADGUY', function() {
+  it.skip('#shareBook', function() {
+    
+  });
+
+  it.skip('#shareBook BADGUY', function() {
   });
 
 });

@@ -28,9 +28,9 @@
       }
     </style>
     <div vertical layout>
-      <paper-input label='Email' value='{{user.account.email}}' ></paper-input> 
-      <paper-input label='First name' value='{{user.account.firstName}}' ></paper-input> 
-      <paper-input label='Last name' value='{{user.account.lastName}}' ></paper-input> 
+      <paper-input label='Email' value='{{user.userData.email}}' ></paper-input> 
+      <paper-input label='First name' value='{{user.userData.firstName}}' ></paper-input> 
+      <paper-input label='Last name' value='{{user.userData.lastName}}' ></paper-input> 
       <paper-input label='Street' value='{{user.account.street1}}' ></paper-input> 
       <paper-input label='Street line 2' value='{{user.account.street2}}' ></paper-input>
       <paper-input label='City' value='{{user.account.city}}'></paper-input>
@@ -48,6 +48,7 @@
     },
     created: function() {
       this.user = document.createElement('pook-fire-user');
+      this.user.requestDatabase('user');
       this.user.requestDatabase('account');
     }
   });

@@ -10,6 +10,8 @@ var auth = require('../routes/auth');
 
 var routes = require('../routes/index');
 
+var fire = require('../common/Fire.js');
+
 var app = express();
 if (app.get('env') === 'development') {
   app.locals.pretty = true;

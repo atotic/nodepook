@@ -39,7 +39,7 @@
     </style>
     <paper-button on-click='{{createPhotoThing}}' raised>upload more</paper-button>
     <p> Here are all your photos</p>
-    <template repeat="{{k, index in userPhotoKeys}}">
+    <template repeat="{{k in photoIds}}">
       {{ requestPhotoProxy(k) }}
       <template bind="{{calculateIconDims(user.photoCache[k].iconInfo, iconHeight) as info}}">
         <div class='photoDiv'>
@@ -61,38 +61,19 @@
   Polymer({
     publish: {
       user: null,
-      forceUserPhotos: 0, // increment to force userPhotos sync
-      iconHeight: 196
-    },
-    computed: {
-      // have to force recomputation of userPhotos
-      userPhotoKeys: '{ obj: user.userPhotos, force: forceUserPhotos } | keysToArray'
-    },
-    observe: {
-      'user.userPhotos': 'userPhotosChanged'
+      iconHeight: 196,
+      photoIds: []
     },
     created: function() {
       this.user = document.createElement('pook-fire-user');
       this.user.requestDatabase('userPhotos');
-      this.userPhotoObserver = null;
+      this.user.databases['userPhotos'].addEventListener('data-change', this.userPhotosChanged.bind(this));;
     },
     userPhotosChanged: function() {
-      if (!this.user.userPhotos) {
-        if (this.userPhotoObserver) {
-          this.userPhotoObserver.close();
-          this.userPhotoObserver = null;
-          this.forceUserPhotos += 1;
-        }
-        return;
-      }
-      if (this.userPhotoObserver)
-        return;
-      var THIS = this;
-      this.userPhotoObserver = new ObjectObserver(this.user.userPhotos);
-      this.userPhotoObserver.open(function(added, removed, changed, getOldValue) {
-        // console.log('userPhotos observed');
-        THIS.forceUserPhotos += 1;
-      });
+      if (this.user.userPhotos)
+        this.photoIds = Object.keys(this.user.userPhotos);
+      else
+        this.photoIds = [];
     },
     createPhotoThing: function() {
       var all = document.querySelectorAll('html /deep/ *');
@@ -100,12 +81,6 @@
         if (all[i].scrollTop !=0)
           console.log(all[i]);
       debugger;
-    },
-    keysToArray: function(o) {
-      var retVal = [];
-      for (var k in o.obj)
-        retVal.push(k);
-      return retVal;
     },
     requestPhotoProxy: function(photoId) {
       this.user.requestPhotoProxy(photoId);

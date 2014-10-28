@@ -22,14 +22,20 @@
           findUnregisteredCustomElements(el);        
       }
       
-      document.addEventListener('polymer-ready', function() {
+      function check() {
         checkCustomElements();
         var waitFor = Polymer.waitingFor();
         if (waitFor.length > 0)
           console.error("Unresolved elements", waitFor);
+      }
+      document.addEventListener('polymer-ready', function() {
       });
 
-      Polymer('pook-debug', {});
+      Polymer('pook-debug', {
+        created: function() {
+          setTimeout(check, 1);
+        }
+      });
 
     })();
   </script>

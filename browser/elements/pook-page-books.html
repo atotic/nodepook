@@ -37,18 +37,18 @@
       }
     </style>
     <div >
-      <paper-button on-click="{{newBookDialog}}">Start a new book...</paper-button>
+      <paper-button on-click="{{newBookDialog}}" raised>Start a new book...</paper-button>
     </div>
     <paper-dialog id='newBookDialog' heading="Lets make a book" transition="paper-dialog-transition-bottom">
-      <paper-input label='Title'></paper-input>
+      <paper-input label='Title' value="{{newBookTitle}}"></paper-input>
       <p style='margin-bottom:-20px'>Size:</p>
-      <core-selector>
+      <core-selector selected="{{newBookSizeSelection}}">
         <template repeat="{{s in bookSizes}}">
           <div style="width:{{s.width * 10}}px;height:{{s.height*10}}px">{{s.width}} X {{s.height}}</div>
         </template>
       </core-selector>
       <paper-button dismissive raised>Cancel</paper-button>
-      <paper-button affirmative default on-click='{{newBook}}' raised>Lets do it</paper-button>
+      <paper-button affirmative default on-click='{{createNewBook}}' raised disabled="{{!validNewBookDialog}}">Lets do it</paper-button>
     </paper-dialog>
   </template>
   <script>
@@ -62,7 +62,12 @@
   Polymer( {
     publish: {
       user: null,
-      bookSizes: null
+      bookSizes: null,
+      newBookTitle: null,
+      newBookSizeSelection: -1
+    },
+    computed: {
+      validNewBookDialog: 'validateNewBookDialog(newBookTitle, newBookSizeSelection )'
     },
     created: function() {
       this.user = document.createElement('pook-fire-user');
@@ -71,9 +76,15 @@
     newBookDialog: function() {
       this.$.newBookDialog.toggle();
     },
-    newBook: function() {
-      console.log('new book');
-    }
+    createNewBook: function() {
+      console.log('new book', this.newBookTitle, this.newBookSizeSelection);
+      this.user.createBook(this.newBookTitle, this.bookSizes[this.newBookSizeSelection]);
+    },
+    validateNewBookDialog: function(title, sizeIndex) {
+      return ((typeof title) === 'string') && title.length > 0 &&
+              sizeIndex >= 0 && sizeIndex < this.bookSizes.length;
+    },
+
   });
   </script>
 </polymer-element>

@@ -4,3 +4,4 @@ bin/aws.credentials
 browser/vendor/*
 !browser/vendor/pook
 pook.sublime-workspace
+.env

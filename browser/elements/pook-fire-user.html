@@ -43,7 +43,8 @@
   var gDatabases = {
     account: false,
     user: false,
-    userPhotos: false
+    userPhotos: false,
+    userBookList: false,
   };
 
   /* 
@@ -204,7 +205,8 @@
       uid: 'userInfo.uid',
       email: 'userInfo.email',
       account: "databases['account'].data",
-      userPhotos: "databases['userPhotos'].data"
+      userPhotos: "databases['userPhotos'].data",
+      userData: "databases['user'].data"
     },
     observe: {
       uid: 'userStatusChanged'
@@ -220,9 +222,6 @@
       // redirect anonymous if necessary
       if (this.uid === 'anonymous' && this.anonRedirect != '')
         window.location.replace(window.location.origin + this.anonRedirect);
-    },
-    userPhotosChanged: function() {
-      // console.log('userPhotosChanged');
     },
     requestDatabase: function(type) {
       if (!(type in this.databases))
@@ -245,20 +244,32 @@
             this.databases[k] = document.createElement('firebase-element');
             this.databases[k].location = this.getDatabaseUrl(k);
             // this.databases[k].log = true;
+            if (k == 'account') {
+              var obs = new PathObserver(this.databases[k], 'data.email');
+              obs.open( function(newValue, oldValue) {
+                console.log('email changed');
+                if (oldValue && newValue)
+                  console.log('email really changed');
+              });
+
+            }
           }
       }
     },
     getDatabaseUrl: function(type, options) {
       switch(type) {
         case 'user':
-          console.error('user not writable by security rules');
           return gFireServer + "users/" + this.uid;
         case 'account':
           return gFireServer + "users/" + this.uid + "/account";
         case 'userPhotos':
           return gFireServer + "photos/" + this.uid;
+        case 'userBookList':
+          return gFireServer + "users/" + this.uid + "/books";
         case 'onePhoto': // options is photoId
           return gFireServer + "photos/" + this.uid + "/" + options;
+        case 'oneBook': // options is bookId
+          return gFireServer + "books/" + this.uid + "/" + options;
         default:
           console.error("unknown database type", type);
       }
@@ -280,14 +291,14 @@
     logout: function() {
       gAuthClient.unauth();
     },
-    addPhotoFile: function(file) {
+    createPhoto: function(file) {
       this.requestDatabase('userPhotos');
 
       // if databases not ready, reschedule
       if (!this.databases['userPhotos'] || 
           !this.databases['userPhotos'].ref) {
         this.async(function() {
-          this.addPhotoFile(file);
+          this.createPhoto(file);
         }, null, 1000);
         return;
       }
@@ -297,12 +308,15 @@
       }
 
       // add to user's photos
-      var photoRef = this.databases['userPhotos'].ref.push(photoRec);
+      var photoRef = this.databases['userPhotos'].push(photoRec);
       // request a proxy
       this.requestPhotoProxy(photoRef.name());
       this.exifWorker.postMessage({action: 'parse', file: file, photoId: photoRef.name() });
       // upload via xhr
       PhotoUploadQueue.push( {photoId: photoRef.name(), file: file});
+    },
+    createBook: function(title, size) {
+
     },
     randomString: function (len, charSet) {
       charSet = charSet || 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';

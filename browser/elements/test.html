@@ -83,7 +83,7 @@
         'address.sublet.tenant' : 'tenantChanged'
       },
       created: function() {
-        // console.log('created:', this.firstName);
+        // console.log('creategFireLocd:', this.firstName);
         this.address = {
           street: "Long Lane",
           city: "Palo Alto",
@@ -157,6 +157,8 @@
     - job(), setTimeout with duplicate call elimination
     - elements not in DOM get stripped {{}} & changed bindings. Call cancelUnbindAll to prevent. 
     - Platform.flush propagates data bindings immediately
+    - observing changes to LightDOM: might be useful for animations: https://www.polymer-project.org/docs/polymer/polymer.html#onMutation
+    - Polymer.mixin is a shallow $.extend
 */
   })();
   </script>
@@ -183,7 +185,7 @@
       <table>
         <tr>
           <td>account.firstName</td>
-          <td><paper-input label='firstName' value="{{databases['account'].data.firstName}}"></paper-input></td>
+          <td><paper-input value="{{databases['account'].data.firstName}}">firstName</paper-input></td>
         </tr>
       </table>
     </template>
@@ -208,26 +210,24 @@
     var gAuthClient;
 
     function init() {
-      if (gAuthClient != null)
+      if (gAuthClient) // only init once
         return;
-      gAuthClient = new FirebaseSimpleLogin( new Firebase(gFireLoc),
-        function(err, user) {
-        if (err)
-          console.error(err);
-        else {
-          // console.log("got user", user);
+      // Listen to authentication events
+      gAuthClient = new Firebase(gFireLoc);
+      gAuthClient.onAuth( function(user) {
           gUserInfo.uid = user ? user.uid : 'anonymous';
-          gUserInfo.email = user ? user.email : '';
+          gUserInfo.email = user ? user.password.email : '';
         }
-      });
-      gAuthClient.login('password', {
-        email: 'b@totic.org', password: '12345678'
+      );
+      gAuthClient.authWithPassword({ email: 'b@totic.org', password: '12345678'}, function(err,auth) {
+        if (err)
+          throw err;
       });
     }
 
     init();
 
-    Polymer('test-firebase', {
+    Polymer({
       /*
       firebase-element
         data object is observed for changes, and changes are reflected back to db using firebase api
@@ -301,9 +301,9 @@
 <polymer-element name='test-destination'>
   <template>
     <p class='heading'>test-destination</p>
-    <paper-button on-click='{{$.evHandler.changeColor}}' label='$.evHandler.changeColor'></paper-button>
-    <paper-button on-click='{{evHandler.changeColor}}' label='evHandler.changeColor'></paper-button>
-    <paper-button on-click='{{changeColor}}' label='changeColor'></paper-button>
+    <paper-button on-click='{{$.evHandler.changeColor}}' >$.evHandler.changeColor</paper-button>
+    <paper-button on-click='{{evHandler.changeColor}}'>evHandler.changeColor</paper-button>
+    <paper-button on-click='{{changeColor}}'>changeColor</paper-button>
     <test-globals id='globalId'></test-globals>
     <test-event-handler id='evHandler'></test-event-handler>
     <test-firebase id='firebase'></test-firebase>
@@ -362,87 +362,63 @@
 <polymer-element name='test-fire-observer'>
   <template>
     <p class='heading'>test-fire-observer</p>
-    <paper-button label="add user photo" on-click='{{addUserPhoto}}' raised></paper-button>
-    <paper-button label="remove photo" on-click='{{removePhoto}}' raised></paper-button>
-    <template repeat="{{k, index in userPhotoKeys }}">
+    <paper-button on-click='{{addUserPhoto}}' raised>add user photo</paper-button>
+    <paper-button on-click='{{removePhoto}}' raised>remove photo</paper-button>
+    <template repeat="{{k in photoIds}}">
       <p>{{index}}:{{k}}</p>
+      <p>createdAt: {{dest[k].createdAt}}</p>
+      <p>displayName: {{dest[k].displayName}}</p>
     </template>
-    <p>Explicit list</p>
-    <li>{{idList.a}}</li>
-    <li>{{idList.b}}</li>
-    <li>{{idList.c}}</li>
-    <li>{{idList.d}}</li>
   </template>
   <script>
-    Polymer('test-fire-observer', {
+    "use strict";
+    Polymer('test-fire-observer',{
       publish: {
-        user: false,
-        idList: false,
-        forceRefilter: 0
-      },
-      computed: {
-        userPhotoKeys: '{ obj: idList, force: forceRefilter} | keysToArray'
-      },
-      observe: {
-        'userPhotoKeys': 'userPhotoKeysChanged'
+        el: null,
+        fakeEl: null,
+        fakeData: null,
+        photoIds: []
       },
       created: function() {
-        this.user = document.createElement('pook-fire-user');
-        this.user.requestDatabase('userPhotos');
-        this.idList = {
-          a: true, b: true, c: true, d: true
-        }
-        this.observeIdList();
+        this.el = document.createElement('firebase-element');
+        this.el.location = 'https://torid-inferno-6070.firebaseio.com/photos/simplelogin:416';
+        this.fakeEl = { data: {
+          'fakeEl.data.abc': { displayName: "yo"},
+          "fakeEl.data.def": { displayName: "yoyo"}
+        }};
+        this.fakeData = {
+          'fakeDataAbc': { displayName: "yo"},
+          "fakeDatadef": { displayName: "yoyo"}
+        };
+        this.dest = this.fakeData;
+        this.photoListObserver = new ObjectObserver(this.fakeData);
+        this.photoListObserver.open( this.observePhotoList.bind(this));
+        this.observePhotoList();
+      },
+      detached: function() {
+        this.photoListObserver.close();
       },
       addUserPhoto: function() {
-        this.idList[this.user.randomString(2)] = true;
+        this.fakeData['ghi'] = {
+          createdAt: 234,
+          displayName: "blow"
+        };
+      },
+      photoIdsChanged: function() {
+        console.log('photoIdsChanged');
+      },
+      fakeDataChanged: function() {
+        console.log('fakeDataChanged');
+      },
+      observePhotoList: function(added, removed, changed, getOldValueFn) {
+        console.log('computing ids');
+        if (this.dest === null)
+          this.photoIds =  [];
+        else
+          this.photoIds = Object.keys(this.dest);
       },
       removePhoto: function() {
-        for (var k in this.idList)
-          return delete this.idList[k];
-      },
-      keysToArray: function(o) {
-        var retVal = [];
-        for (var k in o.obj)
-          retVal.push(k);
-        console.log('keysToArray:', retVal);
-        return retVal;
-      },
-      userPhotoKeysChanged: function() {
-        console.log('userPhotoKeysChanged');
-      },
-      idListChanged: function() {
-        console.log('idListChanged');
-      },
-      observeIdList: function() {
-        if (!this.idList) {
-          if (this.idListObserver)
-            this.idListObserver.close();
-          this.idListObserver = null;
-          return;
-        }
-        if (this.idListObserver)
-          return;
-        this.idListObserver = new ObjectObserver(this.idList);
-        var THIS = this;
-        this.idListObserver.open(function(added, removed, changed, getOldValue) {
-          console.log('idList changed');
-          THIS.forceRefilter += 1;
-        });
-      },
-      attributeChanged: function(name, oldVal, newVal) {
-        console.log('attributeChanged', name, oldVal, newVal);
       }
     });
   </script>
 </polymer-element>
-<script>
-(function() {
-  window.addEventListener('polymer-ready', function(e) {
-    Polymer.waitingFor(); // shows busted/unresolved elements
-    var waitFor = Polymer.waitingFor();
-    if (waitFor.length > 0)
-      console.error("Unresolved elements", waitFor);
-  })
-});
-</script>
