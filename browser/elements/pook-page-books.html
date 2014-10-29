@@ -44,9 +44,11 @@
         display: flex;
         display: -webkit-flex;
         flex-direction: column;
+        -webkit-flex-direction: column;
       }
       #selectorContainer {
         flex: 1;
+        -webkit-flex: 1;
         overflow: scroll;
       }
       core-toolbar, core-toolbar::shadow .toolbar-tools {
@@ -55,7 +57,7 @@
       }
     </style>
     <pook-dialog-new-book id='newBookDialog'></pook-dialog-new-book>
-    <div>
+    <div style='margin-top: 8px'>
       <paper-button on-click="{{showNewBookDialog}}" raised>Start a new book...</paper-button>
     </div>
     <div id='selectorContainer'>
