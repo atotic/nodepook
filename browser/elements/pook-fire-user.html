@@ -48,135 +48,6 @@
   };
 
   /* 
-    Cache of pook-proxy-photo objects
-     Use this to access photo data. requestPhotoProxy() requests data in cache
-  */
-  var gPhotoCache = {
-    // photoId: pook-proxy-photo
-  }
-
-  /*
-   * exif parser worker
-   */
-  var gExifWorker;
-  function initExifWorker() {
-    if (gExifWorker !== undefined)
-      return console.error("initExifWorker called multiple times");
-    gExifWorker = new Worker('/elements/exif-worker.js');
-    gExifWorker.addEventListener('message', function(ev) {
-      switch(ev.data.action) {
-        case 'parsed':
-          if (gPhotoCache[ev.data.photoId]) {
-            // console.log('got exifParse', ev.data.exif);
-            gPhotoCache[ ev.data.photoId ].setLocalExifData(ev.data.exif);
-          }
-          else
-            console.warn('photo parsed, but no photo in cache', photoId);
-          break;
-        default:
-          console.warn('unknown message', ev.data);
-      }
-    });
-  }
-
-  /**
-   * task: { photoId: id, file: FileObject }
-   */
-  var PhotoUploadProcessor = function(task, done) {
-
-    function processSuccess(xhr) {
-      if (gPhotoCache[task.photoId]) {
-        /* xhr response:
-        {"msg":"Photo created","item":{"dateTime":"2011:04:19 20:59:58","dateTimeOriginal":"2010:12:20 17:00:00","width":3648,"height":2736,"contentType":"image/jpeg","dateTaken":"2010-12-21T01:00:00.000Z","md5":"82cb9d01c03c7c80e3d1852ae205671a","s3id":"PoLBWE_fiXbmipGaaa.jpg"}
-        */
-        var response = JSON.parse(xhr.response);
-        var item = response.item;
-        var newData = {
-          s3: item.s3id,
-          width: item.width,
-          height: item.height
-        };
-        ['dateTaken', 'caption', 'latitude', 'longitude','latitudeRef','longitudeRef'].forEach( function(k) {
-          if (k in item)
-            newData[k] = item[k];
-        });
-        // console.log(newData);
-        gPhotoCache[task.photoId].progress = -1;
-        gPhotoCache[task.photoId].ref.update(newData, function(err) {
-          if (err)
-            console.error("error updating ", gPhotoCache[taskphotoId].location, err);
-        });
-      }
-      else {
-        console.warn("missing photo after upload");
-      }
-      done();
-    };
-
-    function processFaiure(xhr, ev) {
-      console.error('photo upload failed', task);
-      if (gPhotoCache[task.photoId]) {
-        gPhotoCache[photoId].progress = -1;
-      }
-      done(new Error("Task failed"));
-      // push the task back on the queue
-      task.failCount = ('failCount' in task) ? ( task.failCount + 1 ) : 1;
-      if (task.failCount < 5)
-        PhotoUploadQueue.unshift(task);
-      else if (gPhotoCache[task.photoId])
-        gPhotoCache[task.photoId].uploadFailed();
-    }
-
-    function start() {
-      var fd = new FormData();
-      fd.append('myPhoto', task.file);
-
-      var xhr = new XMLHttpRequest();
-      // success/failure
-      xhr.addEventListener('load', function onload(e) {
-        switch(this.status) {
-          case 200:
-            processSuccess(xhr);
-            break;
-          default:
-            processFaiure(xhr, e);
-            break;
-        }
-      });
-      // xhr.addEventListener('readystatechange', function readystate(ev) {
-      //   if (xhr.readystate === 4) // DONE
-      //     THIS.completedTask();
-      // });
-      // upload progress
-      xhr.upload.addEventListener('progress', function progress(ev) {
-        var photo = gPhotoCache[task.photoId];
-        if (!photo)
-          return;
-        if (ev.lengthComputable && ev.total != 0)
-          photo.progress = ev.loaded / ev.total;
-        else
-          photo.progress = -1;
-      });
-      xhr.open('POST', '/photos');
-      xhr.send(unwrap(fd));     
-    };
-
-    start();
-  }
-
-  var PhotoUploadQueue = async.queue( PhotoUploadProcessor, 2);
-
-  // Pause photo uploads when not online
-  window.addEventListener('offline', function(ev) {
-    console.log('paused');
-    PhotoUploadQueue.pause();
-  });
-  window.addEventListener('online', function(ev) {
-    console.log('resumed');
-    PhotoUploadQueue.resume();
-  });
-
-  /* 
    * authClient listens to authentication events
    */
   var gAuthClient;  // FirebaseSimpleLogin, used to listen to authentication events
@@ -193,13 +64,20 @@
   }
   initAuth();
 
+  var gPhotoCache; // pook-proxy-photo-cache
+  function getPhotoCache() {
+    if (gPhotoCache == null)
+      gPhotoCache = document.createElement('pook-proxy-photo-cache');
+    return gPhotoCache;
+  }
+
   var PookFireUser = {
     publish: {
       /** if set, will redirect to anonRedirect path if user is 'anonymous' */
       anonRedirect: '',
       userInfo: false,
       databases: false,
-      photoCache: { value: {}}
+      photoCache: null
     },
     computed: {
       uid: 'userInfo.uid',
@@ -215,7 +93,7 @@
     created: function() {
       this.userInfo = gUserInfo;
       this.databases = gDatabases;
-      this.photoCache = gPhotoCache;
+      this.photoCache = getPhotoCache();
     },
     userStatusChanged: function() {
       // console.log("userStatusChanged", this.uid);
@@ -282,13 +160,6 @@
         this.firebases[type] = new Firebase(this.getDatabaseUrl(type));
       return this.firebases[type];
     },
-    requestPhotoProxy: function(photoId) {
-      if (photoId in this.photoCache)
-        return;
-      this.photoCache[photoId] = document.createElement('pook-proxy-photo');
-      this.photoCache[photoId].user = this;
-      this.photoCache[photoId].photoId = photoId;
-    },
     logout: function() {
       gAuthClient.unauth();
     },
@@ -310,10 +181,7 @@
       }
       var photoRef = this.databases['userPhotos'].push(photoJson);
       // request a proxy
-      this.requestPhotoProxy(photoRef.name());
-      this.exifWorker.postMessage({action: 'parse', file: file, photoId: photoRef.name() });
-      // upload via xhr
-      PhotoUploadQueue.push( {photoId: photoRef.name(), file: file});
+      this.photoCache.uploadFile(file, photoRef.name());
     },
     createBook: function(title, size) {
       this.requestDatabase('userBooks');
@@ -347,11 +215,6 @@
           randomString += charSet.substring(randomPoz,randomPoz+1);
       }
       return randomString;
-    },
-    get exifWorker() {
-      if (gExifWorker === undefined)
-        initExifWorker();
-      return gExifWorker;
     }
   }
 

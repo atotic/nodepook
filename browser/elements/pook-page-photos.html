@@ -41,14 +41,14 @@
     <p> Here are all your photos</p>
     <template repeat="{{k in photoIds}}">
       {{ requestPhotoProxy(k) }}
-      <template bind="{{calculateIconDims(user.photoCache[k].iconInfo, iconHeight) as info}}">
+      <template bind="{{calculateIconDims(user.photoCache.cache[k].iconInfo, iconHeight) as info}}">
         <div class='photoDiv'>
           <img src="{{info.src}}" width="{{info.width}}" height="{{info.height}}"></img>
           <div class='info'>
-            {{user.photoCache[k].data.displayName}}
+            {{user.photoCache.cache[k].data.displayName}}
           </div>
-          <template if="{{user.photoCache[k].progress != -1}}">
-            <progress value="{{user.photoCache[k].progress}}"></progress>
+          <template if="{{user.photoCache.cache[k].progress != -1}}">
+            <progress value="{{user.photoCache.cache[k].progress}}"></progress>
           </template>
         </div>
       </template>
@@ -79,7 +79,7 @@
       debugger;
     },
     requestPhotoProxy: function(photoId) {
-      this.user.requestPhotoProxy(photoId);
+      this.user.photoCache.requestProxy(photoId);
     },
     calculateIconDims: function(iconInfo, iconHeight) {
       var enclosure = new Rect({width: iconHeight * 1.33, height: iconHeight });

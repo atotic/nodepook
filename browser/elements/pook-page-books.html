@@ -51,6 +51,9 @@
         -webkit-flex: 1;
         overflow: scroll;
       }
+      #bookSelector {
+        display: flex;
+      }
       core-toolbar, core-toolbar::shadow .toolbar-tools {
         height: 36px;
         overflow:hidden;
@@ -90,11 +93,17 @@
       this.user.requestDatabase('userBooks');
       this.user.databases['userBooks'].addEventListener('data-change', this.booksChanged.bind(this));
     },
+    ready: function() {
+      this.$.selectorContainer.addEventListener('click', this.clickContent.bind(this));
+    },
+    clickContent: function(ev) {
+      this.$.bookSelector.selected = null;
+    },
     booksChanged: function() {
       if (!this.user.userBooks)
         this.bookIds = [];
       else
-        this.bookIds = Object.keys( this.user.userBooks);
+        this.bookIds = Object.keys( this.user.userBooks).reverse();
     },
     showNewBookDialog: function() {
       this.$.newBookDialog.toggle();
@@ -106,6 +115,7 @@
       this.$.bookSelector.selected = null;
     },
     editBook: function() {
+      document.querySelector('pook-main-app').editBook( this.bookIds[this.$.bookSelector.selectedIndex]);
     },
     shareBook: function() {
       console.log('TODO');
