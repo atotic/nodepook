@@ -44,7 +44,7 @@
     account: false,
     user: false,
     userPhotos: false,
-    userBookList: false,
+    userBooks: false,
   };
 
   /* 
@@ -206,7 +206,8 @@
       email: 'userInfo.email',
       account: "databases['account'].data",
       userPhotos: "databases['userPhotos'].data",
-      userData: "databases['user'].data"
+      userData: "databases['user'].data",
+      userBooks: "databases['userBooks'].data"
     },
     observe: {
       uid: 'userStatusChanged'
@@ -264,8 +265,8 @@
           return gFireServer + "users/" + this.uid + "/account";
         case 'userPhotos':
           return gFireServer + "photos/" + this.uid;
-        case 'userBookList':
-          return gFireServer + "users/" + this.uid + "/books";
+        case 'userBooks':
+          return gFireServer + "books/" + this.uid;
         case 'onePhoto': // options is photoId
           return gFireServer + "photos/" + this.uid + "/" + options;
         case 'oneBook': // options is bookId
@@ -295,20 +296,19 @@
       this.requestDatabase('userPhotos');
 
       // if databases not ready, reschedule
-      if (!this.databases['userPhotos'] || 
-          !this.databases['userPhotos'].ref) {
+      if (!this.databases['userPhotos'] || !this.databases['userPhotos'].ref) {
         this.async(function() {
           this.createPhoto(file);
         }, null, 1000);
         return;
       }
-      var photoRec = {
+
+      // add to user's photos
+      var photoJson = {
         createdAt: Firebase.ServerValue.TIMESTAMP,
         displayName: file.name
       }
-
-      // add to user's photos
-      var photoRef = this.databases['userPhotos'].push(photoRec);
+      var photoRef = this.databases['userPhotos'].push(photoJson);
       // request a proxy
       this.requestPhotoProxy(photoRef.name());
       this.exifWorker.postMessage({action: 'parse', file: file, photoId: photoRef.name() });
@@ -316,7 +316,28 @@
       PhotoUploadQueue.push( {photoId: photoRef.name(), file: file});
     },
     createBook: function(title, size) {
-
+      this.requestDatabase('userBooks');
+      // if databaase not available, reschedule
+      if (!this.databases['userBooks'] || !this.databases['userPhotos'].ref) {
+        this.async(function() {
+          this.createBook(title, size);
+        }, null, 500);
+        return;
+      };
+      // add book to user's books
+      var bookJson = {
+        createdAt: Firebase.ServerValue.TIMESTAMP,
+        title: title,
+        info: {
+          width: size.width,
+          height: size.height
+        }
+      };
+      var bookRef = this.databases['userBooks'].push(bookJson);
+      return bookRef;
+    },
+    deleteBook: function(bookId) {
+      this.databases['userBooks'].ref.child(bookId).remove();
     },
     randomString: function (len, charSet) {
       charSet = charSet || 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';

@@ -62,10 +62,11 @@
         "$bookId": {
           ".read": "data.child('sharing').child(auth.uid).val() === true",
           ".write": "data.child('sharing').child(auth.uid).val() === true",
+          "createdAt": { ".validate": "newData.isNumber()"},
+          "title": { ".validate": "newData.isString()" },
           "info": {
             "width": { ".validate": "newData.isNumber()" },
             "height": { ".validate": "newData.isNumber()" },
-            "title": { ".validate": "newData.isString()" },
             "$other": { ".validate": false }
           },
           "sides": {

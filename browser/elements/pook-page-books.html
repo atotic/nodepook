@@ -1,9 +1,9 @@
 <link href="../vendor/polymer/polymer.html" rel="import">
 <link href="../vendor/paper-button/paper-button.html" rel="import">
-<link href="../vendor/paper-dialog/paper-dialog.html" rel="import">
-<link href="../vendor/paper-dialog/paper-dialog-transition.html" rel="import">
-<link href="../vendor/paper-input/paper-input.html" rel="import">
 <link href="../vendor/core-selector/core-selector.html" rel="import">
+<link href="../vendor/paper-icon-button/paper-icon-button.html" rel="import">
+<link href="../vendor/core-icons/core-icons.html" rel="import">
+<link href="../vendor/core-icons/social-icons.html" rel="import">
 
 <link href="pook-fire-user.html" rel="import">
 
@@ -17,74 +17,97 @@
 <polymer-element name='pook-page-books'>
   <template>
     <style>
-      core-selector > div {
-        display: inline-block;
+      .book-tile {
         position: relative;
         width: 50px;
         height: 50px;
-        border: 1px solid black;
+        border: 1px solid #555;
         vertical-align: bottom;
         margin: 8px;
+        padding: 8px;
       }
-      core-selector > div.core-selected:after{
-        /* box-shadow: inset 0px 0px 2px 2px Highlight; */
+      .book-tile.core-selected:after {
         position: absolute;
         content: "\2713";
-        text-align: right;
-        text-shadow: 1px 0px 3px #0F0;
-        top: 0px;
-        right: 0px;
+        text-align: left;
+        bottom: 4px;
+        right: 4px;
+
+        border: 1px solid #aaa;
+        width: 20px;
+        height: 20px;
+        border-radius: 10px;
+        background-color: #0BA8F2;
+        color: #DDD;
+      }
+      :host {
+        display: flex;
+        display: -webkit-flex;
+        flex-direction: column;
+      }
+      #selectorContainer {
+        flex: 1;
+        overflow: scroll;
+      }
+      core-toolbar, core-toolbar::shadow .toolbar-tools {
+        height: 36px;
+        overflow:hidden;
       }
     </style>
-    <div >
-      <paper-button on-click="{{newBookDialog}}" raised>Start a new book...</paper-button>
+    <pook-dialog-new-book id='newBookDialog'></pook-dialog-new-book>
+    <div>
+      <paper-button on-click="{{showNewBookDialog}}" raised>Start a new book...</paper-button>
     </div>
-    <paper-dialog id='newBookDialog' heading="Lets make a book" transition="paper-dialog-transition-bottom">
-      <paper-input label='Title' value="{{newBookTitle}}"></paper-input>
-      <p style='margin-bottom:-20px'>Size:</p>
-      <core-selector selected="{{newBookSizeSelection}}">
-        <template repeat="{{s in bookSizes}}">
-          <div style="width:{{s.width * 10}}px;height:{{s.height*10}}px">{{s.width}} X {{s.height}}</div>
+    <div id='selectorContainer'>
+      <core-selector id='bookSelector'>
+        <template repeat="{{k in bookIds}}">
+          <template bind="{{user.userBooks[k]}}">
+            <div class='book-tile' style="width:{{info.width * 8}}px;height:{{info.height*8}}px">
+              {{title}}
+            </div>
+          </template>
         </template>
       </core-selector>
-      <paper-button dismissive raised>Cancel</paper-button>
-      <paper-button affirmative default on-click='{{createNewBook}}' raised disabled="{{!validNewBookDialog}}">Lets do it</paper-button>
-    </paper-dialog>
+    </div>
+    <core-toolbar>
+      <paper-button style='min-width:0' on-click="{{editBook}}" disabled?="{{$.bookSelector.selectedIndex === -1}}">edit</paper-button>
+      <paper-icon-button icon="social:share" on-click="{{shareBook}}" disabled?="{{$.bookSelector.selectedIndex === -1}}"></paper-icon-button>
+      <span flex></span>
+      <paper-icon-button icon="delete" on-click="{{deleteBook}}" disabled?="{{$.bookSelector.selectedIndex === -1}}"></paper-icon-button>
+    </core-toolbar>
   </template>
   <script>
 
-  var bookSizes = [
-  { width: 7, height: 5},
-  { width: 11, height: 8},
-  { width: 8, height: 8},
-  { width: 12, height: 12}
-  ];
   Polymer( {
     publish: {
       user: null,
-      bookSizes: null,
-      newBookTitle: null,
-      newBookSizeSelection: -1
-    },
-    computed: {
-      validNewBookDialog: 'validateNewBookDialog(newBookTitle, newBookSizeSelection )'
+      bookIds: []
     },
     created: function() {
       this.user = document.createElement('pook-fire-user');
-      this.bookSizes = bookSizes;
+      this.user.requestDatabase('userBooks');
+      this.user.databases['userBooks'].addEventListener('data-change', this.booksChanged.bind(this));
     },
-    newBookDialog: function() {
+    booksChanged: function() {
+      if (!this.user.userBooks)
+        this.bookIds = [];
+      else
+        this.bookIds = Object.keys( this.user.userBooks);
+    },
+    showNewBookDialog: function() {
       this.$.newBookDialog.toggle();
     },
-    createNewBook: function() {
-      console.log('new book', this.newBookTitle, this.newBookSizeSelection);
-      this.user.createBook(this.newBookTitle, this.bookSizes[this.newBookSizeSelection]);
+    deleteBook: function() {
+      if (this.$.bookSelector.selectedIndex === -1)
+        return;
+      this.user.deleteBook( this.bookIds[this.$.bookSelector.selectedIndex]);
+      this.$.bookSelector.selected = null;
     },
-    validateNewBookDialog: function(title, sizeIndex) {
-      return ((typeof title) === 'string') && title.length > 0 &&
-              sizeIndex >= 0 && sizeIndex < this.bookSizes.length;
+    editBook: function() {
     },
-
+    shareBook: function() {
+      console.log('TODO');
+    }
   });
   </script>
 </polymer-element>

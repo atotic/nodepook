@@ -84,10 +84,11 @@ describe('firebase', function() {
   // callback(err, bookRef)
   function createBook(uid, callback, bookProps) {
     var bookJs = TestUtils.extend( {
+      title: "new book",
+      createdAt: 0,
       info: {
         width: 8,
-        height: 11.5,
-        title: "new book"
+        height: 11.5
       }
     }, bookProps);
     bookRef = ref.child('books').child(uid).push();
@@ -333,7 +334,7 @@ describe('firebase', function() {
     );
   });
 
-  it('#createBook', function(done) {
+  it.only('#createBook', function(done) {
     async.waterfall([
       function login(cb) {
         ref.authWithPassword(goodCred, cb);
@@ -342,7 +343,8 @@ describe('firebase', function() {
         createBook(goodCred.uid, cb);
       },
       function deleteBook(bookRef, cb) {
-        bookRef.remove(cb);
+        cb();
+//        bookRef.remove(cb);
       }
       ],
       function complete(err) {

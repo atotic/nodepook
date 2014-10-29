@@ -1,0 +1,87 @@
+<link href="../vendor/polymer/polymer.html" rel="import">
+<link href="../vendor/paper-button/paper-button.html" rel="import">
+<link href="../vendor/paper-dialog/paper-dialog.html" rel="import">
+<link href="../vendor/paper-dialog/paper-dialog-transition.html" rel="import">
+<link href="../vendor/paper-input/paper-input.html" rel="import">
+<link href="../vendor/core-selector/core-selector.html" rel="import">
+
+<link href="pook-fire-user.html" rel="import">
+<!--
+/**
+  * Book listing 
+  *
+  * @element pook-dialog-new-book
+  */
+-->
+<polymer-element name='pook-dialog-new-book'>
+  <template>
+    <style>
+      core-selector > div {
+        display: inline-block;
+        position: relative;
+        width: 50px;
+        height: 50px;
+        border: 1px solid black;
+        vertical-align: bottom;
+        margin: 8px;
+        padding: 8px;
+      }
+      core-selector > div.core-selected:after{
+        /* box-shadow: inset 0px 0px 2px 2px Highlight; */
+        position: absolute;
+        content: "\2713";
+        text-align: right;
+        text-shadow: 1px 0px 3px #0F0;
+        top: 0px;
+        right: 0px;
+      }
+    </style>
+    <paper-dialog id='newBookDialog' heading="Lets make a book" transition="paper-dialog-transition-bottom">
+      <paper-input id='newBookDialogTitle' label='Title' value="{{newBookTitle}}"></paper-input>
+      <p style='margin-bottom:-20px'>Size:</p>
+      <core-selector selected="{{newBookSizeSelection}}">
+        <template repeat="{{s in bookSizes}}">
+          <div style="width:{{s.width * 10}}px;height:{{s.height*10}}px">{{s.width}} X {{s.height}}</div>
+        </template>
+      </core-selector>
+      <paper-button dismissive raised>Cancel</paper-button>
+      <paper-button affirmative default on-click='{{createNewBook}}' raised disabled="{{!validNewBookDialog}}">Lets do it</paper-button>
+    </paper-dialog>
+  </template>
+  <script>
+
+  var bookSizes = [
+  { width: 7, height: 5},
+  { width: 11, height: 8},
+  { width: 8, height: 8},
+  { width: 12, height: 12}
+  ];
+  Polymer( {
+    publish: {
+      user: null,
+      bookSizes: null,
+      newBookTitle: null,
+      newBookSizeSelection: -1,
+    },
+    computed: {
+      validNewBookDialog: 'validateNewBookDialog(newBookTitle, newBookSizeSelection )'
+    },
+    created: function() {
+      this.bookSizes = bookSizes;
+      this.user = document.createElement('pook-fire-user');
+    },
+    toggle: function() {
+      this.newBookTitle = "";
+      this.$.newBookDialog.toggle();
+      setTimeout( (function() { this.$.newBookDialogTitle.focus(); }).bind(this), 500);
+    },
+    createNewBook: function() {
+      this.user.createBook(this.newBookTitle, this.bookSizes[this.newBookSizeSelection]);
+    },
+    validateNewBookDialog: function(title, sizeIndex) {
+      return ((typeof title) === 'string') && title.length > 0 &&
+              sizeIndex >= 0 && sizeIndex < this.bookSizes.length;
+    }
+  });
+  </script>
+</polymer-element>
