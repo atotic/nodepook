@@ -146,6 +146,10 @@
   event handlers 
     on-click='{{handleClick}}'
     event handler expressions cannot reference other elements (ex: this.$.el.handler)
+    eventDelegates: {
+      down: "downAction",
+      up: "upAction"
+    }
   auto-binding
     <template id="auto-bind-demo" is="auto-binding" repeat="{{quotes}}">
     have to initialize model with javascript

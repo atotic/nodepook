@@ -46,10 +46,16 @@
       core-pages > * {
         overflow: scroll;
       }
+      paper-item /deep/ #label {  /* prevents 'tiny icons' problem */
+        flex: 0;
+      }
+      core-menu {
+        margin: 12px 0;
+      }
 
     </style>
 
-    <pook-fire-user id='fireUser' anonRedirect='/'></pook-fire-user>
+    <pook-fire-user id='user' anonRedirect='/'></pook-fire-user>
     <pook-body-file-drop on-file-dropped='{{fileDropped}}'></pook-body-file-drop>
     <core-drawer-panel id='drawerPanel' drawerWidth="8em">
       <core-header-panel drawer>
@@ -68,16 +74,16 @@
             on-down="{{toggleDrawer}}" 
             style="display:{{$.drawerPanel.narrow ? 'inline-block' : 'none'}}"
           ></paper-icon-button>
-          <span flex>node.pook.io</span>
+          <span flex>{{tabTitle}}</span>
+          <span flex>pook.io</span>
           <paper-button on-click='{{logout}}'>logout</paper-button>
         </core-toolbar>
         <div class='content'>
           <core-pages id='pages' selected='{{$.menu.selected}}'>
-            <pook-page-account hash='account'></pook-page-account>
-            <pook-page-security hash='security'></pook-page-security>
-            <pook-page-photos hash='photos'></pook-page-photos>
-            <pook-page-books hash='books'></pook-page-books>
-            <div>books</div>
+            <pook-page-account hashbang='account'></pook-page-account>
+            <pook-page-security hashbang='security'></pook-page-security>
+            <pook-page-photos hashbang='photos'></pook-page-photos>
+            <pook-page-books hashbang='books'></pook-page-books>
           </core-pages>
         </div>
       </core-header-panel>
@@ -85,39 +91,104 @@
   </template>
   <script>
   Polymer({
+    publish: {
+      titleJigger: 0
+    },
+    computed: {
+      tabTitle: "computeTabTitle($.menu.selected, titleJigger)"
+    },
     ready: function() {
       this.selectPaneByHash();
-      this.addEventListener('scroll', function(ev) {
-        console.log('scroll');
-      });
+    },
+    computeTabTitle: function(tabId) {
+      if (tabId === -1 || tabId === undefined )
+        return "";
+      return this.$.menu.children.item(tabId).label;
     },
     selectPaneByHash: function() {
       if (!window.location.hash)
         return;
-      var pane = this.$.pages.querySelector('[hash=' + window.location.hash.slice(1) + ']');
-      if (pane) {
-        for (var i=0; i<pane.parentNode.children.length; i++)
-          if (pane.parentNode.children.item(i) == pane)
-            this.$.menu.selected = i;
+      var hashbang = window.location.hash.slice(1);
+      var bookMatch = hashbang.match(/^book:(.*)/); // handle book:$bookId hashes
+      if (bookMatch) {
+        this.editBook(bookMatch[1]);
+      }
+      else {
+        var tabId = this.findTabById( window.location.hash.slice(1));
+        if (tabId != -1)
+          this.$.menu.selected = tabId;
       }
     },
     selectPane: function(ev, detail) {
-      window.location.hash = ev.detail.item.label;
+      window.location.hash = ev.detail.item.hashbang || ev.detail.item.label; // book editors use hash
       this.$.drawerPanel.closeDrawer();
     },
     logout: function() {
-      this.$.fireUser.logout();
+      this.$.user.logout();
     },
     toggleDrawer: function() {
       this.$.drawerPanel.togglePanel();
     },
     fileDropped: function(ev) {
-      this.$.fireUser.createPhoto(ev.detail);
+      this.$.user.createPhoto(ev.detail);
+    },
+    bookIdToHashbang: function(bookId) {
+      return 'book:' + bookId;
+    },
+    // returns index, or -1
+    findTabById: function(tabId) {
+      var tab = this.$.pages.querySelector('[hashbang=\'' + tabId + '\']');
+      if (tab)
+        for (var i=0; i<this.$.pages.children.length; i++)
+          if (this.$.pages.children.item(i) === tab)
+            return i;
+      return -1;
     },
     editBook: function(bookId) {
+      var hashbang = this.bookIdToHashbang(bookId);
+      var tabIndex = this.findTabById(hashbang);
+      if (tabIndex != -1) {
+        this.$.menu.selected = tabIndex;
+        return;
+      }
       // opens up an editor
-      var book = null;
-      console.log("TODO");
+      var paperItem = document.createElement('paper-item');
+      paperItem.icon = 'drive-document';
+      paperItem.setAttribute('hashbang', hashbang);
+      paperItem.hashbang = hashbang;
+      var bookEditorPage = document.createElement('pook-page-book-editor');
+      bookEditorPage.setAttribute('hashbang', hashbang);
+      bookEditorPage.bookId = bookId;
+      // insert elements
+      this.$.menu.insertBefore(paperItem, null);
+      this.$.pages.insertBefore(bookEditorPage, null);
+      this.$.menu.selected = this.$.menu.children.length - 1;
+
+      // load the book title from firebase, remove the book on fail
+      var bookRef = new Firebase(this.$.user.getDatabaseUrl('oneBook', bookId));
+      var THIS = this;
+
+      function removeBook() {
+        paperItem.remove();
+        bookEditorPage.remove();
+        THIS.$.menu.selected = THIS.findTabById('books');
+        document.querySelector('pook-flash').error = "book could not be loaded: " + bookId;
+      }
+
+      bookRef.once('value', 
+        function success(snapshot) {
+          bookJs = snapshot.val();
+          if (bookJs) {
+            paperItem.setAttribute('label', bookJs.title);
+            THIS.titleJigger++;
+          } 
+          else
+            removeBook();
+        },
+        function fail() {
+          removeBook();
+        }
+      );
     }
   });
   </script>

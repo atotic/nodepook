@@ -3,7 +3,9 @@
 	[
 		{
 			"follow_symlinks": true,
-			"path": "."
+			"path": ".",
+      "file_exclude_patterns": ["*.map", "*min.js", "*core-component-page.html"],
+      "folder_exclude_patterns": ["google-code-prettify"]
 		}
 	],
   "settings":

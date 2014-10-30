@@ -48,11 +48,15 @@
       }
       #selectorContainer {
         flex: 1;
-        -webkit-flex: 1;
         overflow: scroll;
       }
       #bookSelector {
         display: flex;
+        flex-flow: wrap;
+        -webkit-flex-flow: wrap;
+        align-items: flex-end;
+        -webkit-align-items: flex-end;
+        margin: 12px;
       }
       core-toolbar, core-toolbar::shadow .toolbar-tools {
         height: 36px;
@@ -60,11 +64,11 @@
       }
     </style>
     <pook-dialog-new-book id='newBookDialog'></pook-dialog-new-book>
-    <div style='margin-top: 8px'>
-      <paper-button on-click="{{showNewBookDialog}}" raised>Start a new book...</paper-button>
-    </div>
     <div id='selectorContainer'>
       <core-selector id='bookSelector'>
+        <div style='padding:8px; width: 100px; height: 100px;'>
+          <paper-button on-click="{{showNewBookDialog}}" raised>Start a new book...</paper-button>
+        </div>
         <template repeat="{{k in bookIds}}">
           <template bind="{{user.userBooks[k]}}">
             <div class='book-tile' style="width:{{info.width * 8}}px;height:{{info.height*8}}px">
@@ -111,11 +115,11 @@
     deleteBook: function() {
       if (this.$.bookSelector.selectedIndex === -1)
         return;
-      this.user.deleteBook( this.bookIds[this.$.bookSelector.selectedIndex]);
+      this.user.deleteBook( this.bookIds[this.$.bookSelector.selectedIndex - 1]);
       this.$.bookSelector.selected = null;
     },
     editBook: function() {
-      document.querySelector('pook-main-app').editBook( this.bookIds[this.$.bookSelector.selectedIndex]);
+      document.querySelector('pook-main-app').editBook( this.bookIds[this.$.bookSelector.selectedIndex - 1]);
     },
     shareBook: function() {
       console.log('TODO');
