@@ -60,7 +60,7 @@
     <core-drawer-panel id='drawerPanel' drawerWidth="8em">
       <core-header-panel drawer>
         <core-toolbar></core-toolbar>
-        <core-menu id='menu' on-core-select="{{selectPane}}" selected="0">
+        <core-menu id='menu' on-core-select="{{selectPane}}" selected="3">
           <paper-item icon='account-box' label='account'></paper-item>
           <paper-item icon='https' label='security'></paper-item>
           <paper-item icon='drive-drawing' label='photos'></paper-item>
@@ -98,23 +98,24 @@
       tabTitle: "computeTabTitle($.menu.selected, titleJigger)"
     },
     ready: function() {
-      this.selectPaneByHash();
+      this.selectInitialPane();
     },
     computeTabTitle: function(tabId) {
       if (tabId === -1 || tabId === undefined )
         return "";
       return this.$.menu.children.item(tabId).label;
     },
-    selectPaneByHash: function() {
-      if (!window.location.hash)
-        return;
-      var hashbang = window.location.hash.slice(1);
+    selectInitialPane: function() {
+      // gets pane from window hash, and selects it
+      var hashbang = '';
+      if (window.location.hash)
+        hashbang = window.location.hash.slice(1);
       var bookMatch = hashbang.match(/^book:(.*)/); // handle book:$bookId hashes
       if (bookMatch) {
         this.editBook(bookMatch[1]);
       }
-      else {
-        var tabId = this.findTabById( window.location.hash.slice(1));
+      else if (hashbang != '') {
+        var tabId = this.findTabById( hashbang);
         if (tabId != -1)
           this.$.menu.selected = tabId;
       }

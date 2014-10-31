@@ -1,0 +1,50 @@
+<link href="../vendor/polymer/polymer.html" rel="import">
+<link href='../vendor/paper-button/paper-button.html' rel="import">
+<link href="../vendor/core-selector/core-selector.html" rel="import">
+
+<polymer-element name='pook-bugreport'>
+<template>
+  <style>
+    .core-selected { background-color: #BBB }
+    core-selector { display: block}
+    .book-tile { border: 1px solid black; display: inline-block}
+  </style>
+  <div>
+    <core-selector id='selector'>
+       <div style='padding:8px; width: 100px; height: 100px;'>
+        <paper-button raised>Does button trigger it?</paper-button>
+      </div>
+      <template repeat="{{k in names}}">
+        <template bind="{{props[k]}}">
+          <div class='book-tile' style="width={{width}}px">
+            {{title}} 
+          </div>
+        </template>
+      </template>
+    </core-selector>
+  </div>
+  <paper-button on-click="{{removeItem}}" raised>Remove item</paper-button>
+</template>
+<script>
+  Polymer({
+    publish: {
+      names: ['one', 'two', 'three', 'four'],
+      props: null
+    },
+    created: function() {
+      this.props = {
+        one: { title: "ONE", width:30},
+        two: { title: "TWO", width:40},
+        three: { title: "THREE", width:50},
+        four: {title: "FOUR", width:60}
+      };
+    },
+    removeItem: function() {
+      var removed = this.names.splice(this.$.selector.selectedIndex -1,1);
+      delete this.props[removed[0]].width;
+//      delete this.props[removed[0]];
+      this.$.selector.selected = null;
+    }
+  });
+</script>
+</polymer-element>

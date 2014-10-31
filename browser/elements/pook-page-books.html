@@ -25,6 +25,8 @@
         vertical-align: bottom;
         margin: 8px;
         padding: 8px;
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
       .book-tile.core-selected:after {
         position: absolute;
@@ -48,14 +50,18 @@
       }
       #selectorContainer {
         flex: 1;
+        -webkit-flex: 1;
         overflow: scroll;
       }
       #bookSelector {
         display: flex;
+        display: -webkit-flex;
         flex-flow: wrap;
         -webkit-flex-flow: wrap;
         align-items: flex-end;
         -webkit-align-items: flex-end;
+        flex-direction: row;
+        -webkit-flex-direction: row;
         margin: 12px;
       }
       core-toolbar, core-toolbar::shadow .toolbar-tools {
@@ -70,11 +76,9 @@
           <paper-button on-click="{{showNewBookDialog}}" raised>Start a new book...</paper-button>
         </div>
         <template repeat="{{k in bookIds}}">
-          <template bind="{{user.userBooks[k]}}">
-            <div class='book-tile' style="width:{{info.width * 8}}px;height:{{info.height*8}}px">
-              {{title}}
+            <div class='book-tile' style="width:{{user.userBooks[k].info.width * 8}}px;height:{{user.userBooks[k].info.height*8}}px">
+              {{user.userBooks[k].title}}
             </div>
-          </template>
         </template>
       </core-selector>
     </div>

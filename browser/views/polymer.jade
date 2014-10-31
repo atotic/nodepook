@@ -10,13 +10,10 @@ html
     link(rel='import', href='/vendor/paper-button/paper-button.html')
     link(rel='import', href='/elements/test.html')
     link(rel='import', href='/elements/pook-debug.html')
+
+    link(rel='import', href='/elements/bugreport.html')
+
   body
     p Polymer data binding
     pook-debug
-    test-globals()
-    test-fire-observer
-    script.
-      function init() {
-        console.log("ready");
-      }
-      window.addEventListener('polymer-ready', init);
+    pook-bugreport
