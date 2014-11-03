@@ -74,7 +74,11 @@
             on-down="{{toggleDrawer}}" 
             style="display:{{$.drawerPanel.narrow ? 'inline-block' : 'none'}}"
           ></paper-icon-button>
-          <span flex>{{tabTitle}}</span>
+          <span flex>{{tabTitle}}
+            <template if="{{canCloseTab}}">
+              <paper-icon-button icon="close" on-tap="{{closeTab}}"></paper-icon-button>
+            </template>
+          </span>
           <span flex>pook.io</span>
           <paper-button on-click='{{logout}}'>logout</paper-button>
         </core-toolbar>
@@ -92,7 +96,8 @@
   <script>
   Polymer({
     publish: {
-      titleJigger: 0
+      titleJigger: 0,
+      canCloseTab: false
     },
     computed: {
       tabTitle: "computeTabTitle($.menu.selected, titleJigger)"
@@ -121,8 +126,16 @@
       }
     },
     selectPane: function(ev, detail) {
-      window.location.hash = ev.detail.item.hashbang || ev.detail.item.label; // book editors use hash
+      // book editors use hashbang
+      window.location.hash = ev.detail.item.hashbang || ev.detail.item.label; 
       this.$.drawerPanel.closeDrawer();
+      this.canCloseTab = ev.detail.item.canCloseTab;
+    },
+    closeTab: function(ev) {
+      var index = this.$.menu.selectedIndex;
+      this.$.menu.children.item(index).remove();
+      this.$.pages.children.item(index).remove();
+      this.$.menu.selected = 3;
     },
     logout: function() {
       this.$.user.logout();
@@ -157,6 +170,7 @@
       paperItem.icon = 'drive-document';
       paperItem.setAttribute('hashbang', hashbang);
       paperItem.hashbang = hashbang;
+      paperItem.canCloseTab = true;
       var bookEditorPage = document.createElement('pook-page-book-editor');
       bookEditorPage.setAttribute('hashbang', hashbang);
       bookEditorPage.bookId = bookId;
