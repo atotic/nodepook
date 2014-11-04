@@ -1,0 +1,47 @@
+<link href="native-promise-only.html" rel="import">
+<script>
+// Global javascript utility functions
+
+(function() {
+  // PookPromise exposes resolve/reject methods
+  function PookPromise() {
+    this.promise = new Promise(this.init.bind(this));
+  }
+
+  PookPromise.prototype = {
+    init: function( resolveCb, rejectCb) {
+      this.resolveCb = resolveCb;
+      this.rejectCb = rejectCb;
+    },
+    resolve: function(val) {
+      if (!this.resolveCb)
+        console.error("Resolved too early");
+      this.resolveCb(val);
+    },
+    reject: function(err) {
+      if (!this.rejectCb)
+        console.error("Rejected too early");
+      this.rejectCb(err);
+    },
+    then: function(success,failure) {
+      this.promise.then(success, failure);
+    }
+  };
+
+  PookUtils = {
+    randomString: function (len, charSet) {
+      charSet = charSet || 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+      var randomString = '';
+      for (var i = 0; i < len; i++) {
+          var randomPoz = Math.floor(Math.random() * charSet.length);
+          randomString += charSet.substring(randomPoz,randomPoz+1);
+      }
+      return randomString;
+    }
+  }
+
+  window.PookPromise = PookPromise;
+  window.PookUtils = PookUtils;
+
+})();
+</script>

@@ -8,7 +8,7 @@
 <link href="../vendor/paper-icon-button/paper-icon-button.html" rel="import">
 <link href="../vendor/paper-item/paper-item.html" rel="import">
 
-<link href="pook-fire-user.html" rel="import">
+<link href="pook-user.html" rel="import">
 <link href="pook-page-account.html" rel="import">
 <link href="pook-page-books.html" rel="import">
 <link href="pook-page-security.html" rel="import">
@@ -55,7 +55,7 @@
 
     </style>
 
-    <pook-fire-user id='user' anonRedirect='/'></pook-fire-user>
+    <pook-user id='user' anonRedirect='/'></pook-user>
     <pook-body-file-drop on-file-dropped='{{fileDropped}}'></pook-body-file-drop>
     <core-drawer-panel id='drawerPanel' drawerWidth="8em">
       <core-header-panel drawer>
@@ -80,7 +80,7 @@
             </template>
           </span>
           <span flex>pook.io</span>
-          <paper-button on-click='{{logout}}'>logout</paper-button>
+          <paper-button on-tap='{{logout}}'>logout</paper-button>
         </core-toolbar>
         <div class='content'>
           <core-pages id='pages' selected='{{$.menu.selected}}'>

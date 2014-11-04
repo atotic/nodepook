@@ -83,52 +83,12 @@ b) keeping priority
 
 SCHEMA
 
-users
-  $uid
-    account(owner only)
-      address-data
-      email
-      name-data
-    books(owner)
-      $bookId(owner & shared)
-        pages [ {left, right} ]
-        photos [ $photoId: {
-
-        }]
-    photos(owner)
-      $photoId
-    md5
-      $md5
-        photoId
-photos
-  $pid
-    owner
-    createdAt
-    md5
-    s3id
-    displayName
-    width
-    height
-    dateTaken
-    caption
-    latitude
-    longitude
-books
-  $bid
-    owner
 
 { id: 42, provider: 'password', uid: 'simplelogin:4' }
  /photos/-JXDyWp
  { createdAt: "asdfasdf", owner: "simplelogin:4" }
 
 /users/simplelogin:4/photos/-JXDyWp
-
-
-
-
-
-
-
 
 
 book

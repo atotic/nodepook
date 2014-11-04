@@ -5,7 +5,7 @@
 <link href="../vendor/core-icons/core-icons.html" rel="import">
 <link href="../vendor/core-icons/social-icons.html" rel="import">
 
-<link href="pook-fire-user.html" rel="import">
+<link href="pook-user.html" rel="import">
 
 <!--
 /**
@@ -27,6 +27,9 @@
         padding: 8px;
         overflow: hidden;
         text-overflow: ellipsis;
+        user-select: none;
+        -webkit-user-select: none;
+        cursor: pointer;
       }
       .book-tile.core-selected:after {
         position: absolute;
@@ -73,7 +76,7 @@
     <div id='selectorContainer' on-tap='{{clearSelection}}'>
       <core-selector id='bookSelector' touch-action="none" >
         <div style='padding:8px; width: 100px; height: 100px;'>
-          <paper-button on-click="{{showNewBookDialog}}" raised>Start a new book...</paper-button>
+          <paper-button on-tap="{{showNewBookDialog}}" raised>Start a new book...</paper-button>
         </div>
         <template repeat="{{k in bookIds}}">
             <div class='book-tile' style="width:{{user.userBooks[k].info.width * 8}}px;height:{{user.userBooks[k].info.height*8}}px" on-tap="{{bookTapHandler}}">
@@ -83,10 +86,10 @@
       </core-selector>
     </div>
     <core-toolbar>
-      <paper-button style='min-width:0' on-click="{{editBook}}" disabled?="{{$.bookSelector.selectedIndex === -1}}">edit</paper-button>
-      <paper-icon-button icon="social:share" on-click="{{shareBook}}" disabled?="{{$.bookSelector.selectedIndex === -1}}"></paper-icon-button>
+      <paper-button style='min-width:0' on-tap="{{editBook}}" disabled?="{{$.bookSelector.selectedIndex === -1}}">edit</paper-button>
+      <paper-icon-button icon="social:share" on-tap="{{shareBook}}" disabled?="{{$.bookSelector.selectedIndex === -1}}"></paper-icon-button>
       <span flex></span>
-      <paper-icon-button icon="delete" on-click="{{deleteBook}}" disabled?="{{$.bookSelector.selectedIndex === -1}}"></paper-icon-button>
+      <paper-icon-button icon="delete" on-tap="{{deleteBook}}" disabled?="{{$.bookSelector.selectedIndex === -1}}"></paper-icon-button>
     </core-toolbar>
   </template>
   <script>
@@ -97,7 +100,7 @@
       bookIds: []
     },
     created: function() {
-      this.user = document.createElement('pook-fire-user');
+      this.user = document.createElement('pook-user');
       this.user.requestDatabase('userBooks');
       this.user.databases['userBooks'].addEventListener('data-change', this.booksChanged.bind(this));
     },

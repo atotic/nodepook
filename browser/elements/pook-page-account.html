@@ -1,7 +1,7 @@
 <link href="../vendor/polymer/polymer.html" rel="import">
 <link href="../vendor/paper-input/paper-input.html" rel="import">
 
-<link href="pook-fire-user.html" rel="import">
+<link href="pook-user.html" rel="import">
 <link href="pook-state-dropdown.html" rel="import">
 
 <!--
@@ -50,7 +50,7 @@
       user: null
     },
     created: function() {
-      this.user = document.createElement('pook-fire-user');
+      this.user = document.createElement('pook-user');
       this.user.requestDatabase('user');
       this.user.requestDatabase('account');
     }

@@ -1,7 +1,7 @@
 <link href="../vendor/polymer/polymer.html" rel="import">
 <link href="../vendor/paper-input/paper-input.html" rel="import">
 
-<link href="pook-fire-user.html" rel="import">
+<link href="pook-user.html" rel="import">
 
 <!--
 /**
@@ -31,7 +31,7 @@
       <paper-input id='oldPassword' label='Old password' type='password' required floatingLabel></paper-input> 
       <paper-input id='newPassword' label='New password' type='password' required floatingLabel></paper-input>
       <div>
-        <paper-button on-click='{{changePassword}}' raised>Change password</paper-button>
+        <paper-button on-tap='{{changePassword}}' raised>Change password</paper-button>
       </div>
     </div>
     <!--
@@ -48,7 +48,7 @@ This is definitely high on our list of features to implement for Simple Login. A
       user: null
     },
     created: function() {
-      this.user = document.createElement('pook-fire-user');
+      this.user = document.createElement('pook-user');
       this.user.requestDatabase('account');
     },
     get flash() {

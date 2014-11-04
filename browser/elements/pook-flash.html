@@ -48,19 +48,19 @@
 		<template if='{{error}}'>
 			<div id='error'>
 				{{error}}
-				<paper-icon-button icon=close on-click={{closeError}}></paper-icon-button>
+				<paper-icon-button icon=close on-tap={{closeError}}></paper-icon-button>
 			</div>
 		</template>
 		<template if='{{warn}}'>
 			<div id='warn'>
 				{{warn}}
-				<paper-icon-button icon=close on-click={{closeWarn}}></paper-icon-button>
+				<paper-icon-button icon=close on-tap={{closeWarn}}></paper-icon-button>
 			</div>
 		</template>
 		<template if='{{message}}'>
 			<div id='message'>
 				{{message}}
-				<paper-icon-button icon=close on-click={{closeMessage}}></paper-icon-button>
+				<paper-icon-button icon=close on-tap={{closeMessage}}></paper-icon-button>
 			</div>
 		</template>
 	</template>

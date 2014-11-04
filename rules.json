@@ -76,7 +76,16 @@
             }
           },
           "pages": {
-            "$pageId": {            
+            "$pageId": {
+              "$itemId": {
+                "type": { ".validate": "mewData.isString() && (newData.val() === 'photo' || newData.val() == 'text')"},
+                "top": { ".validate": "newData.isNumber()"},
+                "left": { ".validate": "newData.isNumber()"},
+                "width": { ".validate": "newData.isNumber()"},
+                "height": { ".validate": "newData.isNumber()"},
+                "rotate": { ".validate": "newData.isNumber()"},
+                "$subItemId": {".validate": true}
+              }          
             }
           },
           "photos": {

@@ -5,7 +5,7 @@
 <link href="../vendor/paper-input/paper-input.html" rel="import">
 <link href="../vendor/core-selector/core-selector.html" rel="import">
 
-<link href="pook-fire-user.html" rel="import">
+<link href="pook-user.html" rel="import">
 <!--
 /**
   * Book listing 
@@ -45,7 +45,7 @@
         </template>
       </core-selector>
       <paper-button dismissive raised>Cancel</paper-button>
-      <paper-button affirmative default on-click='{{createNewBook}}' raised disabled="{{!validNewBookDialog}}">Lets do it</paper-button>
+      <paper-button affirmative default on-tap='{{createNewBook}}' raised disabled="{{!validNewBookDialog}}">Lets do it</paper-button>
     </paper-dialog>
   </template>
   <script>
@@ -68,7 +68,7 @@
     },
     created: function() {
       this.bookSizes = bookSizes;
-      this.user = document.createElement('pook-fire-user');
+      this.user = document.createElement('pook-user');
     },
     toggle: function() {
       this.newBookTitle = "";

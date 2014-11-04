@@ -22,13 +22,12 @@
     "polymer": "Polymer/polymer#~0.4.2",
     "core-elements": "Polymer/core-elements#~0.4.2",
     "paper-elements": " Polymer/paper-elements#~0.4.2",
-
     "firebase": "~1.1.0",
     "firebase-elements": "git@github.com:Polymer/firebase-element",
-
     "async": "~0.9.0",
     "jdataview": "~2.4.7",
-    "normalize.css": "~3.0.1"
+    "normalize.css": "~3.0.1",
+    "native-promise-only": "~0.7.6-a"
   },
   "devDependencies": {
     "chai": "~1.9.1",

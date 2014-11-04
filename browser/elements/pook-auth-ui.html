@@ -33,9 +33,9 @@
         <paper-checkbox id='rememberMe' label='Keep me logged in for 30 days' checked="{{rememberMe}}"></paper-checkbox>
         </div>
         <div class='spacer'></div>
-        <div><paper-button on-click="{{loginClick}}" raised>Login</paper-button></div>
-        <div><paper-button on-click="{{showForgotPassword}}">Forgot your password?</paper-button></div>
-        <div><paper-button on-click="{{showRegister}}">Register...</paper-button></div>
+        <div><paper-button on-tap="{{loginClick}}" raised>Login</paper-button></div>
+        <div><paper-button on-tap="{{showForgotPassword}}">Forgot your password?</paper-button></div>
+        <div><paper-button on-tap="{{showRegister}}">Register...</paper-button></div>
       </div>
     </template>
     <template if="{{mode=='register'}}" vertical layout>
@@ -44,18 +44,18 @@
         <paper-input id='registerEmail' floatinglabel label='email' type='email' required value="{{email}}"></paper-input>
         <paper-input id='registerPassword' floatinglabel label='password' type='password' required pattern='.{8,}' value="{{password}}"></paper-input>
 
-        <div><paper-button raised on-click="{{registerClick}}" >Register</paper-button></div>
-        <div><paper-button on-click="{{showLogin}}" >Login instead</paper-button></div>
+        <div><paper-button raised on-tap="{{registerClick}}" >Register</paper-button></div>
+        <div><paper-button on-top="{{showLogin}}" >Login instead</paper-button></div>
       </div>
     </template>
     <template if="{{mode=='forgotPassword'}}">
       <h3>Forgot your password</h3>
       <paper-input id='forgotEmail' floatinglabel label='email' type='email' required value="{{email}}"></paper-input>
-      <div><paper-button raised on-click="{{forgotPasswordClick}}" >
+      <div><paper-button raised on-tap="{{forgotPasswordClick}}" >
         Email me the password
         </paper-button></div>
-      <div><paper-button on-click="{{showLogin}}" >Login instead</paper-button></div>
-      <div><paper-button on-click="{{showRegister}}">Register...</paper-button></div>
+      <div><paper-button on-top="{{showLogin}}" >Login instead</paper-button></div>
+      <div><paper-button on-tap="{{showRegister}}">Register...</paper-button></div>
     </template>
   </template>
   <script>

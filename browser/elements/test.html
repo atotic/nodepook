@@ -2,7 +2,7 @@
 <link rel='import' href='../vendor/paper-button/paper-button.html'>
 <link rel='import' href='../vendor/firebase-elements/firebase-element.html'>
 <link rel='import' href='../vendor/firebase-elements/firebase-login.html' >
-<link rel='import' href='pook-fire-user.html'>
+<link rel='import' href='pook-user.html'>
 <style>
   * /deep/ .heading { 
     background-color: #DDD 
@@ -144,7 +144,7 @@
     attribute?={{boolean-expression}} conditional attributes
     two-way bindings only for published properties
   event handlers 
-    on-click='{{handleClick}}'
+    on-tap='{{handleTap}}'
     event handler expressions cannot reference other elements (ex: this.$.el.handler)
     eventDelegates: {
       down: "downAction",
@@ -308,9 +308,9 @@
 <polymer-element name='test-destination'>
   <template>
     <p class='heading'>test-destination</p>
-    <paper-button on-click='{{$.evHandler.changeColor}}' >$.evHandler.changeColor</paper-button>
-    <paper-button on-click='{{evHandler.changeColor}}'>evHandler.changeColor</paper-button>
-    <paper-button on-click='{{changeColor}}'>changeColor</paper-button>
+    <paper-button on-tap='{{$.evHandler.changeColor}}' >$.evHandler.changeColor</paper-button>
+    <paper-button on-tap='{{evHandler.changeColor}}'>evHandler.changeColor</paper-button>
+    <paper-button on-tap='{{changeColor}}'>changeColor</paper-button>
     <test-globals id='globalId'></test-globals>
     <test-event-handler id='evHandler'></test-event-handler>
     <test-firebase id='firebase'></test-firebase>
@@ -369,8 +369,8 @@
 <polymer-element name='test-fire-observer'>
   <template>
     <p class='heading'>test-fire-observer</p>
-    <paper-button on-click='{{addUserPhoto}}' raised>add user photo</paper-button>
-    <paper-button on-click='{{removePhoto}}' raised>remove photo</paper-button>
+    <paper-button on-tap='{{addUserPhoto}}' raised>add user photo</paper-button>
+    <paper-button on-tap='{{removePhoto}}' raised>remove photo</paper-button>
     <template repeat="{{k in photoIds}}">
       <p>{{index}}:{{k}}</p>
       <p>createdAt: {{dest[k].createdAt}}</p>

@@ -1,6 +1,6 @@
 <link href="../vendor/polymer/polymer.html" rel="import">
 <link href='../vendor/paper-button/paper-button.html' rel='import'>
-<link href='pook-fire-user.html' rel='import'>
+<link href='pook-user.html' rel='import'>
 
 <!--
   pook-page-photos displays all the user's photos
@@ -37,7 +37,7 @@
       }
 
     </style>
-    <paper-button on-click='{{createPhotoThing}}' raised>upload more</paper-button>
+    <paper-button on-tap='{{createPhotoThing}}' raised>upload more</paper-button>
     <p> Here are all your photos</p>
     <template repeat="{{k in photoIds}}">
       {{ requestPhotoProxy(k) }}
@@ -65,7 +65,7 @@
       photoIds: []
     },
     created: function() {
-      this.user = document.createElement('pook-fire-user');
+      this.user = document.createElement('pook-user');
       this.user.requestDatabase('userPhotos');
       this.user.databases['userPhotos'].addEventListener('data-change', this.userPhotosChanged.bind(this));;
     },

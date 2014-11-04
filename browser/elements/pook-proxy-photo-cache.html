@@ -1,4 +1,7 @@
 <link href="../vendor/polymer/polymer.html" rel="import">
+
+<link href="async.html" rel="import">
+
 <!--
 /**
   * pook-proxy-photo-cache 
@@ -147,9 +150,10 @@
   var gUser;
   function getUser() {
     if (!gUser)
-      gUser = document.createElement('pook-fire-user');
+      gUser = document.createElement('pook-user');
     return gUser;
   }
+
   Polymer({
     publish: {
       cache: null

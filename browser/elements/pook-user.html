@@ -1,15 +1,15 @@
 <link href="../vendor/polymer/polymer.html" rel="import">
-<link href="async.html" rel="import">
+<link href="pook-utils.html" rel="import">
 
 <!--
 /**
-  * pook-fire-user represents current user
+  * pook-user represents current user
   * publishes uid
   *
-  * @element pook-fire-user
+  * @element pook-user
  */
 -->
-<polymer-element name='pook-fire-user'>
+<polymer-element name='pook-user'>
   <template>
   </template>
   <script>
@@ -32,6 +32,7 @@
       email: '' 
   };
  
+
   /* 
   Shared databases as firebase-element objects
   state can have 3 values:
@@ -46,6 +47,13 @@
     userPhotos: false,
     userBooks: false,
   };
+
+  var gDatabasePromises = {
+    account: new PookPromise(),
+    user: new PookPromise(),
+    userPhotos: new PookPromise(),
+    userBooks: new PookPromise()
+  }
 
   /* 
    * authClient listens to authentication events
@@ -102,13 +110,16 @@
       if (this.uid === 'anonymous' && this.anonRedirect != '')
         window.location.replace(window.location.origin + this.anonRedirect);
     },
+    // Database might not be ready immediately
+    // @return Promise that resolves to database
     requestDatabase: function(type) {
       if (!(type in this.databases))
-        return console.error("bad database request", type);
+        throw new Error("bad database request " + type);
       // console.log('requestDatabase:', type);
       if (this.databases[type] === false)
         this.databases[type] = true;
       this.connectActiveDatabases();
+      return gDatabasePromises[type];
     },
     connectActiveDatabases: function() {
       if (this.uid === 'anonymous' || this.uid === '') {
@@ -122,16 +133,17 @@
           if (this.databases[k] === true) {
             this.databases[k] = document.createElement('firebase-element');
             this.databases[k].location = this.getDatabaseUrl(k);
+            gDatabasePromises[k].resolve(this.databases[k]);
             // this.databases[k].log = true;
-            if (k == 'account') {
-              var obs = new PathObserver(this.databases[k], 'data.email');
-              obs.open( function(newValue, oldValue) {
-                console.log('email changed');
-                if (oldValue && newValue)
-                  console.log('email really changed');
-              });
+            // if (k == 'account') {
+            //   var obs = new PathObserver(this.databases[k], 'data.email');
+            //   obs.open( function(newValue, oldValue) {
+            //     console.log('email changed');
+            //     if (oldValue && newValue)
+            //       console.log('email really changed');
+            //   });
 
-            }
+            // }
           }
       }
     },
@@ -164,24 +176,17 @@
       gAuthClient.unauth();
     },
     createPhoto: function(file) {
-      this.requestDatabase('userPhotos');
-
-      // if databases not ready, reschedule
-      if (!this.databases['userPhotos'] || !this.databases['userPhotos'].ref) {
-        this.async(function() {
-          this.createPhoto(file);
-        }, null, 1000);
-        return;
+      function create(database) {
+        // add to user's photos
+        var photoJson = {
+          createdAt: Firebase.ServerValue.TIMESTAMP,
+          displayName: file.name
+        }
+        var photoRef = database.push(photoJson);
+        // uploads the file, 
+        this.photoCache.uploadFile(file, photoRef.name());
       }
-
-      // add to user's photos
-      var photoJson = {
-        createdAt: Firebase.ServerValue.TIMESTAMP,
-        displayName: file.name
-      }
-      var photoRef = this.databases['userPhotos'].push(photoJson);
-      // request a proxy
-      this.photoCache.uploadFile(file, photoRef.name());
+      this.requestDatabase('userPhotos').then(create.bind(this));
     },
     createBook: function(title, size) {
       this.requestDatabase('userBooks');
@@ -206,15 +211,6 @@
     },
     deleteBook: function(bookId) {
       this.databases['userBooks'].ref.child(bookId).remove();
-    },
-    randomString: function (len, charSet) {
-      charSet = charSet || 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-      var randomString = '';
-      for (var i = 0; i < len; i++) {
-          var randomPoz = Math.floor(Math.random() * charSet.length);
-          randomString += charSet.substring(randomPoz,randomPoz+1);
-      }
-      return randomString;
     }
   }
 
