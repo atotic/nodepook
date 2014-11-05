@@ -35,11 +35,20 @@
         width: 100%;
         height: 12px;
       }
+      #addPhotoInput {
+        position:absolute;
+        width:0px;
+        height:0px;
+        border:0;
+        padding:0;
+        margin:0
+      }
 
     </style>
-    <paper-button on-tap='{{createPhotoThing}}' raised>upload more</paper-button>
+    <input id="addPhotoInput" type="file" multiple="true" accept="image/*" capture="filesystem">
+    <paper-button on-click='{{clickAddPhoto}}' raised>upload more</paper-button>
     <p> Here are all your photos</p>
-    <template repeat="{{k in photoIds}}">
+    <template id="photoList" repeat="{{k in photoIds}}">
       {{ requestPhotoProxy(k) }}
       <template bind="{{calculateIconDims(user.photoCache.cache[k].iconInfo, iconHeight) as info}}">
         <div class='photoDiv'>
@@ -66,17 +75,48 @@
     },
     created: function() {
       this.user = document.createElement('pook-user');
-      this.user.requestDatabase('userPhotos');
-      this.user.databases['userPhotos'].addEventListener('data-change', this.userPhotosChanged.bind(this));;
+      var THIS = this;
+      this.user.requestDatabase('userPhotos').then( function(database) {
+        database.addEventListener('data-change', THIS.userPhotosChanged.bind(THIS));
+      });
+      this.async(this.startScrollingToUpdates, null, 500);
+    },
+    ready: function() {
+      this.$.addPhotoInput.addEventListener('change', this.handleAddPhotoInput.bind(this));
+    },
+    startScrollingToUpdates: function() {
+      if (!this.scrollingToUpdates) {
+        this.scrollingToUpdates = true;
+        this.onMutation(this.shadowRoot, this.childrenUpdated);
+      }
+    },
+    childrenUpdated: function(observer, mutations) {
+      var target = PookUtils.mutationsFindAddedNode( mutations, function(node) {
+          return node.className && node.className.match(/photoDiv/);
+      });
+      if (target)
+        PookUtils.scrollIntoView(target, this);
+      if (this.scrollingToUpdates) {
+        this.onMutation(this.shadowRoot, this.childrenUpdated);
+      }
     },
     userPhotosChanged: function() {
+      if (!this.scrollingToUpdates)
+        this.job('startScrollingToUpdates', 
+          this.startScrollingToUpdates.bind(this), 
+          500);
       if (this.user.userPhotos)
-        this.photoIds = Object.keys(this.user.userPhotos);
+        this.photoIds = Object.keys(this.user.userPhotos).reverse();
       else
         this.photoIds = [];
     },
-    createPhotoThing: function() {
-      debugger;
+    clickAddPhoto: function() {
+      this.$.addPhotoInput.click();
+    },
+    handleAddPhotoInput: function(ev) {
+      console.log("files added");
+      for (var i=0; i<this.$.addPhotoInput.files.length; i++)
+        this.user.createPhoto(this.$.addPhotoInput.files.item(i));
     },
     requestPhotoProxy: function(photoId) {
       this.user.photoCache.requestProxy(photoId);

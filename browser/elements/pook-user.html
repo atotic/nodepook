@@ -176,17 +176,7 @@
       gAuthClient.unauth();
     },
     createPhoto: function(file) {
-      function create(database) {
-        // add to user's photos
-        var photoJson = {
-          createdAt: Firebase.ServerValue.TIMESTAMP,
-          displayName: file.name
-        }
-        var photoRef = database.push(photoJson);
-        // uploads the file, 
-        this.photoCache.uploadFile(file, photoRef.name());
-      }
-      this.requestDatabase('userPhotos').then(create.bind(this));
+      this.photoCache.createPhotoFromFile(file);
     },
     createBook: function(title, size) {
       this.requestDatabase('userBooks');

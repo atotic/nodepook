@@ -65,8 +65,8 @@ function readExifData(photoPath, done) {
   var exifData = {};
 
   var exifTags = {
-    width: 'Exif.Photo.PixelXDimension',
-    height: 'Exif.Photo.PixelYDimension',
+    // width: 'Exif.Photo.PixelXDimension', after rotate, these are reversed and invalid
+    // height: 'Exif.Photo.PixelYDimension',
     dateTimeOriginal: 'Exif.Photo.DateTimeOriginal', 
     dateTime: 'Exif.Image.DateTime', 
     description: 'Xmp.dc.description',
@@ -155,6 +155,10 @@ function readExifData(photoPath, done) {
               exifData.latitude = exifLatLongToDecimal( exifData.latitude, exifData.latitudeRef);
               exifData.longitude = exifLatLongToDecimal( exifData.longitude, exifData.longitudeRef);
             }
+            if ('width' in exifData)
+              exifData.width = parseInt(exifData.width);
+            if ('height' in exifData)
+              exifData.height = parseInt(exifData.height);
             exifData.caption = exifData.description || exifData.title;
             exifData.dateTaken = exifData.dateTimeOriginal || exifData.dateTime;
             if (exifData.dateTaken) {

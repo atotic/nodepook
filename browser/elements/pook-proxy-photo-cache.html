@@ -75,7 +75,7 @@
         gPhotoCache[task.photoId].progress = -1;
         gPhotoCache[task.photoId].ref.update(newData, function(err) {
           if (err)
-            console.error("error updating ", gPhotoCache[taskphotoId].location, err);
+            console.error("error updating ", gPhotoCache[task.photoId].location, err);
         });
       }
       else {
@@ -172,6 +172,19 @@
       this.cache[photoId] = document.createElement('pook-proxy-photo');
       this.cache[photoId].user = getUser();
       this.cache[photoId].photoId = photoId;
+    },
+    createPhotoFromFile: function(file) {
+      function create(database) {
+        // add to user's photos
+        var photoJson = {
+          createdAt: Firebase.ServerValue.TIMESTAMP,
+          displayName: file.name
+        }
+        var photoRef = database.push(photoJson);
+        // uploads the file, 
+        this.uploadFile(file, photoRef.name());
+      }
+      getUser().requestDatabase('userPhotos').then(create.bind(this));
     },
     uploadFile: function(file, photoId) {
       // request a proxy, so we have place to store progress

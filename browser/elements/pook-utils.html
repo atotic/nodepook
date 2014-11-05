@@ -1,4 +1,6 @@
 <link href="native-promise-only.html" rel="import">
+<link href="../vendor/core-animation/core-animation.html" rel="import">
+
 <script>
 // Global javascript utility functions
 
@@ -37,6 +39,58 @@
           randomString += charSet.substring(randomPoz,randomPoz+1);
       }
       return randomString;
+    },
+    // callback(node) return true if right node
+    mutationsFindAddedNode: function(mutations, callback) {
+      if (!mutations)
+        return null;
+      for (var i=0; i<mutations.length; i++) {
+        if (mutations[i].addedNodes)
+          for (var j=0; j<mutations[i].addedNodes.length; j++)
+            if (callback(mutations[i].addedNodes.item(j)))
+              return mutations[i].addedNodes.item(j);
+      }
+      return null;
+    },
+    scrollIntoView: function(element, parentElement) {
+    //           var player = document.timeline.play(new Animation(element, [
+    //   {opacity: "0.5", transform: "scale(0.5)"}, 
+    //   {opacity: "1.0", transform: "scale(1)"}
+    // ],
+    // {
+    //   direction: "alternate", duration: 500, iterations: Infinity
+    // }));
+    //           return;
+      if (parentElement == null)
+        parentElement = element.parentNode;
+      var target = {
+        top: element.offsetTop,
+        bottom: element.offsetTop + element.offsetHeight
+      };
+      var parent = {
+        top: parentElement.scrollTop,
+        bottom: parentElement.scrollTop + parentElement.offsetHeight
+      };
+      var dest = 0;
+      if (target.top < parent.top)
+        dest = target.top - 4;
+      else if (target.bottom > parent.bottom)
+        dest = target.bottom - parentElement.offsetHeight + 8;
+      if (dest != 0) {
+        var startScrollTop = parentElement.scrollTop;
+        var animation = new CoreAnimation();
+        animation.duration = Math.abs(dest - startScrollTop) / 3;
+        animation.target = parentElement;
+        animation.easing = "easeInOutQuart";
+        animation.customEffect = function(timeFraction, target, animation) 
+          {
+            target.scrollTop = startScrollTop + (dest - startScrollTop) * timeFraction;
+          };
+        animation.play();
+      }
+      else {
+        console.log('element already visible');
+      }
     }
   }
 
