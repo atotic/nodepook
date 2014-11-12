@@ -123,6 +123,7 @@
           must declare property in attributes, or priority unknown
        3) created() assignment
        4) publish block, does not fire changed. USE THIS
+          objValue: { value: {}, reflect: true}
   - attribute values are converted to 'preferred' type. 
       json strings become objects, numbers be numbers
   computed properties
@@ -146,9 +147,10 @@
   event handlers 
     on-tap='{{handleTap}}'
     event handler expressions cannot reference other elements (ex: this.$.el.handler)
-    eventDelegates: {
+    eventDelegates: { // add event handlers to host element
       down: "downAction",
-      up: "upAction"
+      up: "upAction",
+      'core-transitionend': 'transitionEnd'
     }
   auto-binding
     <template id="auto-bind-demo" is="auto-binding" repeat="{{quotes}}">

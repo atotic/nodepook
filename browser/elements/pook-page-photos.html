@@ -84,37 +84,18 @@
     ready: function() {
       this.$.addPhotoInput.addEventListener('change', this.handleAddPhotoInput.bind(this));
     },
-    startScrollingToUpdates: function() {
-      if (!this.scrollingToUpdates) {
-        this.scrollingToUpdates = true;
-        this.onMutation(this.shadowRoot, this.childrenUpdated);
-      }
-    },
-    childrenUpdated: function(observer, mutations) {
-      var target = PookUtils.mutationsFindAddedNode( mutations, function(node) {
-          return node.className && node.className.match(/photoDiv/);
-      });
-      if (target)
-        PookUtils.scrollIntoView(target, this);
-      if (this.scrollingToUpdates) {
-        this.onMutation(this.shadowRoot, this.childrenUpdated);
-      }
-    },
     userPhotosChanged: function() {
-      if (!this.scrollingToUpdates)
-        this.job('startScrollingToUpdates', 
-          this.startScrollingToUpdates.bind(this), 
-          500);
       if (this.user.userPhotos)
         this.photoIds = Object.keys(this.user.userPhotos).reverse();
       else
         this.photoIds = [];
+      // TODO scroll added photos into view
+      // PookUtils.scrollIntoView(target, this);
     },
     clickAddPhoto: function() {
       this.$.addPhotoInput.click();
     },
     handleAddPhotoInput: function(ev) {
-      console.log("files added");
       for (var i=0; i<this.$.addPhotoInput.files.length; i++)
         this.user.createPhoto(this.$.addPhotoInput.files.item(i));
     },

@@ -78,9 +78,9 @@
         <div style='padding:8px; width: 100px; height: 100px;'>
           <paper-button on-tap="{{showNewBookDialog}}" raised>Start a new book...</paper-button>
         </div>
-        <template repeat="{{k in bookIds}}">
-            <div class='book-tile' style="width:{{user.userBooks[k].info.width * 8}}px;height:{{user.userBooks[k].info.height*8}}px" on-tap="{{bookTapHandler}}">
-              {{user.userBooks[k].title}}
+        <template id="bookList" repeat="{{k in bookIds}}">
+            <div layout vertical class='book-tile' style="width:{{user.userBooks[k].info.width * 8}}px;height:{{user.userBooks[k].info.height*8}}px" on-tap="{{bookTapHandler}}">
+              <p>{{user.userBooks[k].title}}</p>
             </div>
         </template>
       </core-selector>
@@ -101,10 +101,11 @@
     },
     created: function() {
       this.user = document.createElement('pook-user');
-      this.user.requestDatabase('userBooks');
-      this.user.databases['userBooks'].addEventListener('data-change', this.booksChanged.bind(this));
-    },
-    ready: function() {
+      var THIS = this;
+      this.user.requestDatabase('userBooks')
+        .then( function(database) {
+          database.addEventListener('data-change', THIS.booksChanged.bind(THIS));
+        });
     },
     clearSelection: function(ev) {
       // clear selection on taps outside books
