@@ -1,49 +1,182 @@
 <link href="../vendor/polymer/polymer.html" rel="import">
 <link href='../vendor/paper-button/paper-button.html' rel="import">
+<link href='../vendor/paper-ripple/paper-ripple.html' rel="import">
 <link href="../vendor/core-selector/core-selector.html" rel="import">
+<link href="../vendor/core-animated-pages/core-animated-pages.html" rel="import">
+<link href="../vendor/core-animated-pages/transitions/slide-up.html" rel="import">
+<link href="../vendor/core-animated-pages/transitions/cross-fade.html" rel="import">
 
 <polymer-element name='pook-bugreport'>
 <template>
   <style>
-    .core-selected { background-color: #BBB }
-    core-selector { display: block}
-    .book-tile { border: 1px solid black; display: inline-block}
+    .tile {
+      position: relative;
+      display: inline-block;
+      width: 100px;
+      height: 100px;
+      border: 1px solid black;
+      user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      -webkit-user-select: none;
+    }
+    .tile.animate-add {
+    -webkit-animation-duration:5s;
+            animation-duration:5s;
+    /*animation-name*/
+    -webkit-animation-name:slide-up;
+            animation-name:slide-up;
+    }
+
+    .tile.animate-remove {
+      -webkit-animation-duration:5s;
+              animation-duration:5s;
+      /*animation-name*/
+      -webkit-animation-name:fade-out;
+              animation-name:fade-out;    
+    }
+/*    .tile.animate-add:after {
+      position: absolute;
+      content: "add";
+      background-color: green;
+    }
+    .tile.animate-remove:after {
+      position: absolute;
+      content: "remove";
+      background-color: red;
+    }*/
+    @-webkit-keyframes slide-up {
+      from { top: 80vh; width:0px; }
+      to { top: 0px; width: 100px;  }
+    }
+    @keyframes slide-up {
+      from { top: 80vh; width:0px; }
+      to { top: 0px; width: 100px; }
+    }
+    @-webkit-keyframes fade-out {
+      from { opacity: 1.0; }
+      to { opacity: 0; width: 0; }
+    }
+    @keyframes fade-out {
+      from { opacity: 1.0; }
+      to { opacity: 0; width: 0; }
+    }
   </style>
-  <div>
-    <core-selector id='selector'>
-       <div style='padding:8px; width: 100px; height: 100px;'>
-        <paper-button raised>Does button trigger it?</paper-button>
-      </div>
-      <template repeat="{{k in names}}">
-        <template bind="{{props[k]}}">
-          <div class='book-tile' style="width={{width}}px">
-            {{title}} 
-          </div>
-        </template>
-      </template>
-    </core-selector>
-  </div>
-  <paper-button on-tap="{{removeItem}}" raised>Remove item</paper-button>
+  <p>
+    <paper-button on-tap="{{addValue}}" raised>Add</paper-button>
+    click on tile to delete
+  </p>
+  <section id='books' layout horizontal wrap>
+    <template repeat="{{k in keys}}">
+
+        <div layout horizontal center center-justified class='tile {{ k | computeTileClass }}' 
+          on-click="{{removeValue}}" 
+          on-animationend="{{handleTileAnimationEnd}}" 
+          on-webkitAnimationEnd="{{handleTileAnimationEnd}}"  
+          on-mozAnimationEnd="{{handleTileAnimationEnd}}"
+        >
+        <paper-ripple fit class=""></paper-ripple>
+        {{values[k].title}}
+        </div>
+    </template>
+  </section>
 </template>
 <script>
   Polymer({
     publish: {
-      names: ['one', 'two', 'three', 'four'],
-      props: null
+      keys: [],
+      values: {
+        one: { title: "One"},
+        two: { title: "Two"}
+      },
+      newValues: {
+        three: { title: "Three"},
+        four: { title: "Four"},
+        five: { title: "Five"},
+        six: { title: "Six"},
+        seven: { title: "Seven"},
+        eight: { title: "Eight"},
+        nine: { title: "Nine"}
+      },
+      delta: {
+        add: {}, // # key => true
+        remove: {} // # key => true
+      }
     },
-    created: function() {
-      this.props = {
-        one: { title: "ONE", width:30},
-        two: { title: "TWO", width:40},
-        three: { title: "THREE", width:50},
-        four: {title: "FOUR", width:60}
+    ready: function() {
+      this.valuesChanged();
+    },
+    valuesChanged: function() {
+      var newKeys = Object.keys(this.values).reverse();
+      this.keys = newKeys;
+    },
+    // [a,b,c] => { a: true, b: true, c: true}
+    arrayToHash: function(arry) {
+      var retVal = {};
+      for (var i=0; i<arry.length; i++)
+        retVal[arry[i]] = true;
+      return retVal;
+    },
+    computeDelta: function(newKeys, oldKeys) {
+      var newHash = this.arrayToHash( newKeys );
+      var oldHash = this.arrayToHash( oldKeys );
+      var delta = {
+        add: {},
+        remove: {}
       };
+      for (var k in newHash) {
+        if ( k in oldHash )
+          delete oldHash[k];
+        else
+          delta.add[k] = true;
+      }
+      // keys deleted from newHash are still in oldHash
+      for (var k in oldHash)
+        delta.remove[k] = true;
     },
-    removeItem: function() {
-      var removed = this.names.splice(this.$.selector.selectedIndex -1,1);
-      delete this.props[removed[0]].width;
-//      delete this.props[removed[0]];
-      this.$.selector.selected = null;
+    addValue: function() {
+      console.log('added');
+      var k = Object.keys(this.newValues)[0];
+      if (!k) {
+        this.values.done = { title: "No more"};
+      }
+      else {
+        this.values[k] = this.newValues[k];
+        delete this.newValues[k];
+      }
+      this.delta.add[k] = true;
+      this.valuesChanged();
+    },
+    removeValue: function(ev) {
+      console.log('removed');
+      var k = ev.currentTarget.templateInstance.model.k;
+      ev.currentTarget.classList.add('animate-remove');
+      this.delta.remove[k] = true;
+    },
+    computeTileClass: function(k) {
+      if (k in this.delta.add)
+        return 'animate-add';
+      else if (k in this.delta.remove)
+        return 'animate-remove';
+      return '';
+    },
+    handleTileAnimationEnd: function(ev) {
+      var key = ev.currentTarget.templateInstance.model.k;
+      var classTag = this.computeTileClass(key);
+      // remove class tag
+      ev.currentTarget.classList.remove(classTag);
+      // remove from delta list
+      delete this.delta[ classTag.replace('animate-', '')][key];
+      switch (classTag) {
+        // removed 
+        case 'animate-remove':
+          this.newValues[key] = this.values[key];
+          delete this.values[key];
+          this.valuesChanged();
+          break;
+        default:
+          break;
+      }
     }
   });
 </script>
