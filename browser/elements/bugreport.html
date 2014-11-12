@@ -1,12 +1,8 @@
 <link href="../vendor/polymer/polymer.html" rel="import">
 <link href='../vendor/paper-button/paper-button.html' rel="import">
 <link href='../vendor/paper-ripple/paper-ripple.html' rel="import">
-<link href="../vendor/core-selector/core-selector.html" rel="import">
-<link href="../vendor/core-animated-pages/core-animated-pages.html" rel="import">
-<link href="../vendor/core-animated-pages/transitions/slide-up.html" rel="import">
-<link href="../vendor/core-animated-pages/transitions/cross-fade.html" rel="import">
 
-<polymer-element name='pook-bugreport'>
+<polymer-element name='pook-animate-list'>
 <template>
   <style>
     .tile {
@@ -21,30 +17,23 @@
       -webkit-user-select: none;
     }
     .tile.animate-add {
-    -webkit-animation-duration:5s;
-            animation-duration:5s;
+            z-index: 999;
+            background-color: white;
+    -webkit-animation-duration:2s;
+            animation-duration:2s;
+
     /*animation-name*/
     -webkit-animation-name:slide-up;
             animation-name:slide-up;
     }
 
     .tile.animate-remove {
-      -webkit-animation-duration:5s;
-              animation-duration:5s;
+      -webkit-animation-duration:0.5s;
+              animation-duration:0.5s;
       /*animation-name*/
       -webkit-animation-name:fade-out;
               animation-name:fade-out;    
     }
-/*    .tile.animate-add:after {
-      position: absolute;
-      content: "add";
-      background-color: green;
-    }
-    .tile.animate-remove:after {
-      position: absolute;
-      content: "remove";
-      background-color: red;
-    }*/
     @-webkit-keyframes slide-up {
       from { top: 80vh; width:0px; }
       to { top: 0px; width: 100px;  }
@@ -67,7 +56,7 @@
     click on tile to delete
   </p>
   <section id='books' layout horizontal wrap>
-    <template repeat="{{k in keys}}">
+    <template id='bookList' repeat="{{k in keys}}">
 
         <div layout horizontal center center-justified class='tile {{ k | computeTileClass }}' 
           on-click="{{removeValue}}" 
@@ -76,45 +65,85 @@
           on-mozAnimationEnd="{{handleTileAnimationEnd}}"
         >
         <paper-ripple fit class=""></paper-ripple>
-        {{values[k].title}}
+        {{model[k].title}}
         </div>
     </template>
   </section>
 </template>
 <script>
+
+  // lifted a utility funciton from http://andrew-hoyer.com/experiments/numbers/
+var names = [{"0":"zero","1":"one","2":"two","3":"three","4":"four","5":"five","6":"six","7":"seven","8":"eight","9":"nine" },{"0":"ten","1":"eleven","2":"twelve","3":"thirteen","4":"fourteen","5":"fifteen","6":"sixteen","7":"seventeen","8":"eighteen","9":"nineteen"},{"2":"twenty","3":"thirty","4":"forty","5":"fifty","6":"sixty","7":"seventy","8":"eighty","9":"ninety"},["","thousand","million","billion","trillion","quadrillion","quintillion","sextillion","septillion","octillion","nonillion","decillion","undecillion","duodecillion","tredecillion","quattuordecillion", "quindecillion","sexdecillion","septdecillion","octdecillion","novemdecillion","vigintillion"]];
+var to_words = function(s, n){
+    var ns = s.slice(0,3);
+    return (ns.length < 1)?"":to_words(s.slice(3,s.length),n+1)+((ns.length>1)?((ns.length==3&&ns[2]!="0")?names[0][ns[2]]+" hundred "+((ns[1]=="1")?names[1][ns[0]]+" ":(ns[1]!="0")?names[2][ns[1]]+" "+((ns[0]!="0")?names[0][ns[0]]+" ":""):(ns[0]!="0"?names[0][ns[0]]+" ":"")):((ns[1]=="1")?names[1][ns[0]]+" ":(ns[1]!="0")?names[2][ns[1]]+" "+((ns[0]!="0")?names[0][ns[0]]+" ":""):(ns[0]!="0"?names[0][ns[0]]+" ":""))) + (((ns.length==3&&(ns[0]!="0"||ns[1]!="0"||ns[2]!="0"))||(ns.length==2&&(ns[0]!="0"||ns[1]!="0"))||(ns.length==1&&ns[0]!="0"))?"":""):((ns.length==1&&ns[0]!="0")?names[0][ns[0]]+" ":"") + (((ns.length==3&&(ns[0]!="0"||ns[1]!="0"||ns[2]!="0"))||(ns.length==2&&(ns[0]!="0"||ns[1]!="0"))||(ns.length==1&&ns[0]!="0"))?"":""));
+}
   Polymer({
     publish: {
-      keys: [],
-      values: {
-        one: { title: "One"},
-        two: { title: "Two"}
-      },
-      newValues: {
-        three: { title: "Three"},
-        four: { title: "Four"},
-        five: { title: "Five"},
-        six: { title: "Six"},
-        seven: { title: "Seven"},
-        eight: { title: "Eight"},
-        nine: { title: "Nine"}
-      },
+      keys: [], // keys of mode
       delta: {
         add: {}, // # key => true
-        remove: {} // # key => true
-      }
+        remove: {} // # key => index in old array
+      },
+      model: {}
     },
     ready: function() {
-      this.valuesChanged();
+      this.appendModel();
+      this.appendModel();
+      this.appendModel();
+      this.appendModel();
+      this.appendModel();
+      this.appendModel();
+      this.appendModel();
+      this.appendModel();
+      this.appendModel();
+      this.appendModel();
+      this.appendModel();
+      this.appendModel();
+      this.appendModel();
+      this.keys = this.computeKeys();
     },
-    valuesChanged: function() {
-      var newKeys = Object.keys(this.values).reverse();
+    appendModel: function() {
+      if (!('nextItemId' in this))
+        this.nextItemId = 0;
+      var key = (this.nextItemId++).toString();
+      var title = key === "0" ? "zero" : to_words(key.split('').reverse(), 0);
+      title = title.charAt(0).toUpperCase() + title.slice(1);
+      this.model[ key] = { title: title };
+    },
+    computeKeys: function() {
+      return Object.keys(this.model).reverse();
+    },
+    findTemplateInstanceByKey: function(k) {
+      var instances = this.$.books.querySelectorAll('.tile');
+      for (var i=0; i<instances.length; i++)
+        if (instances.item(i).templateInstance.model.k === k)
+          return instances.item(i);
+    },
+    modelChanged: function() {
+      var newKeys = this.computeKeys();
+      this.delta = this.computeDelta(newKeys, this.keys);
+      // reinsert deleted keys for animation, keeping the position
+      var removes = [];
+      for (var k in this.delta.remove)
+        removes.push({ id: k, index: this.delta.remove[k]});
+      removes.sort( function(a,b) { return a.index - b.index });
+      removes.forEach( function(r) { newKeys.splice( r.index, 0, r.id)});
+      // kick off remove animation
+      for (var i=0; i<removes.length; i++) {
+        var el = this.findTemplateInstanceByKey( removes[i].id);
+        if (!el)
+          console.error('could not find deleted element');
+          el.classList.add('animate-remove');
+      }
+      // finally, assign new keys
       this.keys = newKeys;
     },
-    // [a,b,c] => { a: true, b: true, c: true}
+    // [a,b,c] => { a: 0, b: 1, c: 2}
     arrayToHash: function(arry) {
       var retVal = {};
       for (var i=0; i<arry.length; i++)
-        retVal[arry[i]] = true;
+        retVal[arry[i]] = i;
       return retVal;
     },
     computeDelta: function(newKeys, oldKeys) {
@@ -132,37 +161,30 @@
       }
       // keys deleted from newHash are still in oldHash
       for (var k in oldHash)
-        delta.remove[k] = true;
+        delta.remove[k] = oldHash[k];
+      return delta;
     },
     addValue: function() {
-      console.log('added');
-      var k = Object.keys(this.newValues)[0];
-      if (!k) {
-        this.values.done = { title: "No more"};
-      }
-      else {
-        this.values[k] = this.newValues[k];
-        delete this.newValues[k];
-      }
-      this.delta.add[k] = true;
-      this.valuesChanged();
+      this.appendModel();
+      this.modelChanged();
     },
     removeValue: function(ev) {
-      console.log('removed');
-      var k = ev.currentTarget.templateInstance.model.k;
-      ev.currentTarget.classList.add('animate-remove');
-      this.delta.remove[k] = true;
+      console.log("removing", this.model[ev.currentTarget.templateInstance.model.k]);
+      delete this.model[ev.currentTarget.templateInstance.model.k];
+      this.modelChanged();
     },
     computeTileClass: function(k) {
+      if (k in this.delta.remove)
+        return 'animate-remove';
       if (k in this.delta.add)
         return 'animate-add';
-      else if (k in this.delta.remove)
-        return 'animate-remove';
       return '';
     },
     handleTileAnimationEnd: function(ev) {
-      var key = ev.currentTarget.templateInstance.model.k;
-      var classTag = this.computeTileClass(key);
+      var target = ev.currentTarget;
+      var key = target.templateInstance.model.k;
+      var classTag = target.classList.contains('animate-remove') ? 'animate-remove' :
+                      target.classList.contains('animate-add') ? 'animate-add' : "";
       // remove class tag
       ev.currentTarget.classList.remove(classTag);
       // remove from delta list
@@ -170,9 +192,8 @@
       switch (classTag) {
         // removed 
         case 'animate-remove':
-          this.newValues[key] = this.values[key];
-          delete this.values[key];
-          this.valuesChanged();
+          // remove item from the the list of actives
+          this.keys.splice(this.keys.indexOf(key), 1);
           break;
         default:
           break;
