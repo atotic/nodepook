@@ -28,8 +28,12 @@
     </style>
     <div vertical layout>
       <p>Change your password?</p>
-      <paper-input id='oldPassword' label='Old password' type='password' required floatingLabel></paper-input> 
-      <paper-input id='newPassword' label='New password' type='password' required floatingLabel></paper-input>
+      <paper-input-decorator floatinglabel label="Old password">
+        <input id='oldPassword' type='password' required></paper-input>
+      </paper-input-decorator>
+      <paper-input-decorator floatinglabel label="New password">
+        <input id='newPassword' type='password' required></paper-input>
+      </paper-input-decorator>
       <div>
         <paper-button on-tap='{{changePassword}}' raised>Change password</paper-button>
       </div>

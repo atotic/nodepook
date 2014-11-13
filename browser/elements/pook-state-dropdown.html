@@ -1,18 +1,22 @@
 <link href="../vendor/polymer/polymer.html" rel="import">
 <link href="../vendor/paper-dropdown-menu/paper-dropdown-menu.html" rel="import">
+<link href="../vendor/paper-dropdown/paper-dropdown.html" rel="import">
 <link href="../vendor/paper-item/paper-item.html" rel="import">
 <!--
   Simple state dropdown
 -->
 <polymer-element name='pook-state-dropdown' attributes='selected' noscript>
 <template>
-  <paper-dropdown-menu label='State...' selected="{{selected}}" valueattr='code'>
-    <paper-item label="Alabama" code="AL"></paper-item>
-    <paper-item label="Alaska" code="AK"></paper-item>
-    <paper-item label="Arizona" code="AZ"></paper-item>
-    <paper-item label="Arkansas" code="AR"></paper-item>
+
+<paper-dropdown-menu label="State...">
+  <paper-dropdown class="dropdown">
+    <core-menu class="menu" selected="{{selected}}" valueattr='code'>
+      <paper-item code="AL">Alabama</paper-item>
+      <paper-item code="AK">Alaska</paper-item>
+      <paper-item code="AZ">Arizona</paper-item>
+      <paper-item code="AR">Arkansas</paper-item>
     <paper-item label="California" code="CA"></paper-item>
-    <paper-item label="Colorado" code="CO"></paper-item>
+<!--     <paper-item label="Colorado" code="CO"></paper-item>
     <paper-item label="Connecticut" code="CT"></paper-item>
     <paper-item label="Delaware" code="DE"></paper-item>
     <paper-item label="District of Columbia" code="DC"></paper-item>
@@ -57,7 +61,10 @@
     <paper-item label="Washington" code="WA"></paper-item>
     <paper-item label="West Virginia" code="WV"></paper-item>
     <paper-item label="Wisconsin" code="WI"></paper-item>
-    <paper-item label="Wyoming" code="WY"></paper-item>
-  </paper-dropown-menu>
+    <paper-item label="Wyoming" code="WY"></paper-item> -->
+  </paper-dropown-menu>    </core-menu>
+  </paper-dropdown>
+</paper-dropdown-menu>
+
 </template>
 </polymer-element>

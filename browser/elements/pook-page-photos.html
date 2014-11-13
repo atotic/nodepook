@@ -79,7 +79,6 @@
       this.user.requestDatabase('userPhotos').then( function(database) {
         database.addEventListener('data-change', THIS.userPhotosChanged.bind(THIS));
       });
-      this.async(this.startScrollingToUpdates, null, 500);
     },
     ready: function() {
       this.$.addPhotoInput.addEventListener('change', this.handleAddPhotoInput.bind(this));

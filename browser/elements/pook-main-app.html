@@ -7,6 +7,8 @@
 <link href="../vendor/core-toolbar/core-toolbar.html" rel="import">
 <link href="../vendor/paper-icon-button/paper-icon-button.html" rel="import">
 <link href="../vendor/paper-item/paper-item.html" rel="import">
+<link href="../vendor/core-icons/image-icons.html" rel="import">
+<link href="../vendor/core-icons/editor-icons.html" rel="import">
 
 <link href="pook-user.html" rel="import">
 <link href="pook-page-account.html" rel="import">
@@ -61,10 +63,10 @@
       <core-header-panel drawer>
         <core-toolbar></core-toolbar>
         <core-menu id='menu' on-core-select="{{selectPane}}" selected="3">
-          <paper-item icon='account-box' label='account'></paper-item>
-          <paper-item icon='https' label='security'></paper-item>
-          <paper-item icon='drive-drawing' label='photos'></paper-item>
-          <paper-item icon='content-copy' label='books'></paper-item>
+          <paper-item><core-icon icon="account-box"></core-icon>account</paper-item>
+          <paper-item><core-icon icon="https"></core-icon>security</paper-item>
+          <paper-item><core-icon icon="image:photo-library"></core-icon>photos</paper-item>
+          <paper-item><core-icon icon="content-copy"></core-icon>books</paper-item>
         </core-menu>
       </core-header-panel>
       <core-header-panel flex main>
@@ -76,7 +78,7 @@
           ></paper-icon-button>
           <span flex>{{tabTitle}}
             <template if="{{canCloseTab}}">
-              <paper-icon-button icon="close" on-tap="{{closeTab}}"></paper-icon-button>
+              <core-icon icon="close" on-tap="{{closeTab}}"></core-icon>
             </template>
           </span>
           <span flex>pook.io</span>
@@ -108,7 +110,7 @@
     computeTabTitle: function(tabId) {
       if (tabId === -1 || tabId === undefined )
         return "";
-      return this.$.menu.children.item(tabId).label;
+      return this.$.menu.children.item(tabId).textContent;
     },
     selectInitialPane: function() {
       // gets pane from window hash, and selects it
@@ -127,7 +129,7 @@
     },
     selectPane: function(ev, detail) {
       // book editors use hashbang
-      window.location.hash = ev.detail.item.hashbang || ev.detail.item.label; 
+      window.location.hash = ev.detail.item.getAttribute('hashbang') || ev.detail.item.textContent; 
       this.$.drawerPanel.closeDrawer();
       this.canCloseTab = ev.detail.item.canCloseTab;
     },
@@ -166,11 +168,12 @@
         return;
       }
       // opens up an editor
+      var coreIcon = document.createElement('core-icon');
+      coreIcon.setAttribute('icon', 'editor:insert-drive-file');
       var paperItem = document.createElement('paper-item');
-      paperItem.icon = 'drive-document';
       paperItem.setAttribute('hashbang', hashbang);
-      paperItem.hashbang = hashbang;
       paperItem.canCloseTab = true;
+      paperItem.appendChild(coreIcon);
       var bookEditorPage = document.createElement('pook-page-book-editor');
       bookEditorPage.setAttribute('hashbang', hashbang);
       bookEditorPage.bookId = bookId;
@@ -194,7 +197,7 @@
         function success(snapshot) {
           bookJs = snapshot.val();
           if (bookJs) {
-            paperItem.setAttribute('label', bookJs.title);
+            paperItem.appendChild( document.createTextNode( bookJs.title));
             THIS.titleJigger++;
           } 
           else

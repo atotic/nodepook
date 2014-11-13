@@ -27,8 +27,12 @@
     <template if="{{mode== 'login'}}">
       <div vertical layout>
         <h3>Login</h3>
-        <paper-input id='loginEmail' floatinglabel label='email' type='text' required value="{{email}}"></paper-input>
-        <paper-input id='loginPassword' floatinglabel label='password' type='password' name='password' required pattern='.{8,}' value="{{password}}"></paper-input>
+        <paper-input-decorator floatinglabel label="email">
+          <input is="core-input" name='email' type='email' required value="{{email}}" on-change="{{validate}}">
+        </paper-input-decorator>
+        <paper-input-decorator floatinglabel label='password'>
+          <input is="core-input" name='password'  type='password' name='password' required pattern='.{8,}' value="{{password}}" on-change="{{validate}}">
+        </paper-input-decorator>
         <div>
         <paper-checkbox id='rememberMe' label='Keep me logged in for 30 days' checked="{{rememberMe}}"></paper-checkbox>
         </div>
@@ -41,16 +45,21 @@
     <template if="{{mode=='register'}}" vertical layout>
       <div vertical layout>
         <h3>Register</h3>
-        <paper-input id='registerEmail' floatinglabel label='email' type='email' required value="{{email}}"></paper-input>
-        <paper-input id='registerPassword' floatinglabel label='password' type='password' required pattern='.{8,}' value="{{password}}"></paper-input>
-
+        <paper-input-decorator floatinglabel label='email' error="invalid email">
+          <input is="core-input" name='email' type='email' required value="{{email}}" on-change="{{validate}}">
+        </paper-input-decorator>
+        <paper-input-decorator floatinglabel label='password' error="invalid password">
+          <input is="core-input" name='password' type='password' required pattern='.{8,}' value="{{password}}" on-change="{{validate}}">
+        </paper-input-decorator>
         <div><paper-button raised on-tap="{{registerClick}}" >Register</paper-button></div>
         <div><paper-button on-top="{{showLogin}}" >Login instead</paper-button></div>
       </div>
     </template>
     <template if="{{mode=='forgotPassword'}}">
       <h3>Forgot your password</h3>
-      <paper-input id='forgotEmail' floatinglabel label='email' type='email' required value="{{email}}"></paper-input>
+      <paper-input-decorator floatinglabel label='email'>
+        <input is="core-input" name="email" label='email' type='email' required value="{{email}}" on-change="{{validate}}">
+      </paper-input-decorator>
       <div><paper-button raised on-tap="{{forgotPasswordClick}}" >
         Email me the password
         </paper-button></div>
@@ -61,7 +70,7 @@
   <script>
       Polymer('pook-auth-ui', {
         publish: {
-          mode: 'login',
+          mode: 'login', // switches layouts
           password: '',
           email: '',
           rememberMe: false
@@ -76,15 +85,44 @@
           return document.querySelector('pook-flash');
         },
         get emailField() {
-          return this.shadowRoot.querySelector('[value="{{email}}"]');
+          return this.shadowRoot.querySelector('[name="email"]');
+        },
+        get emailDecorator() {
+          return this.emailField.parentNode;
         },
         get passwordField() {
-          return this.shadowRoot.querySelector('[value="{{password}}"]');
+          return this.shadowRoot.querySelector('[name="password"]');
+        },
+        get passwordDecorator() {
+          return this.passwordField.parentNode;
         },
         clearErrors: function() {
           this.flash.clear();
-          this.emailField.setCustomValidity("");
-          this.passwordField.setCustomValidity("");
+          this.emailDecorator.isInvalid = false;
+          this.passwordDecorator.isInvalid = false;
+        },
+        validate: function(ev) {
+          var name = ev ? ev.currentTarget.getAttribute('name') : null;
+          var emailField = this.emailField;
+          var passwordField = this.passwordField;
+
+          if (emailField) 
+            if (!emailField.validity.valid && emailField.value != "") {
+              this.emailDecorator.error = "Bad email";
+              this.emailDecorator.isInvalid = true;
+            }
+            else
+              this.emailDecorator.isInvalid = false;
+          if (passwordField)
+            if (!passwordField.validity.valid && passwordField.value != "") {
+              this.passwordDecorator.error = "Bad password";
+              this.passwordDecorator.isInvalid = true;
+            }
+            else
+              this.passwordDecorator.isInvalid = false;
+
+          return ((emailField === null) || emailField.validity.valid)
+            &&  ((passwordField === null) || passwordField.validity.valid);
         },
         loginClick: function() {
           this.flash.clear();
@@ -166,11 +204,13 @@
             case 'INVALID_USER':
             case 'INVALID_EMAIL':
               this.flash.error = "Login failed. Fix your input, and try again.";
-              this.emailField.setCustomValidity("Invalid email address.");
+              this.emailDecorator.error = "Invalid email address.";
+              this.emailDecorator.isInvalid = true;
               break;
             case 'INVALID_PASSWORD':
               this.flash.error = "Login failed. Fix your input, and try again.";
-              this.passwordField.setCustomValidity('Invalid password');
+              this.passwordDecorator.error = "Invalid password.";
+              this.passwordDecorator.isInvalid = true;
               break;
             case 'EMAIL_TAKEN':
               this.flash.error = "This email has already been registered. Try logging in instead";
