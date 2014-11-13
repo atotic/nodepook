@@ -75,8 +75,8 @@
     <pook-dialog-new-book id='newBookDialog'></pook-dialog-new-book>
     <div id='selectorContainer' on-tap='{{clearSelection}}'>
       <core-selector id='bookSelector' touch-action="none" >
-        <div style='padding:8px; width: 100px; height: 100px;'>
-          <paper-button on-tap="{{showNewBookDialog}}" raised>Start a new book...</paper-button>
+        <div style="padding:0 8px 0 4px; width: 100px; height: 100px; position:relative">
+          <paper-button on-tap="{{showNewBookDialog}}" raised style="position:absolute; bottom:10px;">Start a new book...</paper-button>
         </div>
         <template id="bookList" repeat="{{k in bookIds}}">
             <div layout vertical class='book-tile' style="width:{{user.userBooks[k].info.width * 8}}px;height:{{user.userBooks[k].info.height*8}}px" on-tap="{{bookTapHandler}}">
