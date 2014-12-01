@@ -27,7 +27,10 @@
         var waitFor = Polymer.waitingFor();
         if (waitFor.length > 0)
           console.error("Unresolved elements", waitFor);
+        if (!document.doctype || document.doctype.name != "html")
+          console.error("Polymer documents will not render correctly without doctype");        
       }
+      
       document.addEventListener('polymer-ready', function() {
       });
 

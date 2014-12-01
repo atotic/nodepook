@@ -2,17 +2,18 @@ doctype html
 html
   head
     title Polymer Test
-    link(rel='stylesheet', href='/css/global.css')
+    //- link(rel='stylesheet', href='/css/global.css')
     meta(name="viewport",content="width=device-width, user-scalable=no")
     script(src="/vendor/webcomponentsjs/webcomponents.js")
     link(rel='import', href='/vendor/polymer/polymer.html')
-    link(rel='import', href='/vendor/paper-input/paper-input.html')
-    link(rel='import', href='/vendor/paper-button/paper-button.html')
-    link(rel='import', href='/elements/test.html')
-    link(rel='import', href='/elements/pook-debug.html')
+    //- link(rel='import', href='/vendor/paper-input/paper-input.html')
+    link(rel='import', href='/vendor/paper-item/paper-item.html')
+    //- link(rel='import', href='/vendor/paper-button/paper-button.html')
+    //- link(rel='import', href='/elements/test.html')
+    //- link(rel='import', href='/elements/pook-debug.html')
 
-    link(rel='import', href='/elements/bugreport.html')
+    //- link(rel='import', href='/elements/bugreport.html')
 
-  body
-    p Test
-    pook-animate-list
+  body()
+    // pook-animate-list
+    paper-item Hello good

@@ -40,6 +40,12 @@
       }
       return randomString;
     },
+    arrayToHash: function(arry) {
+      var retVal = {};
+      for (var i=0; i<arry.length; i++)
+        retVal[arry[i]] = i;
+      return retVal;
+    },
     // callback(node) return true if right node
     mutationsFindAddedNode: function(mutations, callback) {
       if (!mutations)

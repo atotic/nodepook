@@ -16,6 +16,7 @@
 -->
 <polymer-element name='pook-page-books'>
   <template>
+    <core-style ref='pook-animations'></core-style>
     <style>
       .book-tile {
         position: relative;
@@ -45,6 +46,21 @@
         background-color: #0BA8F2;
         color: #DDD;
       }
+      .book-tile.animate-add {
+        z-index: 999;
+        background-color: white;
+        -webkit-animation-duration:0.5s;
+                animation-duration:0.5s;
+        -webkit-animation-name:slide-up;
+                animation-name:slide-up;
+      }
+      .book-tile.animate-remove {
+        -webkit-animation-duration:0.5s;
+                animation-duration:0.5s;
+        -webkit-animation-name:fade-out;
+                animation-name:fade-out;    
+      }
+
       :host {
         display: flex;
         display: -webkit-flex;
@@ -79,7 +95,14 @@
           <paper-button on-tap="{{showNewBookDialog}}" raised style="position:absolute; bottom:10px;">Start a new book...</paper-button>
         </div>
         <template id="bookList" repeat="{{k in bookIds}}">
-            <div layout vertical class='book-tile' style="width:{{user.userBooks[k].info.width * 8}}px;height:{{user.userBooks[k].info.height*8}}px" on-tap="{{bookTapHandler}}">
+            <div layout vertical 
+              class="book-tile {{ k | computeTileClass }}"
+              style="width:{{user.userBooks[k].info.width * 8}}px;height:{{user.userBooks[k].info.height*8}}px" 
+              on-tap="{{bookTapHandler}}"
+              on-animationend="{{handleTileAnimationEnd}}" 
+              on-webkitAnimationEnd="{{handleTileAnimationEnd}}"  
+              on-mozAnimationEnd="{{handleTileAnimationEnd}}"
+            >
               <p>{{user.userBooks[k].title}}</p>
             </div>
         </template>
@@ -97,7 +120,11 @@
   Polymer( {
     publish: {
       user: null,
-      bookIds: []
+      bookIds: [],
+      delta: {
+        add: {}, // # key => true
+        remove: {} // # key => index in old array
+      },
     },
     created: function() {
       this.user = document.createElement('pook-user');
@@ -113,14 +140,8 @@
         this.$.bookSelector.selected = null;
     },
     bookTapHandler: function(ev) {
-      if (ev.detail === 2)
+      if (ev.detail === 2) // double-tap
         this.editBook();
-    },
-    booksChanged: function() {
-      if (!this.user.userBooks)
-        this.bookIds = [];
-      else
-        this.bookIds = Object.keys( this.user.userBooks).reverse();
     },
     showNewBookDialog: function() {
       this.$.newBookDialog.toggle();
@@ -136,6 +157,83 @@
     },
     shareBook: function() {
       console.log('TODO');
+    },
+    findTemplateInstanceByKey: function(k) {
+      var instances = this.$.bookSelector.querySelectorAll('.book-tile');
+      for (var i=0; i<instances.length; i++)
+        if (instances.item(i).templateInstance.model.k === k)
+          return instances.item(i);
+    },
+    computeBookIds: function() {
+      if (!this.user.userBooks)
+        return [];
+      else
+        return Object.keys( this.user.userBooks ).reverse();
+    },
+    computeDelta: function(newKeys, oldKeys) {
+      var newHash = PookUtils.arrayToHash( newKeys );
+      var oldHash = PookUtils.arrayToHash( oldKeys );
+      var delta = {
+        add: this.delta.add,
+        remove: {}
+      };
+      if (oldKeys.length == 0)  // initial animation
+        return delta;
+      for (var k in newHash) {
+        if ( k in oldHash )
+          delete oldHash[k];
+        else
+          delta.add[k] = true;
+      }
+      // keys deleted from newHash are still in oldHash
+      for (var k in oldHash)
+        delta.remove[k] = oldHash[k];
+      return delta;
+    },
+    computeTileClass: function(k) {
+      if (k in this.delta.remove)
+        return 'animate-remove';
+      if (k in this.delta.add)
+        return 'animate-add';
+      return '';
+    },
+    booksChanged: function() {
+      var newIds = this.computeBookIds();
+      this.delta = this.computeDelta(newIds, this.bookIds);
+      // reinsert deleted keys for animation, keeping the position
+      var removes = [];
+      for (var k in this.delta.remove)
+        removes.push({ id: k, index: this.delta.remove[k]});
+      removes.sort( function(a,b) { return a.index - b.index });
+      removes.forEach( function(r) { newIds.splice( r.index, 0, r.id)});
+      // kick off remove animation
+      for (var i=0; i<removes.length; i++) {
+        var el = this.findTemplateInstanceByKey( removes[i].id);
+        if (!el)
+          console.error('could not find deleted element');
+        el.classList.add('animate-remove');
+      }
+      // finally, assign new keys
+      this.bookIds = newIds; 
+    },
+    handleTileAnimationEnd: function(ev) {
+      var target = ev.currentTarget;
+      var key = target.templateInstance.model.k;
+      var classTag = target.classList.contains('animate-remove') ? 'animate-remove' :
+                      target.classList.contains('animate-add') ? 'animate-add' : "";
+      // remove class tag
+      ev.currentTarget.classList.remove(classTag);
+      // remove from delta list
+      delete this.delta[ classTag.replace('animate-', '')][key];
+      switch (classTag) {
+        // removed 
+        case 'animate-remove':
+          // remove item from the the list of actives
+          this.bookIds.splice(this.bookIds.indexOf(key), 1);
+          break;
+        default:
+          break;
+      }
     }
   });
   </script>
