@@ -27,6 +27,7 @@ describe('util.js', function() {
 	});
 
 	it('#hostIp', function(done) {
+		this.timeout(10*1000);
 		async.seq(
 			util.hostIp,
 			function(ip, fn) {

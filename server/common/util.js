@@ -72,6 +72,7 @@ function hostIp(done) {
         return;
       }
     }
+    // debug('ipFromNetworkInterface done');
     done(new Error("No local ip available"));
   }
   // EC2, get public ip from metadata
