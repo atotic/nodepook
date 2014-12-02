@@ -4,7 +4,6 @@ sudo npm cache clean -f;sudo npm install -g n; sudo n stable
 
 NEXT
 
-
 pdf generation
 
 PDF generation: http://www.feedhenry.com/server-side-pdf-generation-node-js/

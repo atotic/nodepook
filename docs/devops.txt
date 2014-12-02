@@ -1,3 +1,4 @@
+# 
 # Common commands 
 chrome://net-internals/#dns  # chrome dns cache clear
 sudo dscacheutil -flushcache # clear dns cache
@@ -6,7 +7,7 @@ sudo chkconfig --add s53hostname # adds init.d script to startup
 ssh -i ~/.ssh/AmazonEC2KeyPair_May2014.pem ec2-user@AmazonHost
 
 # Testing
-find server -name "*spec.js" | xargs mocha
+npm run testServer
 
 # Grunt
 grunt eraseDatabase

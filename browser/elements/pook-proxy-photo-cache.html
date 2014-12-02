@@ -6,6 +6,11 @@
 /**
   * pook-proxy-photo-cache 
   *
+  * singleton, all instances share common state
+  *
+  * caches pook-proxy-photo
+  *
+  * 
   * cache of pook-proxy-photo
   * hosts worker queue
   *
@@ -18,45 +23,19 @@
   </template>
   <script>
   "use strict";
-  /* 
-    Cache of pook-proxy-photo objects
-    Use this to access photo data. requestPhotoProxy() requests data in cache
-  */
-  var gPhotoCache = {
-    // photoId: pook-proxy-photo
-  }
 
-   /*
-   * exif parser worker
-   */
-  var gExifWorker;
-  function initExifWorker() {
-    if (gExifWorker !== undefined)
-      return console.error("initExifWorker called multiple times");
-    gExifWorker = new Worker('/elements/exif-worker.js');
-    gExifWorker.addEventListener('message', function(ev) {
-      switch(ev.data.action) {
-        case 'parsed':
-          if (gPhotoCache[ev.data.photoId]) {
-            // console.log('got exifParse', ev.data.exif);
-            gPhotoCache[ ev.data.photoId ].setLocalExifData(ev.data.exif);
-          }
-          else
-            console.warn('photo parsed, but no photo in cache', photoId);
-          break;
-        default:
-          console.warn('unknown message', ev.data);
-      }
-    });
-  }
 
-   /**
+  /**
+   * PhotoUploadProcessor
+   * uploads photos, updates progress during upload
+   * async queue library task handler
+   * 
    * task: { photoId: id, file: FileObject }
    */
   var PhotoUploadProcessor = function(task, done) {
 
     function processSuccess(xhr) {
-      if (gPhotoCache[task.photoId]) {
+      if (Singleton.photoCache[task.photoId]) {
         /* xhr response:
         {"msg":"Photo created","item":{"dateTime":"2011:04:19 20:59:58","dateTimeOriginal":"2010:12:20 17:00:00","width":3648,"height":2736,"contentType":"image/jpeg","dateTaken":"2010-12-21T01:00:00.000Z","md5":"82cb9d01c03c7c80e3d1852ae205671a","s3id":"PoLBWE_fiXbmipGaaa.jpg"}
         */
@@ -72,10 +51,10 @@
             newData[k] = item[k];
         });
         // console.log(newData);
-        gPhotoCache[task.photoId].progress = -1;
-        gPhotoCache[task.photoId].ref.update(newData, function(err) {
+        Singleton.photoCache[task.photoId].progress = -1;
+        Singleton.photoCache[task.photoId].ref.update(newData, function(err) {
           if (err)
-            console.error("error updating ", gPhotoCache[task.photoId].location, err);
+            console.error("error updating ", Singleton.photoCache[task.photoId].location, err);
         });
       }
       else {
@@ -86,16 +65,16 @@
 
     function processFaiure(xhr, ev) {
       console.error('photo upload failed', task);
-      if (gPhotoCache[task.photoId]) {
-        gPhotoCache[photoId].progress = -1;
+      if (Singleton.photoCache[task.photoId]) {
+        Singleton.photoCache[photoId].progress = -1;
       }
       done(new Error("Task failed"));
       // push the task back on the queue
       task.failCount = ('failCount' in task) ? ( task.failCount + 1 ) : 1;
       if (task.failCount < 5)
         PhotoUploadQueue.unshift(task);
-      else if (gPhotoCache[task.photoId])
-        gPhotoCache[task.photoId].uploadFailed();
+      else if (Singleton.photoCache[task.photoId])
+        Singleton.photoCache[task.photoId].uploadFailed();
     }
 
     function start() {
@@ -120,7 +99,7 @@
       // });
       // upload progress
       xhr.upload.addEventListener('progress', function progress(ev) {
-        var photo = gPhotoCache[task.photoId];
+        var photo = Singleton.photoCache[task.photoId];
         if (!photo)
           return;
         if (ev.lengthComputable && ev.total != 0)
@@ -135,42 +114,67 @@
     start();
   }
 
-  var PhotoUploadQueue = async.queue( PhotoUploadProcessor, 2);
+  var Singleton = {
+    photoCache: {
+      /* 
+        Cache of pook-proxy-photo objects
+        Use this to access photo data. requestPhotoProxy() requests data in cache
+      */
+      // photoId: pook-proxy-photo
+    },
+    get user() {
+      if (!('_user' in this))
+        this._user = document.createElement('pook-user');
+      return this._user;
+    },
+    get exifWorker() {
+      if (!('_exifWorker' in this)) {
+        this._exifWorker = new Worker('/elements/exif-worker.js');
+        this._exifWorker.addEventListener('message', this.processExifWorkerMessage.bind(this));
+      }
+      return this._exifWorker;
+    },
+    processExifWorkerMessage: function(ev) {
+      switch(ev.data.action) {
+        case 'parsed':
+          if (this.photoCache[ev.data.photoId]) {
+            // console.log('got exifParse', ev.data.exif);
+            this.photoCache[ ev.data.photoId ].setLocalExifData(ev.data.exif);
+          }
+          else
+            console.warn('photo parsed, but no photo in cache', photoId);
+          break;
+        default:
+          console.warn('unknown message', ev.data);
+      }
+    },
+    photoUploadQueue: async.queue( PhotoUploadProcessor, 2),
+  }
 
+ 
   // Pause photo uploads when not online
   window.addEventListener('offline', function(ev) {
     console.log('paused');
-    PhotoUploadQueue.pause();
+    Singleton.photoUploadQueue.pause();
   });
   window.addEventListener('online', function(ev) {
     console.log('resumed');
-    PhotoUploadQueue.resume();
+    Singleton.photoUploadQueue.resume();
   });
 
-  var gUser;
-  function getUser() {
-    if (!gUser)
-      gUser = document.createElement('pook-user');
-    return gUser;
-  }
 
   Polymer({
     publish: {
       cache: null
     },
     created: function() {
-      this.cache = gPhotoCache;
-    },
-    get exifWorker() {
-      if (gExifWorker === undefined)
-        initExifWorker();
-      return gExifWorker;
+      this.cache = Singleton.photoCache;
     },
     requestProxy: function(photoId) {
       if (photoId in this.cache)
         return;
       this.cache[photoId] = document.createElement('pook-proxy-photo');
-      this.cache[photoId].user = getUser();
+      this.cache[photoId].user = Singleton.user;
       this.cache[photoId].photoId = photoId;
     },
     createPhotoFromFile: function(file) {
@@ -184,15 +188,15 @@
         // uploads the file, 
         this.uploadFile(file, photoRef.name());
       }
-      getUser().requestDatabase('userPhotos').then(create.bind(this));
+      Singleton.user.requestDatabase('userPhotos').then(create.bind(this));
     },
     uploadFile: function(file, photoId) {
       // request a proxy, so we have place to store progress
       this.requestProxy(photoId);
       // parse file locally for quick feedback
-      this.exifWorker.postMessage({action: 'parse', file: file, photoId: photoId });
+      Singleton.exifWorker.postMessage({action: 'parse', file: file, photoId: photoId });
       // upload via xhr
-      PhotoUploadQueue.push( { file: file, photoId: photoId});
+      Singleton.photoUploadQueue.push( { file: file, photoId: photoId});
     }
 
   });

@@ -153,7 +153,7 @@
       this.$.bookSelector.selected = null;
     },
     editBook: function() {
-      document.querySelector('pook-main-app').editBook( this.bookIds[this.$.bookSelector.selectedIndex - 1]);
+      document.querySelector('pook-app').editBook( this.bookIds[this.$.bookSelector.selectedIndex - 1]);
     },
     shareBook: function() {
       console.log('TODO');

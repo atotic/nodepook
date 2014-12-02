@@ -3,25 +3,38 @@
 
 <!--
 /**
-  * pook-user represents current user
-  * publishes uid
+  * pook-user - current user entry point
+  *
+  * singleton, all instances share common state
+  *
+  * Usage:
+  
+  user = document.createElement('pook-user');
+  user.uid
+  user.email
+  user.photoCache
+
+  user.requestDatabase(account).then( function(db) {
+  });
+
+
   *
   * @element pook-user
  */
 -->
-<polymer-element name='pook-user'>
-  <template>
-  </template>
+<polymer-element name='pook-user' anonRedirect="">
+  <template></template>
   <script>
   (function() {
 
   "use strict";
 
-  // Firebase server
   var gFireServer = 'https://torid-inferno-6070.firebaseio.com/';
 
-  // Shared user information
-  var gUserInfo = {
+  var Singleton = {
+  
+    // user information, from firebase.onAuth
+    userInfo: {
     /**
      * uid can have three values:
      * '' means uninitialized
@@ -29,62 +42,51 @@
      * everything else is auth.uid
      */
       uid: '',
-      email: '' 
+      email: ''   
+    },
+    authClient: new Firebase(gFireServer),
+
+    /* 
+     * Shared databases
+    Shared databases as firebase-element objects
+    state can have 3 values:
+    false: database has not been requested
+    true: database has been requested
+    object: this is the database, firebase-element
+    databases are created when user logged in && requested with requestDatabase
+    */  
+    databases: {
+      account: false,
+      user: false,
+      userPhotos: false,
+      userBooks: false,
+    },
+    databasePromises : {
+      account: new PookPromise(),
+      user: new PookPromise(),
+      userPhotos: new PookPromise(),
+      userBooks: new PookPromise()
+    },
+    get photoCache() {
+      if (!('_photoCache' in this))
+        this._photoCache = document.createElement('pook-proxy-photo-cache');
+      return this._photoCache;
+    }
   };
- 
 
-  /* 
-  Shared databases as firebase-element objects
-  state can have 3 values:
-  false: database has not been requested
-  true: database has been requested
-  object: this is the database, firebase-element
-  databases are created when user logged in && requested with requestDatabase  user is logged in, 
-  */  
-  var gDatabases = {
-    account: false,
-    user: false,
-    userPhotos: false,
-    userBooks: false,
-  };
+  Singleton.authClient.onAuth( function(user) {
+      Singleton.userInfo.uid = user ? user.uid : 'anonymous';
+      Singleton.userInfo.email = user ? user.password.email : '';
+    }
+  );
 
-  var gDatabasePromises = {
-    account: new PookPromise(),
-    user: new PookPromise(),
-    userPhotos: new PookPromise(),
-    userBooks: new PookPromise()
-  }
 
-  /* 
-   * authClient listens to authentication events
-   */
-  var gAuthClient;  // FirebaseSimpleLogin, used to listen to authentication events
-  function initAuth() {
-    if (gAuthClient) // only init once
-      return;
-    // Listen to authentication events
-    gAuthClient = new Firebase(gFireServer);
-    gAuthClient.onAuth( function(user) {
-        gUserInfo.uid = user ? user.uid : 'anonymous';
-        gUserInfo.email = user ? user.password.email : '';
-      }
-    );
-  }
-  initAuth();
-
-  var gPhotoCache; // pook-proxy-photo-cache
-  function getPhotoCache() {
-    if (gPhotoCache == null)
-      gPhotoCache = document.createElement('pook-proxy-photo-cache');
-    return gPhotoCache;
-  }
-
-  var PookFireUser = {
+  Polymer({
     publish: {
       /** if set, will redirect to anonRedirect path if user is 'anonymous' */
       anonRedirect: '',
-      userInfo: false,
-      databases: false,
+      userInfo: null,
+      databases: null,
       photoCache: null
     },
     computed: {
@@ -99,9 +101,9 @@
       uid: 'userStatusChanged'
     },
     created: function() {
-      this.userInfo = gUserInfo;
-      this.databases = gDatabases;
-      this.photoCache = getPhotoCache();
+      this.userInfo = Singleton.userInfo;
+      this.databases = Singleton.databases;
+      this.photoCache = Singleton.photoCache;
     },
     userStatusChanged: function() {
       // console.log("userStatusChanged", this.uid);
@@ -119,7 +121,7 @@
       if (this.databases[type] === false)
         this.databases[type] = true;
       this.connectActiveDatabases();
-      return gDatabasePromises[type];
+      return Singleton.databasePromises[type];
     },
     connectActiveDatabases: function() {
       if (this.uid === 'anonymous' || this.uid === '') {
@@ -133,7 +135,7 @@
           if (this.databases[k] === true) {
             this.databases[k] = document.createElement('firebase-element');
             this.databases[k].location = this.getDatabaseUrl(k);
-            gDatabasePromises[k].resolve(this.databases[k]);
+            Singleton.databasePromises[k].resolve(this.databases[k]);
             // this.databases[k].log = true;
             // if (k == 'account') {
             //   var obs = new PathObserver(this.databases[k], 'data.email');
@@ -165,15 +167,8 @@
           console.error("unknown database type", type);
       }
     },
-    getFirebase: function(type) {
-      if (!(type in this.firebases))
-        return console.error('bad firebase type', type);
-      if (!this.firebases[type])
-        this.firebases[type] = new Firebase(this.getDatabaseUrl(type));
-      return this.firebases[type];
-    },
     logout: function() {
-      gAuthClient.unauth();
+      Singleton.authClient.unauth();
     },
     createPhoto: function(file) {
       this.photoCache.createPhotoFromFile(file);
@@ -202,9 +197,7 @@
     deleteBook: function(bookId) {
       this.databases['userBooks'].ref.child(bookId).remove();
     }
-  }
-
-  Polymer(PookFireUser);
+  });
 
   })();
   </script>
