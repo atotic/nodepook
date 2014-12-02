@@ -111,63 +111,63 @@ describe('aws_util.js, and various aws calls', function() {
 
 	describe('SimpleDB', function() {
 
-		it ('#createDomain', function(done) {
-			this.timeout(60 * 1000);
-			async.waterfall( [
-				function(cb) { AWSu.sdb.deleteDomain( { DomainName: 'test'}, cb )},
-				function(ignore, cb) { AWSu.sdb.createDomain( { DomainName: 'test'}, cb )}
-				],
-				done
-			);
-		});
+		// it ('#createDomain', function(done) {
+		// 	this.timeout(60 * 1000);
+		// 	async.waterfall( [
+		// 		function(cb) { AWSu.sdb.deleteDomain( { DomainName: 'test'}, cb )},
+		// 		function(ignore, cb) { AWSu.sdb.createDomain( { DomainName: 'test'}, cb )}
+		// 		],
+		// 		done
+		// 	);
+		// });
 
-		it ('#select', function(done) {
-			this.timeout(60 * 1000);
-			// var q = "select itemName() from photos where md5='a7aea1d663adc76b9269ec6f0c1b8e15'";
-			var p = AWSu.sdb.select({
-					SelectExpression:  "select itemName() from test",
-					ConsistentRead: true
-				},
-				done
-			);
-		});
+		// it ('#select', function(done) {
+		// 	this.timeout(60 * 1000);
+		// 	// var q = "select itemName() from photos where md5='a7aea1d663adc76b9269ec6f0c1b8e15'";
+		// 	var p = AWSu.sdb.select({
+		// 			SelectExpression:  "select itemName() from test",
+		// 			ConsistentRead: true
+		// 		},
+		// 		done
+		// 	);
+		// });
 
-		it ('#createItem, #deleteItem', function(done) {
-			this.timeout(20 * 1000);
-			async.waterfall([
-					function createItem(cb) {
-						AWSu.sdb.putAttributes( {
-							DomainName: AWSu.domains.test,
-							ItemName: 'testItem',
-							Attributes: AWSu.objectToAttributes({ first: 'first', second: 'second'})
-							},
-							cb
-						);
-					},
-					function createDuplicate(ignore, cb) {
-						AWSu.sdb.putAttributes( {
-							DomainName: AWSu.domains.test,
-							ItemName: 'testItem',
-							Attributes: AWSu.objectToAttributes({ first: 'first', second: 'second'}),
-							Expected: { Name: 'first', Exists: false}
-							},
-							util.invertCallback(cb)
-						);
-					},
-					function deleteItem(ignore, cb) {
-						AWSu.sdb.deleteAttributes( {
-							DomainName: AWSu.domains.test,
-							ItemName: 'testItem'
-							},
-							cb
-						);
-					}
-				],
-				function(err) {
-					done(err);
-				}
-				);
-		});
+		// it ('#createItem, #deleteItem', function(done) {
+		// 	this.timeout(20 * 1000);
+		// 	async.waterfall([
+		// 			function createItem(cb) {
+		// 				AWSu.sdb.putAttributes( {
+		// 					DomainName: AWSu.domains.test,
+		// 					ItemName: 'testItem',
+		// 					Attributes: AWSu.objectToAttributes({ first: 'first', second: 'second'})
+		// 					},
+		// 					cb
+		// 				);
+		// 			},
+		// 			function createDuplicate(ignore, cb) {
+		// 				AWSu.sdb.putAttributes( {
+		// 					DomainName: AWSu.domains.test,
+		// 					ItemName: 'testItem',
+		// 					Attributes: AWSu.objectToAttributes({ first: 'first', second: 'second'}),
+		// 					Expected: { Name: 'first', Exists: false}
+		// 					},
+		// 					util.invertCallback(cb)
+		// 				);
+		// 			},
+		// 			function deleteItem(ignore, cb) {
+		// 				AWSu.sdb.deleteAttributes( {
+		// 					DomainName: AWSu.domains.test,
+		// 					ItemName: 'testItem'
+		// 					},
+		// 					cb
+		// 				);
+		// 			}
+		// 		],
+		// 		function(err) {
+		// 			done(err);
+		// 		}
+		// 		);
+		// });
 	});
 
 	describe('misc utils', function() {

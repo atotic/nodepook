@@ -14,26 +14,3 @@ Professional pdf library: http://www.pdflib.com/products/pdflib-family/new-featu
 
 BUSINESS:
 Can she launch my product? http://unicornfree.com/
-
-DONE:
-auth: use session to keep user logged in
-auth: register/login. Using my own library for login/register. Will use passport for google/fb logins
-bower for vendor libraries
-use karma/chai/mocha as testing framework
-refactored code into browser/server
-ripped out promises. Although I prefer them, callbacks are node standard and async makes callbacks ok
-dns via route53. Create command line tool to set
-resize images on ec2: run servers on boot, run forever, redirect dns via route 53, s3 redirect
-switched pook.io DNS to Route53
-ec2 instance is running,
-ec2: installed node, etc, passed tests
-http://www.bennadel.com/blog/2321-how-i-got-node-js-running-on-a-linux-micro-instance-using-amazon-ec2.htm
-nginx on my mac as dev.pook.io
-amazon bucket redirection, save images in less-permanent storage
-database + models
-post-process uploaded file: rotate, exif data
-using mocha for unit tests
-using promised-io to manage callback chains
-upload to S3
-upload file
-serve file as a static file

@@ -9,7 +9,6 @@ var fs = require('fs');
 var gm = require('gm');
 var path = require('path');
 
-var auth = require('./auth');
 var AWSu = require ('../common/aws_util.js');
 var Photo = require('../common/Photo.js');
 

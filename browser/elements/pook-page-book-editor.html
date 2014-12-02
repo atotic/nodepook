@@ -9,14 +9,15 @@
 -->
 <polymer-element name='pook-page-book-editor'>
   <template>
-    <p>Just an editor</p>
+    <paper-button on-tap="{{addPage}}" raised>Add page</paper-button>
   </template>
   <script>
     Polymer({
       publish: {
         bookId: null
       },
-      bookIdChanged: function() {
+      bookIdChanged: function(oldVal, newVal) {
+        
       }
     });
   </script>

@@ -3,12 +3,10 @@ var async = require('async');
 var debug = require('debug')('pook:routes:users');
 var express = require('express');
 
-var auth = require('./auth');
 var Photo = require('../common/Photo.js');
 
 var router = express.Router();
 
-//router.use(auth.loadUserFromCookie);
 /* GET user home page */
 
 router.get('/', function(req, res) {

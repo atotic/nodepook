@@ -6,8 +6,6 @@ var favicon = require('serve-favicon');
 var logger = require('morgan');
 var path = require('path');
 
-var auth = require('../routes/auth');
-
 var routes = require('../routes/index');
 
 var fire = require('../common/Fire.js');
