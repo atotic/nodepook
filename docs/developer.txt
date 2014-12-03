@@ -1,8 +1,18 @@
 developer.txt
 
 browser
+
+2 kinds of elements: UI, and DATA
+
+UI elements, easy 
+pook-app - application
+pook-page* - right side pages
+pook-flash - notifications
+
+DATA elements
 pook-user - gateway to all user firebase data
-pook-app 
+
+pook-proxy-photo-cache -
 
 
 server

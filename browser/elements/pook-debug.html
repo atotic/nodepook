@@ -6,6 +6,7 @@
       function findUnregisteredCustomElements(el) {
         if (el.constructor == HTMLElement) {
           console.error("Found unregistered custom element:", el);
+          console.log('Did you mean to: <link rel="import" href="' + el.localName + '/' + el.localName + '.html">');
         }
       }
       
@@ -29,8 +30,7 @@
           console.error("Unresolved elements", waitFor);
         if (!document.doctype || document.doctype.name != "html")
           console.error("Polymer documents will not render correctly without doctype");        
-      }
-      
+     }
       document.addEventListener('polymer-ready', function() {
       });
 

@@ -5,7 +5,8 @@
   "scripts": {
     "start": "node ./scripts/server.js",
     "developmentServer": "DEBUG=pook* nodemon ./scripts/server.js",
-    "testServer": "find server -name \"*spec.js\" | xargs mocha"
+    "testServer": "find server -name \"*spec.js\" | xargs mocha",
+    "testClient": "karma start test/karma.conf.js"
   },
   "dependencies": {
     "async": "0.9.0",
@@ -28,9 +29,6 @@
   },
   "devDependencies": {
     "chai": "^1.9.1",
-    "grunt": "0.4.5",
-    "grunt-cli": "*",
-    "grunt-debug": "0.0.3",
     "karma": "0.12.28",
     "karma-chrome-launcher": "*",
     "karma-firefox-launcher": "*",

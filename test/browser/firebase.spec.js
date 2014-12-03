@@ -69,6 +69,11 @@ describe('firebase', function() {
           var auth = ref.getAuth();
           ref.child('photos').child(auth.uid).remove(cb);
         },
+        function deleteUserBooks(ignore, cb) {
+          console.log('deleting books');
+          var auth = ref.getAuth();
+          ref.child('books').child(auth.uid).remove(cb);
+        },
         function deleteUserAuth(ignore, cb) {
           ref.removeUser(cred, cb);
         }
@@ -334,7 +339,7 @@ describe('firebase', function() {
     );
   });
 
-  it.only('#createBook', function(done) {
+  it('#createBook', function(done) {
     async.waterfall([
       function login(cb) {
         ref.authWithPassword(goodCred, cb);
