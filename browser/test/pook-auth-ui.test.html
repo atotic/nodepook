@@ -5,15 +5,18 @@
   <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
   <title>pook-auth-ui</title>
 
+  <!-- Test harness -->
   <script src="../vendor/webcomponentsjs/webcomponents.min.js"></script>
   <script src="../vendor/web-component-tester/browser.js"></script>
-
-  <!-- Step 1: import the element to test -->
+  <script src="testUtils.js"></script>
+  <!-- Imports -->
+  <link rel="import" href="../elements/pook-flash.html">
   <link rel="import" href="../elements/pook-auth-ui.html">
 </head>
 <body>
 
-  <!-- You use the document as a place to set up your fixtures. -->
+  <!-- Fixtures -->
+  <pook-flash></pook-flash>
   <pook-auth-ui></pook-auth-ui>
   <script>
     var el = document.querySelector('pook-auth-ui');
@@ -28,11 +31,24 @@
     });
     
     suite('<pook-auth-ui>', function() {
-
       test('login mode', function() {
         assert.equal(el.mode, 'login');
       });
-
+      test('forgotPassword', function(done) {
+        TestUtils.setInputValue(
+          el.shadowRoot.querySelector('[name=email]'),
+          "b@totic.org");
+        el.forgotPasswordClick(done);
+      });
+      test('login', function(done) {
+        TestUtils.setInputValue(
+          el.shadowRoot.querySelector('[name=email]'),
+          "b@totic.org");
+        TestUtils.setInputValue(
+          el.shadowRoot.querySelector('[name=password]'),
+          "12345678");
+        el.loginClick(done);
+      });
     });
   </script>
 

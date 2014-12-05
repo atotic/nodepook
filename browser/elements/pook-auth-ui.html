@@ -27,10 +27,17 @@
       <div vertical layout>
         <h3>Login</h3>
         <paper-input-decorator floatinglabel label="email">
-          <input is="core-input" name='email' type='email' required value="{{email}}" on-change="{{validate}}">
+          <input is="core-input" 
+            name='email' type='email' required 
+            value="{{email}}" committedValue="{{email}}" 
+            on-change="{{validate}}">
         </paper-input-decorator>
         <paper-input-decorator floatinglabel label='password'>
-          <input is="core-input" name='password'  type='password' name='password' required pattern='.{8,}' value="{{password}}" on-change="{{validate}}">
+          <input is="core-input" 
+            type='password' name='password' required 
+            pattern='.{8,}' 
+            value="{{password}}" committedValue="{{password}}" 
+            on-change="{{validate}}">
         </paper-input-decorator>
         <div>
         <paper-checkbox id='rememberMe' label='Keep me logged in for 30 days' checked="{{rememberMe}}"></paper-checkbox>
@@ -45,10 +52,17 @@
       <div vertical layout>
         <h3>Register</h3>
         <paper-input-decorator floatinglabel label='email' error="invalid email">
-          <input is="core-input" name='email' type='email' required value="{{email}}" on-change="{{validate}}">
+          <input is="core-input" 
+            name='email' type='email' required 
+            value="{{email}}" committedValue="{{email}}" 
+            on-change="{{validate}}">
         </paper-input-decorator>
         <paper-input-decorator floatinglabel label='password' error="invalid password">
-          <input is="core-input" name='password' type='password' required pattern='.{8,}' value="{{password}}" on-change="{{validate}}">
+          <input is="core-input" 
+            type='password' name='password' required 
+            pattern='.{8,}' 
+            value="{{password}}" committedValue="{{password}}" 
+            on-change="{{validate}}">
         </paper-input-decorator>
         <div><paper-button raised on-tap="{{registerClick}}" >Register</paper-button></div>
         <div><paper-button on-tap="{{showLogin}}" >Login instead</paper-button></div>
@@ -57,7 +71,10 @@
     <template if="{{mode=='forgotPassword'}}">
       <h3>Forgot your password</h3>
       <paper-input-decorator floatinglabel label='email'>
-        <input is="core-input" name="email" label='email' type='email' required value="{{email}}" on-change="{{validate}}">
+          <input is="core-input" 
+            name='email' type='email' required 
+            value="{{email}}" committedValue="{{email}}" 
+            on-change="{{validate}}">
       </paper-input-decorator>
       <div><paper-button raised on-tap="{{forgotPasswordClick}}" >
         Email me the password
@@ -94,6 +111,12 @@
         },
         get passwordDecorator() {
           return this.passwordField && this.passwordField.parentNode;
+        },
+        get credentials() {
+          return {
+            email: this.email,
+            password: this.password
+          }
         },
         validate: function(ev) {
           var name = ev ? ev.currentTarget.getAttribute('name') : null;
@@ -145,21 +168,24 @@
               break;
           }
         },
-        loginClick: function() {
+        loginClick: function(callback) {
           this.clearErrors();
-          this.auth.login( this.email, this.password, this.remember, function(err) {
-            if (err)
+          this.auth.login( this.credentials, this.remember, function(err) {
+            if (err) {
               this.handleError(err);
+            }
             else {
               this.flash.message = "You've logged in";
               window.location.replace( window.location.origin + '/user');
             }
+            if (callback) callback(err);
+
             }.bind(this)
           );
         },
-         registerClick: function() {
+        registerClick: function() {
           this.clearErrors();
-          this.auth.fullRegistration(this.email, this.password, function(err) {
+          this.auth.fullRegistration(this.credentials, function(err) {
             if (err)
               this.handleError(err);
             else {
@@ -168,13 +194,14 @@
             }
           }.bind(this));
         },
-        forgotPasswordClick: function() {
+        forgotPasswordClick: function(callback) {
           this.auth.resetPassword( this.email,
             function(err) {
               if (err)
                 this.handleError(err);
               else
                 this.flash.message = "Check your email " + this.email + " for password reset.";
+              if (callback) callback(err);
             }.bind(this));
         },
         showForgotPassword: function() {

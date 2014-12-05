@@ -1,6 +1,6 @@
-<link href="../vendor/polymer/polymer.html" rel="import">
-<link href='../vendor/firebase-elements/firebase-element.html' rel='import'>
-
+<link rel="import" href="../vendor/polymer/polymer.html">
+<link rel="import" href='../vendor/firebase-elements/firebase-element.html'>
+<link rel="import" href="pook-utils.html">
 <!--
 /**
   pook-auth authorization api
@@ -19,16 +19,13 @@
   <script>
     Polymer({
       created: function() {
-        this.firebase = new Firebase("https://torid-inferno-6070.firebaseio.com/");
+        this.firebase = new Firebase(PookUtils.firebaseLoc);
       },
       /**
       @callback(err)
       */
-      registerUser: function(email, password, callback) {
-        this.firebase.createUser({
-            email: email,
-            password: password
-          },
+      registerAccount: function(credentials, callback) {
+        this.firebase.createUser( credentials,
           function(err) {
             try {
               callback( this.interpretFirebaseError( err ))
@@ -36,14 +33,40 @@
           }.bind(this)
         );
       },
+      _removeAccount: function(credentials, callback) {
+        var credentials 
+        var ref = this.firebase;
+        var uid;
+        async.waterfall([
+          function login(cb) {
+            ref.authWithPassword(credentials, cb);
+          },
+          function deleteUserRecord(ignore, cb) {
+            uid = ref.getAuth().uid;
+            ref.child('users').child(uid).remove(cb);
+          },
+          function deleteUserPhotos(ignore, cb) {
+            ref.child('photos').child(uid).remove(cb);
+          },
+          function deleteUserBooks(ignore, cb) {
+            ref.child('books').child(uid).remove(cb);
+          },
+          function deleteUserAuth(ignore, cb) {
+            ref.removeUser(credentials, cb);
+          }
+          ],
+          function complete(err) {
+            if (err)
+              console.warn('Error deleting account', credentials.email);
+            callback(err);
+          }
+        );
+      },
       /**
         @callback(err, authInfo)
        */
-      login: function(email, password, remember, callback) {
-        this.firebase.authWithPassword( {
-            email: email,
-            password: password,
-          },
+      login: function(credentials, remember, callback) {
+        this.firebase.authWithPassword( credentials,
           function(err, info) {
             try { 
               callback( this.interpretFirebaseError(err), info);
@@ -78,17 +101,17 @@
         );
       },
       /** user will be logged in on completion if no error */
-      fullRegistration: function(email, password, callback) {
+      fullRegistration: function(credentials, callback) {
         async.waterfall(
         [
           function(cb) {
-            this.registerUser(email, password, cb)
+            this.registerAccount(credentials, cb)
           }.bind(this),
           function(cb) {
-            this.login(email, password, null, cb)
+            this.login(credentials, null, cb)
           }.bind(this),
           function(info, cb) {
-            this.createUserInDb(email, cb);
+            this.createUserInDb(credentials.email, cb);
           }.bind(this)
         ],
         function(err) {
@@ -135,8 +158,11 @@
           case 'PERMISSION_DENIED':
             message = "Unable to create user, permission denied";
             break;
+          case "NETWORK_ERROR":
+            message = "Network error. Are you connected to the internet? Try again.";
+            break;
           default:
-            console.log("Unexpected Firebase error", err.detail.code, err);
+            console.log("Unexpected Firebase error", err.code, err);
             debugger;
         }
 
