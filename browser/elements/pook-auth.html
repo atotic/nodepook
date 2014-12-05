@@ -1,0 +1,153 @@
+<link href="../vendor/polymer/polymer.html" rel="import">
+<link href='../vendor/firebase-elements/firebase-element.html' rel='import'>
+
+<!--
+/**
+  pook-auth authorization api
+
+  all callbacks will return an Error with these fields:
+    message: human readable,
+    field: email|password which field caused the error
+    fieldMessage: human readable field-specific error message
+    firebaseError: original firebase error
+
+  * @element pook-auth
+ */
+-->
+<polymer-element name='pook-auth'>
+  <template></template>
+  <script>
+    Polymer({
+      created: function() {
+        this.firebase = new Firebase("https://torid-inferno-6070.firebaseio.com/");
+      },
+      /**
+      @callback(err)
+      */
+      registerUser: function(email, password, callback) {
+        this.firebase.createUser({
+            email: email,
+            password: password
+          },
+          function(err) {
+            try {
+              callback( this.interpretFirebaseError( err ))
+            } catch(e) { debugger }
+          }.bind(this)
+        );
+      },
+      /**
+        @callback(err, authInfo)
+       */
+      login: function(email, password, remember, callback) {
+        this.firebase.authWithPassword( {
+            email: email,
+            password: password,
+          },
+          function(err, info) {
+            try { 
+              callback( this.interpretFirebaseError(err), info);
+            } catch(e) { debugger }
+          }.bind(this),
+          { remember: remember }
+        );
+      },
+      createUserInDb: function(email, callback) {
+        var auth = this.firebase.getAuth();
+        var userRef = this.firebase.child('users').child(auth.uid);
+        userRef.update( {
+            createdAt: Firebase.ServerValue.TIMESTAMP, 
+            email: auth.password.email              
+          },
+          function(err) {
+            try { 
+              callback( this.interpretFirebaseError(err));
+            } catch(e) { debugger }
+          }.bind(this)
+        ); 
+      },
+      resetPassword: function(email, callback) {
+        this.firebase.resetPassword({
+            email: email,
+          },
+          function(err) {
+            try { 
+              callback( this.interpretFirebaseError(err, 'passwordReset') );
+            } catch(e) { debugger }
+          }.bind(this)
+        );
+      },
+      /** user will be logged in on completion if no error */
+      fullRegistration: function(email, password, callback) {
+        async.waterfall(
+        [
+          function(cb) {
+            this.registerUser(email, password, cb)
+          }.bind(this),
+          function(cb) {
+            this.login(email, password, null, cb)
+          }.bind(this),
+          function(info, cb) {
+            this.createUserInDb(email, cb);
+          }.bind(this)
+        ],
+        function(err) {
+          try { 
+           callback(err);
+          } catch(e) { debugger }
+        }
+        );
+      },
+      /**
+      Transforms firebase errors into human-readable message, and extras. See docs on top on error format.
+      variant: changes text depending on situation
+      */
+      interpretFirebaseError: function(err, variant) {
+        if (!err)
+          return null;
+        var message;
+        var field, fieldMessage;
+
+        switch(err.code) {
+          case 'AUTHENTICATION_DISABLED':
+          case 'INVALID_FIREBASE':
+          case 'INVALID_ORIGIN':
+          case 'UNKNOWN_ERROR':
+            message = "Login failed because of unexpected server error. Please call us to fix this. " + err.detail.code;
+            break;
+          case 'INVALID_USER':
+          case 'INVALID_EMAIL':
+            if (variant === 'passwordReset')
+              message = "Can't send reset email. This email has not been registered.";
+            else
+              message = "Login failed. Fix your input, and try again.";
+            field = "email";
+            fieldMessage = "Invalid email address.";
+            break;
+          case 'INVALID_PASSWORD':
+            message = "Login failed. Fix your input, and try again.";
+            field = "password";
+            fieldMessage = "Invalid password";
+            break;
+          case 'EMAIL_TAKEN':
+            message = "This email has already been registered. Try logging in instead";
+            break;
+          case 'PERMISSION_DENIED':
+            message = "Unable to create user, permission denied";
+            break;
+          default:
+            console.log("Unexpected Firebase error", err.detail.code, err);
+            debugger;
+        }
+
+        var myErr = new Error(message);
+        if (field)
+          myErr.field = field;
+        if (fieldMessage)
+          myErr.fieldMessage = fieldMessage;
+        myErr.firebaseError = err;
+        return myErr;
+      }
+    });
+  </script>
+</polymer-element>

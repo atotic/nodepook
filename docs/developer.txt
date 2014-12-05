@@ -9,15 +9,6 @@ pook-app - application
 pook-page* - right side pages
 pook-flash - notifications
 
-DATA elements
-pook-user - gateway to all user firebase data
-
-pook-proxy-photo-cache -
-
-
-server
-
-
 
 maintenance:
 - update node to latest stable

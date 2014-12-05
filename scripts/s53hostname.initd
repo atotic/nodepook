@@ -20,7 +20,7 @@
 ### END INIT INFO
 
 NAME=s53hostname
-GRUNT=/usr/local/bin/grunt
+NODE=/usr/local/bin/node
 USER=ec2-user
 NODEPOOK=/home/ec2-user/nodepook
 
@@ -35,7 +35,7 @@ super() {
 
 start() {
     echo "Starting $NAME"
-    super $GRUNT netRegisterHostAs:resize
+    super $NODE ./scripts/tasks/route53registerHost.js
     RETVAL=$?
 }
 

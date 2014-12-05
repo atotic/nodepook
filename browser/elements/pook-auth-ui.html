@@ -2,8 +2,7 @@
 <link href='../vendor/paper-button/paper-button.html' rel='import'>
 <link href='../vendor/paper-input/paper-input.html' rel='import'>
 <link href='../vendor/paper-checkbox/paper-checkbox.html' rel='import'>
-<link href='../vendor/firebase-elements/firebase-element.html' rel='import'>
-<link href='../vendor/firebase-elements/firebase-login.html' rel='import'>
+<link rel="import" href="pook-auth.html">
 
 <!--
 /**
@@ -52,7 +51,7 @@
           <input is="core-input" name='password' type='password' required pattern='.{8,}' value="{{password}}" on-change="{{validate}}">
         </paper-input-decorator>
         <div><paper-button raised on-tap="{{registerClick}}" >Register</paper-button></div>
-        <div><paper-button on-top="{{showLogin}}" >Login instead</paper-button></div>
+        <div><paper-button on-tap="{{showLogin}}" >Login instead</paper-button></div>
       </div>
     </template>
     <template if="{{mode=='forgotPassword'}}">
@@ -79,7 +78,7 @@
           remember: "rememberMe === true ? 'default' : 'sessionOnly'"
         },
         created: function() {
-          this.firebase = new Firebase("https://torid-inferno-6070.firebaseio.com/");
+          this.auth = document.createElement('pook-auth');
         },
         get flash() {
           return document.querySelector('pook-flash');
@@ -94,12 +93,7 @@
           return this.shadowRoot.querySelector('[name="password"]');
         },
         get passwordDecorator() {
-          return this.passwordField.parentNode;
-        },
-        clearErrors: function() {
-          this.flash.clear();
-          this.emailDecorator.isInvalid = false;
-          this.passwordDecorator.isInvalid = false;
+          return this.passwordField && this.passwordField.parentNode;
         },
         validate: function(ev) {
           var name = ev ? ev.currentTarget.getAttribute('name') : null;
@@ -124,110 +118,64 @@
           return ((emailField === null) || emailField.validity.valid)
             &&  ((passwordField === null) || passwordField.validity.valid);
         },
-        loginClick: function() {
+        clearErrors: function() {
           this.flash.clear();
-          var THIS = this;
-          this.firebase.authWithPassword( {
-              email: this.email,
-              password: this.password            
-            },
-            this.loginComplete.bind(this),
-            { 'remember': this.remember }
-          );
+          if (this.emailDecorator)
+            this.emailDecorator.isInvalid = false;
+          if (this.passwordDecorator)
+            this.passwordDecorator.isInvalid = false;
         },
-        loginComplete: function(err, data) {
-          if (err)
-            return this.onFirebaseError(err);
-
-          this.clearErrors();
-          this.flash.message = "You've logged in!";
-          window.location.replace( window.location.origin + '/user');
-        },
-        registerClick: function() {
-          var THIS = this;
-          this.firebase.createUser( {
-              email: this.email,
-              password: this.password
-            },
-            this.registerComplete.bind(this)
-          );
-        },
-        registerComplete: function() {
-          this.clearErrors();
-          // login user
-          this.firebase.authWithPassword({
-              email: this.email,
-              password: this.password,
-              rememberMe: this.rememberMe
-            }, 
-            this.createUserInDb.bind(this)
-          );
-          this.flash.message = "Account registered";
-        },
-        createUserInDb: function(data) {
-          var auth = this.firebase.getAuth();
-          var userRef = this.firebase.child('users').child(auth.uid);
-          var THIS = this;
-          userRef.update( {
-              createdAt: Firebase.ServerValue.TIMESTAMP, 
-              email: auth.password.email              
-            }, 
-            function(err) {
-              if (err) {
-                console.log("Unexpected error saving users data in database", err);
-                THIS.onFirebaseError(err);
-              }
-              else
-                window.location.replace( window.location.origin + '/user');
-            }
-          );          
-        },
-        forgotPasswordClick: function() {
-          this.firebase.resetPassword({
-              email: this.email,
-              password: this.password
-            },
-            this.onFirebaseError.bind(this)
-          );
-        },
-        onFirebaseError: function(err) {
-          this.clearErrors();
+        handleError: function(err) {
           if (!err)
             return;
-          switch(err.code) {
-            case 'AUTHENTICATION_DISABLED':
-            case 'INVALID_FIREBASE':
-            case 'INVALID_ORIGIN':
-            case 'UNKNOWN_ERROR':
-              this.flash.error = "Login failed because of unexpected server error. Please call us to fix this. " + err.detail.code;
-              break;
-            case 'INVALID_USER':
-            case 'INVALID_EMAIL':
-              this.flash.error = "Login failed. Fix your input, and try again.";
-              this.emailDecorator.error = "Invalid email address.";
+          this.clearErrors();
+          this.flash.error = err.message;
+
+          if (err.firebaseError.code === 'EMAIL_TAKEN')
+            this.mode = 'login';
+
+          switch(err.field) {
+            case 'email':
+              this.emailDecorator.error = err.fieldMessage;
               this.emailDecorator.isInvalid = true;
               break;
-            case 'INVALID_PASSWORD':
-              this.flash.error = "Login failed. Fix your input, and try again.";
-              this.passwordDecorator.error = "Invalid password.";
+            case 'password':
+              this.passwordDecorator.error = err.fieldMessage;
               this.passwordDecorator.isInvalid = true;
               break;
-            case 'EMAIL_TAKEN':
-              this.flash.error = "This email has already been registered. Try logging in instead";
-              this.mode = 'login';
-              break;
-            case 'PERMISSION_DENIED':
-              this.flash.error = "Unable to create user, permission denied";
-              break;
-            default:
-              console.log(err.detail.code);
-              debugger;
-         }
+          }
         },
-        onPasswordReset: function() {
+        loginClick: function() {
           this.clearErrors();
-          this.flash.message = "Check your email " + this.email + " for password reset.";
-          this.mode = 'login';
+          this.auth.login( this.email, this.password, this.remember, function(err) {
+            if (err)
+              this.handleError(err);
+            else {
+              this.flash.message = "You've logged in";
+              window.location.replace( window.location.origin + '/user');
+            }
+            }.bind(this)
+          );
+        },
+         registerClick: function() {
+          this.clearErrors();
+          this.auth.fullRegistration(this.email, this.password, function(err) {
+            if (err)
+              this.handleError(err);
+            else {
+              this.flash.message = "Account registered";
+              window.location.replace( window.location.origin + '/user');
+            }
+          }.bind(this));
+        },
+        forgotPasswordClick: function() {
+          this.auth.resetPassword( this.email,
+            function(err) {
+              if (err)
+                this.handleError(err);
+              else
+                this.flash.message = "Check your email " + this.email + " for password reset.";
+            }.bind(this));
         },
         showForgotPassword: function() {
           this.mode = 'forgotPassword';

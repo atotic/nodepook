@@ -1,0 +1,40 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
+  <title>pook-auth-ui</title>
+
+  <script src="../vendor/webcomponentsjs/webcomponents.min.js"></script>
+  <script src="../vendor/web-component-tester/browser.js"></script>
+
+  <!-- Step 1: import the element to test -->
+  <link rel="import" href="../elements/pook-auth-ui.html">
+</head>
+<body>
+
+  <!-- You use the document as a place to set up your fixtures. -->
+  <pook-auth-ui></pook-auth-ui>
+  <script>
+    var el = document.querySelector('pook-auth-ui');
+
+    before( function(done) {
+      console.log('before');
+      done();
+    });
+    after( function(done) {
+      console.log('after');
+      done();
+    });
+    
+    suite('<pook-auth-ui>', function() {
+
+      test('login mode', function() {
+        assert.equal(el.mode, 'login');
+      });
+
+    });
+  </script>
+
+</body>
+</html>
