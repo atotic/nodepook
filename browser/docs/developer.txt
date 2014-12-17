@@ -13,3 +13,5 @@ pook-flash - notifications
 maintenance:
 - update node to latest stable
   sudo npm cache clean -f;sudo npm install -g n; sudo n stable 
+
+http://blog.keithcirkel.co.uk/how-to-use-npm-as-a-build-tool/

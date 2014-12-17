@@ -2,17 +2,20 @@
 <link rel="import" href='../vendor/firebase-elements/firebase-element.html'>
 <link rel="import" href="pook-utils.html">
 <!--
-/**
-  pook-auth authorization api
+pook-auth authorization api
 
-  all callbacks will return an Error with these fields:
+Firebase.auth wrapper. login/logout, create/delete account, resetPassword
+
+All callbacks return Error with these fields:
+
+@returns Error with these fields:
     message: human readable,
     field: email|password which field caused the error
     fieldMessage: human readable field-specific error message
     firebaseError: original firebase error
 
-  * @element pook-auth
- */
+@element pook-auth
+@category model
 -->
 <polymer-element name='pook-auth'>
   <template></template>

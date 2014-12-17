@@ -16,6 +16,13 @@
 <link href="pook-page-security.html" rel="import">
 <link href="pook-page-photos.html" rel="import">
 
+<!--
+Main pook.io application
+
+Responsible for routing
+@element pook-app
+@category ui
+-->
 <polymer-element name='pook-app'>
   <template>
    <style>    
@@ -97,6 +104,7 @@
   </template>
   <script>
   Polymer({
+
     publish: {
       titleJigger: 0,
       canCloseTab: false
@@ -105,27 +113,29 @@
       tabTitle: "computeTabTitle($.menu.selected, titleJigger)"
     },
     ready: function() {
-      this.selectInitialPane();
+      window.addEventListener('hashchange', this.parseLocationHash.bind(this));
+      this.parseLocationHash();
+    },
+    parseLocationHash: function() {
+      if (window.location.hash)
+        this.route = window.location.hash.slice(1);
+      else
+        this.route = '';
+    },
+    routeChanged: function() {
+      var bookMatch = this.route.match(/^book:(.*)/);
+      if (bookMatch)
+        this.editBook(bookMatch[1]);
+      else if (this.route != '') {
+        var tabId = this.findTabById( this.route );
+        if (tabId != -1)
+          this.$.menu.selected = tabId;
+      }
     },
     computeTabTitle: function(tabId) {
       if (tabId === -1 || tabId === undefined )
         return "";
       return this.$.menu.children.item(tabId).textContent;
-    },
-    selectInitialPane: function() {
-      // gets pane from window hash, and selects it
-      var hashbang = '';
-      if (window.location.hash)
-        hashbang = window.location.hash.slice(1);
-      var bookMatch = hashbang.match(/^book:(.*)/); // handle book:$bookId hashes
-      if (bookMatch) {
-        this.editBook(bookMatch[1]);
-      }
-      else if (hashbang != '') {
-        var tabId = this.findTabById( hashbang);
-        if (tabId != -1)
-          this.$.menu.selected = tabId;
-      }
     },
     selectPane: function(ev, detail) {
       // book editors use hashbang

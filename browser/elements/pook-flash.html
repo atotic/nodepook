@@ -2,77 +2,88 @@
 <link href='../vendor/core-icons/core-icons.html' rel='import'>
 <link href='../vendor/paper-icon-button/paper-icon-button.html' rel='import'>
 <!---
-	Standard flash messages Insert one of these, use methods to display messages
+  Standard flash messages
+
+  Usage:
+
+    <pook-flash></pook-flash>
+
+    flash.error = "error message";
+    flash.warn = "warning message";
+    flash.message = "just a message";
+  
+  @element pook-flash
+  @category ui
 -->
 <polymer-element name='pook-flash' constructor='PookFlash' 
-	attributes='error warn message'>
-	<template>
-		<style>
-		:host {
-			position: fixed;
-			top: 50px;
-			left: 24px;
-			min-width:50%;
-			z-index: 1;
-		}
-		#error, #warn, #message {
-			position: relative;
-			padding: 10px;
-			padding-right: 34px;
-			border: 1px solid #EBCCD1;
-			border-radius: 4px;
-			margin: 0 24px 0 24px;
-			min-width:50%;
-		}
-		#error {
-			color: #A94442;
-			background-color: #F2DEDE;
-			border-color: #EBCCD1;
-			}
-		#warn {
-			color: #8A6D3B;
-			background-color: #FCF8E3;
-			border-color: #FAEBCC;
-		}
-		#message {
-			color: #31708F;
-			background-color: #D9EDF7;
-			border-color: #BCE8F1;
-		}
-		paper-icon-button {
-			position: absolute;
-			right: 0px;
-			top:0px;
-		}
-		</style>
-		<template if='{{error}}'>
-			<div id='error'>
-				{{error}}
-				<paper-icon-button icon=close on-tap={{closeError}}></paper-icon-button>
-			</div>
-		</template>
-		<template if='{{warn}}'>
-			<div id='warn'>
-				{{warn}}
-				<paper-icon-button icon=close on-tap={{closeWarn}}></paper-icon-button>
-			</div>
-		</template>
-		<template if='{{message}}'>
-			<div id='message'>
-				{{message}}
-				<paper-icon-button icon=close on-tap={{closeMessage}}></paper-icon-button>
-			</div>
-		</template>
-	</template>
-	<script>
-		Polymer('pook-flash', {
-			error: '',
-			warn: '',
-			message: '',
-			closeError: function() { this.error = ''},
-			closeWarn: function() { this.warn = ''},
-			closeMessage: function() { this.message = ''},
-			clear: function() { this.error = this.warn = this.message = ''}
-		});
-	</script>
+  attributes='error warn message'>
+  <template>
+    <style>
+    :host {
+      position: fixed;
+      top: 50px;
+      left: 24px;
+      min-width:50%;
+      z-index: 1;
+    }
+    #error, #warn, #message {
+      position: relative;
+      padding: 10px;
+      padding-right: 34px;
+      border: 1px solid #EBCCD1;
+      border-radius: 4px;
+      margin: 0 24px 0 24px;
+      min-width:50%;
+    }
+    #error {
+      color: #A94442;
+      background-color: #F2DEDE;
+      border-color: #EBCCD1;
+      }
+    #warn {
+      color: #8A6D3B;
+      background-color: #FCF8E3;
+      border-color: #FAEBCC;
+    }
+    #message {
+      color: #31708F;
+      background-color: #D9EDF7;
+      border-color: #BCE8F1;
+    }
+    paper-icon-button {
+      position: absolute;
+      right: 0px;
+      top:0px;
+    }
+    </style>
+    <template if='{{error}}'>
+      <div id='error'>
+        {{error}}
+        <paper-icon-button icon=close on-tap={{closeError}}></paper-icon-button>
+      </div>
+    </template>
+    <template if='{{warn}}'>
+      <div id='warn'>
+        {{warn}}
+        <paper-icon-button icon=close on-tap={{closeWarn}}></paper-icon-button>
+      </div>
+    </template>
+    <template if='{{message}}'>
+      <div id='message'>
+        {{message}}
+        <paper-icon-button icon=close on-tap={{closeMessage}}></paper-icon-button>
+      </div>
+    </template>
+  </template>
+  <script>
+    Polymer('pook-flash', {
+      error: '',
+      warn: '',
+      message: '',
+      closeError: function() { this.error = ''},
+      closeWarn: function() { this.warn = ''},
+      closeMessage: function() { this.message = ''},
+      clear: function() { this.error = this.warn = this.message = ''}
+    });
+  </script>
 </polymer-element>

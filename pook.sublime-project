@@ -17,11 +17,6 @@
     {
       "name": "List",
       "shell_cmd": "ls -l"
-    },
-    {
-      "name": "Blaze (firebase rules)",
-      "shell_cmd": ["blaze", "$file"],
-      "selector": "rules.yaml"
     }
   ]
 }

@@ -2,10 +2,13 @@
 <link href="../vendor/core-animation/core-animation.html" rel="import">
 
 <script>
-// Global javascript utility functions
 
 (function() {
-  // PookPromise exposes resolve/reject methods
+/**
+  * PookPromise exposes resolve/reject methods
+  * @class PookPromise
+  * @category utilities
+  */
   function PookPromise() {
     this.promise = new Promise(this.init.bind(this));
   }
@@ -30,6 +33,11 @@
     }
   };
 
+/**
+ * Miscellaneous utility functions
+ * @class PookUtils
+ * @category utilities
+ */
   PookUtils = {
     firebaseLoc: 'https://torid-inferno-6070.firebaseio.com/',
     randomString: function (len, charSet) {

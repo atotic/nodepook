@@ -5,13 +5,12 @@
 <link rel="import" href="pook-auth.html">
 
 <!--
-/**
-  * pook-auth-ui authorization user interface
-  * *
-  * @element pook-auth-ui
- */
+
+Authorization user interface: Login
+@element pook-auth-ui
+@category ui
 -->
-<polymer-element name='pook-auth-ui'>
+<polymer-element name='pook-auth-ui' attributes="loginRedirect mode" loginRedirect="/user" mode="login">
   <template>
     <link rel="stylesheet" href="/css/global.css" type="text/css">
     <style>
@@ -85,13 +84,26 @@
   </template>
   <script>
       Polymer('pook-auth-ui', {
-        publish: {
-          mode: 'login', // switches layouts
-          password: '',
-          email: '',
-          rememberMe: false
+        /**
+         * Where to redirect logged-in user
+         * @attribute loginRedirect
+         * @type url
+         * @default "/user"
+         */
+        /**
+         * Input mode 
+         * @property mode
+         * @type enum login|register|forgotPassword
+         * @default 'login'
+         */
+          publish: {
+            mode: 'login', // switches layouts
         },
+        password: '',
+        email: '',
+        rememberMe: false,
         computed: {
+          // firebase variant of remember
           remember: "rememberMe === true ? 'default' : 'sessionOnly'"
         },
         created: function() {
@@ -168,7 +180,7 @@
               break;
           }
         },
-        loginClick: function(callback) {
+        loginClick: function(ev) {
           this.clearErrors();
           this.auth.login( this.credentials, this.remember, function(err) {
             if (err) {
@@ -176,9 +188,10 @@
             }
             else {
               this.flash.message = "You've logged in";
-              window.location.replace( window.location.origin + '/user');
+              if (this.loginRedirect)
+                window.location.replace( window.location.origin + this.loginRedirect);
             }
-            if (callback) callback(err);
+            if (ev.callback) ev.callback(err);
 
             }.bind(this)
           );
@@ -194,14 +207,14 @@
             }
           }.bind(this));
         },
-        forgotPasswordClick: function(callback) {
+        forgotPasswordClick: function(ev) {
           this.auth.resetPassword( this.email,
             function(err) {
               if (err)
                 this.handleError(err);
               else
                 this.flash.message = "Check your email " + this.email + " for password reset.";
-              if (callback) callback(err);
+              if (ev.callback) ev.callback(err);
             }.bind(this));
         },
         showForgotPassword: function() {

@@ -17,7 +17,7 @@
 
   <!-- Fixtures -->
   <pook-flash></pook-flash>
-  <pook-auth-ui></pook-auth-ui>
+  <pook-auth-ui loginRedirect=""></pook-auth-ui>
   <script>
     var el = document.querySelector('pook-auth-ui');
 
@@ -38,7 +38,7 @@
         TestUtils.setInputValue(
           el.shadowRoot.querySelector('[name=email]'),
           "b@totic.org");
-        el.forgotPasswordClick(done);
+        el.forgotPasswordClick({callback: done});
       });
       test('login', function(done) {
         TestUtils.setInputValue(
@@ -47,7 +47,7 @@
         TestUtils.setInputValue(
           el.shadowRoot.querySelector('[name=password]'),
           "12345678");
-        el.loginClick(done);
+        el.loginClick({callback: done});
       });
     });
   </script>

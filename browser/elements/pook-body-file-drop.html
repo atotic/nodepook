@@ -1,31 +1,24 @@
-
 <!--
-	pook-body-file-drop broadcasts file drops on body.
+Broadcasts file drops on body.
 
-	@element pook-body-file-drop
-
-	@event file-dropped
-	Fire when file has been dropped, event.detail is FileObject
-
- */
+@element pook-body-file-drop
+@category ui
+*/
 -->
 
-<polymer-element name='pook-body-file-drop'>
+<polymer-element name='pook-body-file-drop' fileTypeRegex="image/(png|jpeg|gif)">
 	<template>
 	</template>
 	<style>
 	</style>
 	<script>
 	Polymer('pook-body-file-drop',{
-		publish: {
-			/** 
-			 * filter acceptable file types, default to images 
-			 * @attribute fileTypeRegex
-			 * @type string
-			 * @default image files
-			 */
-			fileTypeRegex: "image/(png|jpeg|gif)"
-		},
+		/** 
+		 * filter acceptable file types, default to images 
+		 * @attribute fileTypeRegex
+		 * @type string
+		 * @default "image/(png|jpeg|gif)"
+		 */
 		ready: function(){
 			var listen = function(evName) {
 				document.addEventListener(evName, this[evName].bind(this));
@@ -50,6 +43,12 @@
 			if (this.isDragging)
 				document.body.removeAttribute('drop-active');
 		},
+	 /**
+     * Fires when it happens
+     *
+     * @event file-dropped
+     * @param {File} file HTML file dropped
+     */
 		drop: function(ev) {
 			ev.preventDefault();
 			ev.stopPropagation();

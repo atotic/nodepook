@@ -1,0 +1,16 @@
+<!doctype html>
+  <html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>documentation</title>
+    <script src="/vendor/webcomponentsjs/webcomponents.js"></script>
+    <link rel="import" href="/vendor/core-ajax/core-ajax.html">
+    <link rel="import" href="/vendor/fancy-doc-viewer/fancy-doc-viewer.html">
+  </head>
+  <body>
+    <template id="auto" is="auto-binding" sourceSet="{{sourceSet}}">
+      <core-ajax auto url="sourceSet.json" response="{{sourceSet}}"></core-ajax>
+      <fancy-doc-viewer sourceSet="{{sourceSet}}"></fancy-doc-viewer>
+    </template>
+  </body>
+  </html>
