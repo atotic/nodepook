@@ -7,21 +7,16 @@ var AWS = require('aws-sdk');
 var path = require('path');
 var Route53 = require('nice-route53');
 
-var AWSu = require('../../server/common/aws_util.js');
 var util = require('../../server/common/util.js');
 
 "use strict";
-
-var async = require('async');
-var AWS = require('aws-sdk');
-var path = require('path');
-var Route53 = require('nice-route53');
 
 var bucket = 'pookio-test';
 
 var hostname = hostname || 'resize';
 
 var r53 = new Route53(AWS.config.credentials);
+
 var hostAddress;
 
 async.waterfall([

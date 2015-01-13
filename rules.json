@@ -64,28 +64,12 @@
           ".write": "data.child('sharing').child(auth.uid).val() === true",
           "createdAt": { ".validate": "newData.isNumber()"},
           "title": { ".validate": "newData.isString()" },
-          "info": {
-            "width": { ".validate": "newData.isNumber()" },
-            "height": { ".validate": "newData.isNumber()" },
-            "$other": { ".validate": false }
-          },
+          "width": { ".validate": "newData.isNumber()" },
+          "height": { ".validate": "newData.isNumber()" },
           "sides": {
             "$sideId": {
               "left": { ".validate": "newData.isString()"},
               "right": { ".validate": "newData.isString()"}
-            }
-          },
-          "pages": {
-            "$pageId": {
-              "$itemId": {
-                "type": { ".validate": "mewData.isString() && (newData.val() === 'photo' || newData.val() == 'text')"},
-                "top": { ".validate": "newData.isNumber()"},
-                "left": { ".validate": "newData.isNumber()"},
-                "width": { ".validate": "newData.isNumber()"},
-                "height": { ".validate": "newData.isNumber()"},
-                "rotate": { ".validate": "newData.isNumber()"},
-                "$subItemId": {".validate": true}
-              }          
             }
           },
           "photos": {
@@ -93,8 +77,26 @@
           },
           "sharing": {
             "$uid": { ".validate": "newData.isBoolean()" }
-          }
+          },
+          "$other": { ".validate": false }
         }        
+      }
+    },
+    "pages": {
+      "$bookId": {
+        "$pageId": {
+          "title": {},
+          "items": {
+            "$itemId": {
+              "type": { ".validate": "newData.isString() && (newData.val() === 'photo' || newData.val() == 'text')"},
+              "top": { ".validate": "newData.isNumber()"},
+              "left": { ".validate": "newData.isNumber()"},
+              "width": { ".validate": "newData.isNumber()"},
+              "height": { ".validate": "newData.isNumber()"},
+              "rotate": { ".validate": "newData.isNumber()"}
+            }
+          }
+        }
       }
     },
     "requestShareBook": {

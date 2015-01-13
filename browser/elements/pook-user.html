@@ -2,26 +2,17 @@
 <link href="pook-utils.html" rel="import">
 
 <!--
-/**
-  * pook-user - current user entry point
-  *
-  * singleton, all instances share common state
-  *
-  * Usage:
-  
-  user = document.createElement('pook-user');
-  user.uid
-  user.email
-  user.photoCache
+current user entry point
 
-  user.requestDatabase(account).then( function(db) {
-  });
+singleton, all instances share common state
 
+    user = document.createElement('pook-user');
+    user.requestDatabase(account).then( function(db) {
+    });
 
-  *
-  * @element pook-user
-  * @category model
- */
+@element pook-user
+@category model
+
 -->
 <polymer-element name='pook-user' anonRedirect="">
   <template></template>
@@ -38,12 +29,21 @@
     // user information, from firebase.onAuth
     userInfo: {
     /**
-     * uid can have three values:
-     * '' means uninitialized
+     * @property uid
+     * @type string
+     * uid can have three states:
+     *
+     * "" means uninitialized
+     *
      * 'anonymous' means user not logged in
+     *
      * everything else is auth.uid
      */
       uid: '',
+    /**
+     * @property email
+     * @type string
+     */
       email: ''   
     },
     authClient: new Firebase(gFireServer),
@@ -69,6 +69,11 @@
       userPhotos: new PookPromise(),
       userBooks: new PookPromise()
     },
+    /**
+     * @property photoCache
+     * @type pook-proxy-photo-cache
+     * [pook-photo-cache](#pook-proxy-photo-cache.html)
+     */
     get photoCache() {
       if (!('_photoCache' in this))
         this._photoCache = document.createElement('pook-proxy-photo-cache');
@@ -114,8 +119,14 @@
       if (this.uid === 'anonymous' && this.anonRedirect != '')
         window.location.replace(window.location.origin + this.anonRedirect);
     },
-    // Database might not be ready immediately
-    // @return Promise that resolves to database
+    /**
+     * Returns a promise to a database.
+     *
+     * Databases not ready until user is logged in
+     *
+     * @return Promise
+     * @method requestDatabase
+     */
     requestDatabase: function(type) {
       if (!(type in this.databases))
         throw new Error("bad database request " + type);

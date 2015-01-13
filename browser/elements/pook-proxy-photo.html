@@ -1,5 +1,5 @@
 <link href="../vendor/firebase-elements/firebase-element.html" rel="import">
-
+<link href="pook-utils.html">
 
 <!--
   pook-proxy-photo wraps native firebase photo object with 
@@ -18,24 +18,42 @@
       publish: {
         photoId: '',
         user: null,
-        s3url: "http://pookio-test.s3-website-us-west-2.amazonaws.com/",
+
         /*
-        localExif information:
-        dateTime: "2014:09:24 08:02:21"
-        dateTimeOriginal: "2014:09:24 08:02:21"
-        description: null
-        displayName: "IMG_3232.JPG"
-        orientation: 6
-        thumbnail_url: "data:image/jpeg,%ff%dc%d7%23%36%3f%ff%d9"
-        title: null
-        userComment: undefined
-        */        
+         * @property localExif
+         * @type object
+         * exif information read from local file
+
+              localExif information:
+              dateTime: "2014:09:24 08:02:21"
+              dateTimeOriginal: "2014:09:24 08:02:21"
+              description: null
+              displayName: "IMG_3232.JPG"
+              orientation: 6
+              thumbnail_url: "data:image/jpeg,%ff%dc%d7%23%36%3f%ff%d9"
+              title: null
+              userComment: undefined
+         */        
         localExif: null,
+
+        // Local image, { src:fileUrl/width/height}
         localImage: null,
+
+        // max height of image read from local file
         maxLocalImageHeight: 512,
-        progress: -1 // progress 0-100, -1 when inactive
+
+        /**
+         * @property progress
+         * @type number(0-100, -1 inactive)
+         */
+        progress: -1
       },
       computed: {
+        /**
+         * @property iconInfo
+         * @type object {src,width,height}
+         * Data for icon display
+         */
         iconInfo: 'computeIconInfo(data.s3, localImage)'
       },
       userChanged: function() {
@@ -147,7 +165,7 @@
       computeIconInfo: function(s3, localImage) {
         if (s3) {
           return {
-            src: this.s3url + s3 + "~256",
+            src: PookUtils.s3url + s3 + "~256",
             height: 256,
             width: Math.round( 256 * this.data.width / this.data.height)
           }

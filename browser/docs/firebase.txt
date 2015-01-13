@@ -1,3 +1,27 @@
+Book operations
+- list all mine (order by lastModified). Should be able to display info without loading the entire book
+- book sides need to be ordered
+Book props
+- title
+- createdAt
+- modifiedOn
+- width/height
+- sides: first side is cover, last side is back cover. Sortable by priority. Priorities are floats
+  https://groups.google.com/forum/#!searchin/firebase-talk/sorting/firebase-talk/UUocZUZJlRU/hERfAZW4DG8J
+
+Side props
+- left/right, points to page
+- type: front-cover/inside/back-cover
+
+
+
+Schema:
+/books/$userId/$bookId
+/photos/$userId/$photoId
+/pages/$bookId/$pageId
+
+
+
 # Firebase security definitils
 # https://github.com/firebase/blaze_compiler
 functions:            #reusable boolean functions

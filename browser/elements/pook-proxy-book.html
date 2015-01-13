@@ -1,10 +1,20 @@
 <link href="../vendor/firebase-elements/firebase-element.html" rel="import">
-
+<link href="pook-utils.html">
 <!--
-  pook-proxy-photo adds utility routines to
-  native firebase book object
+  Firebase book manipulation
+
+  properties:
+
+      "createdAt": { ".validate": "newData.isNumber()"},
+      "title": { ".validate": "newData.isString()" },
+      "width": { ".validate": "newData.isNumber()" },
+      "height": { ".validate": "newData.isNumber()" },
+      "photos": { "$photoId": { ".validate": "newData.isBoolean()"}}
+      "sharing": { "$uid": { ".validate": "newData.isBoolean()" }},
+
   @element pook-proxy-book
   @category model
+
 -->
 <polymer-element name='pook-proxy-book' extends='firebase-element'>
   <template></template>
@@ -12,8 +22,37 @@
   "use strict";
   Polymer({
     publish: {
-      bookId: null
+      /**
+       * @property bookLoc
+       * @type string
+       * firebase book path `books/$userId/$bookId`
+       */
+      bookLoc: null, 
+    },
+    bookLocChanged: function() {
+      if (this.bookLoc)
+        this.location = PookUtils.firebaseLoc + this.bookLoc;
+      else
+        this.location = null;
+    },
+    /** 
+     * Creates a new book
+     * @method createBook
+     */
+    createBook: function(title, width, height) {
+      var bookJson = {
+        title: title,
+        width: width,
+        height: height,
+        createdAt: Firebase.ServerValue.TIMESTAMP
+      }
+      var user = document.createElement('pook-user');
+      user.requestDatabase('userBooks').then( function(db) {
+        var ref = db.push(bookJson);
+        this.location = ref.toString();
+      });
     }
+
   });
   </script>
 </polymer-element>
