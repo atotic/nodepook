@@ -8,7 +8,7 @@ var fs = require('fs');
 var sourceSet = {
   Documents: [],
   Elements: [],
-  Tests: ["test/index.html"],
+  Tests: ["/test/index.html"],
   Bower: [],
   References: [
     "http://blog.keithcirkel.co.uk/how-to-use-npm-as-a-build-tool/",

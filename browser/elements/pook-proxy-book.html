@@ -23,15 +23,15 @@
   Polymer({
     publish: {
       /**
-       * @property bookLoc
+       * @property bookId
        * @type string
-       * firebase book path `books/$userId/$bookId`
+       * firebase book path `books/$bookId`
        */
-      bookLoc: null, 
+      bookId: null, 
     },
     bookLocChanged: function() {
       if (this.bookLoc)
-        this.location = PookUtils.firebaseLoc + this.bookLoc;
+        this.location = PookUtils.firebaseLoc + '/books' + this.bookId;
       else
         this.location = null;
     },

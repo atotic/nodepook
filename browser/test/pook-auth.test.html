@@ -1,0 +1,38 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>pook-auth</title>
+
+  <!-- Test harness -->
+  <script src="../vendor/webcomponentsjs/webcomponents.min.js"></script>
+  <script src="../vendor/web-component-tester/browser.js"></script>
+  <script src="testUtils.js"></script>
+  <!-- Imports -->
+  <link rel="import" href="../elements/pook-auth.html">
+</head>
+<body>
+
+  <!-- Fixtures -->
+  <p>pook-auth tests</p>
+  <script>
+    var pookAuth = document.createElement('pook-auth');
+    var credentials = {
+      email: PookUtils.randomString(6) + "@test.com",
+      password: '12345678'
+    }
+    
+    suite('<pook-auth>', function() {
+
+      test('createAccount', function(done) {
+        pookAuth.createPookUser(credentials, done);
+      });
+      test('deleteAccount', function(done) {
+        pookAuth._deletePookUser(credentials, done);
+      });
+
+    });
+  </script>
+
+</body>
+</html>

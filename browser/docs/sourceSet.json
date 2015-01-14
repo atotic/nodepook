@@ -33,7 +33,7 @@
     "/elements/test.html"
   ],
   "Tests": [
-    "test/index.html"
+    "/test/index.html"
   ],
   "Bower": [
     "/vendor/context-free-parser/context-free-parser.html",

@@ -198,7 +198,7 @@ Authorization user interface: Login
         },
         registerClick: function() {
           this.clearErrors();
-          this.auth.fullRegistration(this.credentials, function(err) {
+          this.auth.createPookUser(this.credentials, function(err) {
             if (err)
               this.handleError(err);
             else {

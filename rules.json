@@ -23,10 +23,12 @@
           "zip": { ".validate": "newData.isString()"},
           "$other": { ".validate": false }
         },
-        "sharedBooks": {
-          "$userId": {
-            "$bookId": {
-              ".validate": "newData.isBoolean() && root.child('books').child($userId).child($bookId).exists()"
+        "myBooks": {
+          "$bookId": { ".validate" : "newData.isBoolean() && root.child('books').child($bookID).child('owner') === $userId"
+        },
+        "booksSharedWithMe": {
+          "$bookId": {
+            ".validate": "newData.isBoolean() && root.child('books').child($bookId).exists()"
             }
           }
         },
@@ -56,31 +58,27 @@
       }
     },
     "books": {
-      "$userId": {
-        ".read": "auth.uid === $userId",
-        ".write": "auth.uid === $userId",
-        "$bookId": {
-          ".read": "data.child('sharing').child(auth.uid).val() === true",
-          ".write": "data.child('sharing').child(auth.uid).val() === true",
-          "createdAt": { ".validate": "newData.isNumber()"},
-          "title": { ".validate": "newData.isString()" },
-          "width": { ".validate": "newData.isNumber()" },
-          "height": { ".validate": "newData.isNumber()" },
-          "sides": {
-            "$sideId": {
-              "left": { ".validate": "newData.isString()"},
-              "right": { ".validate": "newData.isString()"}
-            }
-          },
-          "photos": {
-            "$photoId": { ".validate": "newData.isBoolean()"}
-          },
-          "sharing": {
-            "$uid": { ".validate": "newData.isBoolean()" }
-          },
-          "$other": { ".validate": false }
-        }        
-      }
+      "$bookId": {
+        ".read": "data.child('sharing').child(auth.uid).val() === true",
+        ".write": "data.child('sharing').child(auth.uid).val() === true",
+        "createdAt": { ".validate": "newData.isNumber()"},
+        "title": { ".validate": "newData.isString()" },
+        "width": { ".validate": "newData.isNumber()" },
+        "height": { ".validate": "newData.isNumber()" },
+        "sides": {
+          "$sideId": {
+            "left": { ".validate": "newData.isString()"},
+            "right": { ".validate": "newData.isString()"}
+          }
+        },
+        "photos": {
+          "$photoId": { ".validate": "newData.isBoolean()"}
+        },
+        "sharedWith": {
+          "$uid": { ".validate": "newData.isBoolean()" }
+        },
+        "$other": { ".validate": false }
+      }        
     },
     "pages": {
       "$bookId": {
