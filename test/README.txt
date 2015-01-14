@@ -15,6 +15,8 @@ DEBUG=pook* mocha server/routes/photos.spec.js
 
 ## Browser tests
 
-Unit tests are in test/browser
+Using Polymer's test runner
 
-karma start test/karma.conf.js
+Unit tests are in browser/tests
+
+test by going to http://localhost:3000/test/index.html
