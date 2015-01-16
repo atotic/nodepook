@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>pook-proxy-photo-cache</title>
+  <title>pook-photo-cache test</title>
 
   <!-- Test harness -->
   <script src="../vendor/webcomponentsjs/webcomponents.min.js"></script>
@@ -10,7 +10,7 @@
   <script src="testUtils.js"></script>
   <!-- Imports -->
   <link rel="import" href="../vendor/firebase-elements/firebase-element.html">
-  <link rel="import" href="../elements/pook-proxy-photo-cache.html">
+  <link rel="import" href="../elements/pook-photo-cache.html">
   <link rel="import" href="../elements/pook-auth.html">
   <link rel="import" href="../elements/pook-utils.html">
   <link rel="import" href="../elements/pook-user.html">
@@ -23,7 +23,7 @@
   <script>
     "use strict";
     var photoInput = document.getElementById('addPhotoInput');
-    var photoCache = document.createElement('pook-proxy-photo-cache');
+    var photoCache = document.createElement('pook-photo-cache');
 
     var firebase = new Firebase(PookUtils.firebaseLoc);
 

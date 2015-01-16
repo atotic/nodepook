@@ -69,12 +69,12 @@ singleton, all instances share common state
     },
     /**
      * @property photoCache
-     * @type pook-proxy-photo-cache
+     * @type pook-photo-cache
      * [pook-photo-cache](#pook-proxy-photo-cache.html)
      */
     get photoCache() {
       if (!('_photoCache' in this))
-        this._photoCache = document.createElement('pook-proxy-photo-cache');
+        this._photoCache = document.createElement('pook-photo-cache');
       return this._photoCache;
     }
   };
@@ -178,7 +178,6 @@ singleton, all instances share common state
           callback(err);
         else {
           this.requestDatabase('myPhotos').then( function(db) {
-            console.log(photoRef.key());
             db.ref.child(photoRef.key()).set(true, function(err) {
               if (err) debugger;
               callback(err, photoRef);

@@ -3,18 +3,32 @@
 <link href="async.html" rel="import">
 <link rel="import" href="pook-proxy-photo.html">
 <!--
-@element pook-proxy-photo-cache
+@element pook-photo-cache
 @group model
 
-caches pook-proxy-photo
+Cache of pook-proxy-photo objects
 
-cache of pook-proxy-photo
-hosts worker queue
+Also, utility routines to create/upload photos, read exif data from file with exif-worker.
 
+Access photo from cache:
+
+    
+    var photoProxy = user.photoCache.getPhoto(photoId)
+    // after photo was accessed once, you can get it directly
+    // this is useful for templates, which can't do function calls
+    photoProxy = user.photoCache.photos[photoId]
+
+Create new photo accociated with user (updates user.myPhotos)
+
+    user.createPhoto(file)
+
+Create raw new photo, and uploades it
+
+    user.photos.createPhotoFromFile(file, ownerId) creates photo, and uploads it
 
 -->
 
-<polymer-element name='pook-proxy-photo-cache'>
+<polymer-element name='pook-photo-cache'>
   <template>
   </template>
   <script>
@@ -31,7 +45,7 @@ hosts worker queue
   var PhotoUploadProcessor = function(task, done) {
 
     function processSuccess(xhr) {
-      if (Singleton.photoCache[task.photoId]) {
+      if (Singleton.photos[task.photoId]) {
         /* xhr response:
         {"msg":"Photo created","item":{"dateTime":"2011:04:19 20:59:58","dateTimeOriginal":"2010:12:20 17:00:00","width":3648,"height":2736,"contentType":"image/jpeg","dateTaken":"2010-12-21T01:00:00.000Z","md5":"82cb9d01c03c7c80e3d1852ae205671a","s3id":"PoLBWE_fiXbmipGaaa.jpg"}
         */
@@ -47,10 +61,10 @@ hosts worker queue
             newData[k] = item[k];
         });
         // console.log(newData);
-        Singleton.photoCache[task.photoId].progress = -1;
-        Singleton.photoCache[task.photoId].ref.update(newData, function(err) {
+        Singleton.photos[task.photoId].progress = -1;
+        Singleton.photos[task.photoId].ref.update(newData, function(err) {
           if (err)
-            console.error("error updating ", Singleton.photoCache[task.photoId].location, err);
+            console.error("error updating ", Singleton.photos[task.photoId].location, err);
         });
       }
       else {
@@ -61,16 +75,16 @@ hosts worker queue
 
     function processFaiure(xhr, ev) {
       console.error('photo upload failed', task);
-      if (Singleton.photoCache[task.photoId]) {
-        Singleton.photoCache[photoId].progress = -1;
+      if (Singleton.photos[task.photoId]) {
+        Singleton.photos[photoId].progress = -1;
       }
       done(new Error("Task failed"));
       // push the task back on the queue
       task.failCount = ('failCount' in task) ? ( task.failCount + 1 ) : 1;
       if (task.failCount < 5)
         PhotoUploadQueue.unshift(task);
-      else if (Singleton.photoCache[task.photoId])
-        Singleton.photoCache[task.photoId].uploadFailed();
+      else if (Singleton.photos[task.photoId])
+        Singleton.photos[task.photoId].uploadFailed();
     }
 
     function start() {
@@ -95,7 +109,7 @@ hosts worker queue
       // });
       // upload progress
       xhr.upload.addEventListener('progress', function progress(ev) {
-        var photo = Singleton.photoCache[task.photoId];
+        var photo = Singleton.photos[task.photoId];
         if (!photo)
           return;
         if (ev.lengthComputable && ev.total != 0)
@@ -111,7 +125,7 @@ hosts worker queue
   }
 
   var Singleton = {
-    photoCache: {
+    photos: {
       /* 
         Cache of pook-proxy-photo objects
         Use this to access photo data. requestPhotoProxy() requests data in cache
@@ -133,9 +147,9 @@ hosts worker queue
     processExifWorkerMessage: function(ev) {
       switch(ev.data.action) {
         case 'parsed':
-          if (this.photoCache[ev.data.photoId]) {
-            console.log('got exifParse', ev.data.exif);
-            this.photoCache[ ev.data.photoId ].setLocalExifData(ev.data.exif, ev.data.file);
+          if (this.photos[ev.data.photoId]) {
+            // console.log('got exifParse', ev.data.exif);
+            this.photos[ ev.data.photoId ].setLocalExifData(ev.data.exif, ev.data.file);
           }
           else
             console.warn('photo parsed, but no photo in cache', photoId);
@@ -161,24 +175,51 @@ hosts worker queue
 
   Polymer({
     publish: {
-      cache: null
+      /**
+       * @property photos
+       * @type Object { $photoId: pook-proxy-photo } 
+       * cache of `pook-proxy-photo` objects
+       */
+      photos: null
     },
     created: function() {
-      this.cache = Singleton.photoCache;
+      this.photos = Singleton.photos;
     },
-    requestProxy: function(photoId) {
-      if (photoId in this.cache)
-        return;
-      this.cache[photoId] = document.createElement('pook-proxy-photo');
-      this.cache[photoId].photoId = photoId;
+    /**
+     * @method getPhoto
+     * @param <String> photoId photo id
+     * Returns pook-proxy-photo. After photo was fetched once, it'll be accessible
+     * through `photoCache.photos[$photoId]`
+     */
+    getPhoto: function(photoId) {
+      if (!(photoId in this.photos)) {
+        this.photos[photoId] = document.createElement('pook-proxy-photo');
+        this.photos[photoId].photoId = photoId;
+      }
+      return this.photos[photoId];
+    },
+    uploadFile: function(file, photoId) {
+      // request a proxy, so we have place to store progress
+      this.getPhoto(photoId);
+      // parse file locally for quick feedback
+      Singleton.exifWorker.postMessage({action: 'parse', file: file, photoId: photoId });
+      // upload via xhr
+      Singleton.photoUploadQueue.push( { file: file, photoId: photoId});
     },
     /**
      * @method createPhotoFromFile
-     * @param {File} file
+     * @param {File} file file to be uploaded
      * @param {String} ownerId photo's owner
      * @param {Function} callback fn(err, photoRef)
+     *
+     * Creates photo in /photo/$photoRef, and uploads it to s3
+     *
+     * Sets photo metadata in Firebase from server response
      */
     createPhotoFromFile: function(file, ownerId, callback) {
+      if (!ownerId)
+        throw new Error("ownerId cant be null");
+
       var photoDb = new Firebase( PookUtils.getFirebaseUrl('allPhotos'));
       // create the photo
       var photoJson = {
@@ -190,14 +231,6 @@ hosts worker queue
         // uploads the file
       this.uploadFile(file, photoRef.key());
       callback(null, photoRef);
-    },
-    uploadFile: function(file, photoId) {
-      // request a proxy, so we have place to store progress
-      this.requestProxy(photoId);
-      // parse file locally for quick feedback
-      Singleton.exifWorker.postMessage({action: 'parse', file: file, photoId: photoId });
-      // upload via xhr
-      Singleton.photoUploadQueue.push( { file: file, photoId: photoId});
     }
 
   });

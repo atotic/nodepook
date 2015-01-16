@@ -2,9 +2,22 @@
 <link rel="import" href="pook-utils.html">
 
 <!--
-  pook-proxy-photo wraps native firebase photo object with 
-  utility routines
-  on upload, it uses local file data to compute   
+  pook-proxy-photo wraps native firebase photo object with utility routines.
+
+  On upload, uses local photo data to 
+      "owner": {".validate": "newData.isString()" },
+      "createdAt": { ".validate": "newData.isNumber()"},
+      "displayName": { ".validate": "newData.isString()"},
+      "s3": { ".validate": "newData.isString()"},
+      "width": { ".validate": "newData.isNumber()"},
+      "height": { ".validate": "newData.isNumber()"},
+      "dateTaken": { ".validate": "newData.isString()"},
+      "caption": { ".validate": "newData.isString()"},
+      "latitude": { ".validate": "newData.isNumber()"},
+      "latitudeRef": { ".validate": "newData.isString()"},
+      "longitude": { ".validate": "newData.isNumber()"},
+      "longitudeRef": { ".validate": "newData.isString()"},
+
   @element pook-proxy-photo
   @group model
 -->
@@ -68,6 +81,7 @@
         this.localFile = file;
         this.generateLocalThumbnail();
       },
+      // generate thumbnail from image element
       dataThumbnailFromImage: function(img) {
         // skip if we have real thumbnails
         if (this.data && this.data.s3) 
@@ -130,15 +144,15 @@
         }
         // this._setDataUrl( c.toDataURL('image/jpeg'), canvasWidth, canvasHeight);
       },
+      // generate thumbnail from file
       dataThumbnailFromFile: function() {
-        debugger;
-        console.log("dataThumbnailFromFile");
+        // console.log("dataThumbnailFromFile");
         var img = new Image();
         var fileUrl = window.URL.createObjectURL(this.localFile);
         if (!fileUrl)
           return console.error('cant create localFile url');
         img.onload = function() {
-          this.dataThumbnailFromFile(img);
+          this.dataThumbnailFromImage(img);
           window.URL.revokeObjectURL(fileUrl);
         }.bind(this);
         img.onerror = function() {
@@ -147,6 +161,7 @@
         }.bind(this);
         img.src = fileUrl; // TODO throttle
       },
+      // generate thumbnail from local data. Gets it from exif, or by reading file into <img>
       generateLocalThumbnail: function() {
         if (this.localExif.thumbnail_url) {
           var THIS = this;
@@ -159,17 +174,17 @@
           this.dataThumbnailFromFile();
       },
       computeIconInfo: function(s3, localImage) {
-        if (s3) {
+        if (s3) { // standard, stored in s3
           return {
             src: PookUtils.s3url + s3 + "~256",
             height: 256,
             width: Math.round( 256 * this.data.width / this.data.height)
           }
         }
-        else if (localImage) {
+        else if (localImage) { // if we have local data, use that
           return localImage;
         }
-        else {
+        else { // no info, display generic loading pix
           return  {
             src: PookUtils.s3url + 'loading.jpg',
             width: 256,

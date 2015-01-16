@@ -50,15 +50,14 @@
     <paper-button on-click='{{clickAddPhoto}}' raised>upload more</paper-button>
     <p> Here are all your photos</p>
     <template id="photoList" repeat="{{k in photoIds}}">
-      {{ requestPhotoProxy(k) }}
-      <template bind="{{calculateIconDims(user.photoCache.cache[k].iconInfo, iconHeight) as info}}">
+      <template bind="{{calculateIconDims(user.photoCache.photos[k].iconInfo, iconHeight) as info}}">
         <div class='photoDiv'>
           <img src="{{info.src}}" width="{{info.width}}" height="{{info.height}}"></img>
           <div class='info'>
-            {{user.photoCache.cache[k].data.displayName}}
+            {{user.photoCache.photos[k].data.displayName}}
           </div>
-          <template if="{{user.photoCache.cache[k].progress != -1}}">
-            <progress value="{{user.photoCache.cache[k].progress}}"></progress>
+          <template if="{{user.photoCache.photos[k].progress != -1}}">
+            <progress value="{{user.photoCache.photos[k].progress}}"></progress>
           </template>
         </div>
       </template>
@@ -85,8 +84,10 @@
       this.$.addPhotoInput.addEventListener('change', this.handleAddPhotoInput.bind(this));
     },
     userPhotosChanged: function() {
-      if (this.user.myPhotos)
+      if (this.user.myPhotos) {
         this.photoIds = Object.keys(this.user.myPhotos).reverse();
+        this.photoIds.forEach( this.user.photoCache.getPhoto.bind(this.user.photoCache)); // clever or obtuse?
+      }
       else
         this.photoIds = [];
       // TODO scroll added photos into view
@@ -98,9 +99,6 @@
     handleAddPhotoInput: function(ev) {
       for (var i=0; i<this.$.addPhotoInput.files.length; i++)
         this.user.createPhoto(this.$.addPhotoInput.files.item(i));
-    },
-    requestPhotoProxy: function(photoId) {
-      this.user.photoCache.requestProxy(photoId);
     },
     calculateIconDims: function(iconInfo, iconHeight) {
       var enclosure = new Rect({width: iconHeight * 1.33, height: iconHeight });
