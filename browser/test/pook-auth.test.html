@@ -9,14 +9,20 @@
   <script src="../vendor/web-component-tester/browser.js"></script>
   <script src="testUtils.js"></script>
   <!-- Imports -->
+  <link rel="import" href="../elements/pook-flash.html">
   <link rel="import" href="../elements/pook-auth.html">
+  <link rel="import" href="../elements/pook-auth-ui.html">
 </head>
 <body>
 
   <!-- Fixtures -->
   <p>pook-auth tests</p>
+  <pook-flash></pook-flash>
+  <pook-auth-ui loginRedirect=""></pook-auth-ui>
   <script>
     var pookAuth = document.createElement('pook-auth');
+    var pookAuthUi = document.querySelector('pook-auth-ui');
+
     var credentials = {
       email: PookUtils.randomString(6) + "@test.com",
       password: '12345678'
@@ -24,10 +30,32 @@
     
     suite('<pook-auth>', function() {
 
-      test('createAccount', function(done) {
+      test('pook-auth.createAccount', function(done) {
         pookAuth.createPookUser(credentials, done);
       });
-      test('deleteAccount', function(done) {
+
+      test('pook-auth-ui.login mode', function() {
+        assert.equal(pookAuthUi.mode, 'login');
+      });
+
+      test('pook-auth-ui.forgotPassword', function(done) {
+        TestUtils.setInputValue(
+          pookAuthUi.shadowRoot.querySelector('[name=email]'),
+          credentials.email);
+        pookAuthUi.forgotPasswordClick({callback: done});
+      });
+
+      test('pook-auth-ui.login', function(done) {
+        TestUtils.setInputValue(
+          pookAuthUi.shadowRoot.querySelector('[name=email]'),
+          credentials.email);
+        TestUtils.setInputValue(
+          pookAuthUi.shadowRoot.querySelector('[name=password]'),
+          credentials.password);
+        pookAuthUi.loginClick({callback: done});
+      });
+
+      test('pook-auth.deleteAccount', function(done) {
         pookAuth._deletePookUser(credentials, done);
       });
 

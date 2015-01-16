@@ -8,7 +8,7 @@
 
 Authorization user interface: Login
 @element pook-auth-ui
-@category ui
+@group ui
 -->
 <polymer-element name='pook-auth-ui' attributes="loginRedirect mode" loginRedirect="/user" mode="login">
   <template>
@@ -110,7 +110,7 @@ Authorization user interface: Login
           this.auth = document.createElement('pook-auth');
         },
         get flash() {
-          return document.querySelector('pook-flash');
+          return document.querySelector('pook-flash') || {};
         },
         get emailField() {
           return this.shadowRoot.querySelector('[name="email"]');

@@ -12,7 +12,7 @@
   * Book listing 
   *
   * @element pook-page-books
-  # @category ui
+  # @group ui
   */
 -->
 <polymer-element name='pook-page-books'>
@@ -96,7 +96,8 @@
           <paper-button on-tap="{{showNewBookDialog}}" raised style="position:absolute; bottom:10px;">Start a new book...</paper-button>
         </div>
         <template id="bookList" repeat="{{k in bookIds}}">
-            <div layout vertical 
+         <p>BOOK!</p>
+<!--            <div layout vertical 
               class="book-tile {{ k | computeTileClass }}"
               style="width:{{user.userBooks[k].info.width * 8}}px;height:{{user.userBooks[k].info.height*8}}px" 
               on-tap="{{bookTapHandler}}"
@@ -106,7 +107,7 @@
             >
               <p>{{user.userBooks[k].title}}</p>
             </div>
-        </template>
+-->        </template>
       </core-selector>
     </div>
     <core-toolbar>
@@ -130,7 +131,7 @@
     created: function() {
       this.user = document.createElement('pook-user');
       var THIS = this;
-      this.user.requestDatabase('userBooks')
+      this.user.requestDatabase('myBooks')
         .then( function(database) {
           database.addEventListener('data-change', THIS.booksChanged.bind(THIS));
         });
@@ -166,10 +167,10 @@
           return instances.item(i);
     },
     computeBookIds: function() {
-      if (!this.user.userBooks)
+      if (!this.user.myBooks)
         return [];
       else
-        return Object.keys( this.user.userBooks ).reverse();
+        return Object.keys( this.user.myBooks ).reverse();
     },
     computeDelta: function(newKeys, oldKeys) {
       var newHash = PookUtils.arrayToHash( newKeys );

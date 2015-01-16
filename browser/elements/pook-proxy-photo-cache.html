@@ -1,22 +1,17 @@
 <link href="../vendor/polymer/polymer.html" rel="import">
 
 <link href="async.html" rel="import">
-
+<link rel="import" href="pook-proxy-photo.html">
 <!--
-/**
-  * pook-proxy-photo-cache 
-  *
-  * singleton, all instances share common state
-  *
-  * caches pook-proxy-photo
-  *
-  * 
-  * cache of pook-proxy-photo
-  * hosts worker queue
-  *
-  * @element pook-proxy-photo-cache
-  * @category model
-  */
+@element pook-proxy-photo-cache
+@group model
+
+caches pook-proxy-photo
+
+cache of pook-proxy-photo
+hosts worker queue
+
+
 -->
 
 <polymer-element name='pook-proxy-photo-cache'>
@@ -139,8 +134,8 @@
       switch(ev.data.action) {
         case 'parsed':
           if (this.photoCache[ev.data.photoId]) {
-            // console.log('got exifParse', ev.data.exif);
-            this.photoCache[ ev.data.photoId ].setLocalExifData(ev.data.exif);
+            console.log('got exifParse', ev.data.exif);
+            this.photoCache[ ev.data.photoId ].setLocalExifData(ev.data.exif, ev.data.file);
           }
           else
             console.warn('photo parsed, but no photo in cache', photoId);
@@ -175,21 +170,26 @@
       if (photoId in this.cache)
         return;
       this.cache[photoId] = document.createElement('pook-proxy-photo');
-      this.cache[photoId].user = Singleton.user;
       this.cache[photoId].photoId = photoId;
     },
-    createPhotoFromFile: function(file) {
-      function create(database) {
-        // add to user's photos
-        var photoJson = {
-          createdAt: Firebase.ServerValue.TIMESTAMP,
-          displayName: file.name
-        }
-        var photoRef = database.push(photoJson);
-        // uploads the file, 
-        this.uploadFile(file, photoRef.name());
+    /**
+     * @method createPhotoFromFile
+     * @param {File} file
+     * @param {String} ownerId photo's owner
+     * @param {Function} callback fn(err, photoRef)
+     */
+    createPhotoFromFile: function(file, ownerId, callback) {
+      var photoDb = new Firebase( PookUtils.getFirebaseUrl('allPhotos'));
+      // create the photo
+      var photoJson = {
+        createdAt: Firebase.ServerValue.TIMESTAMP,
+        displayName: file.name,
+        owner: ownerId
       }
-      Singleton.user.requestDatabase('userPhotos').then(create.bind(this));
+      var photoRef = photoDb.push(photoJson);
+        // uploads the file
+      this.uploadFile(file, photoRef.key());
+      callback(null, photoRef);
     },
     uploadFile: function(file, photoId) {
       // request a proxy, so we have place to store progress

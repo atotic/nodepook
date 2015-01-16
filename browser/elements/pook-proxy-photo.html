@@ -1,12 +1,12 @@
-<link href="../vendor/firebase-elements/firebase-element.html" rel="import">
-<link href="pook-utils.html">
+<link rel="import" href="../vendor/firebase-elements/firebase-element.html" >
+<link rel="import" href="pook-utils.html">
 
 <!--
   pook-proxy-photo wraps native firebase photo object with 
   utility routines
   on upload, it uses local file data to compute   
   @element pook-proxy-photo
-  @category model
+  @group model
 -->
 
 <polymer-element name='pook-proxy-photo' extends='firebase-element'>
@@ -17,7 +17,6 @@
     Polymer({
       publish: {
         photoId: '',
-        user: null,
 
         /*
          * @property localExif
@@ -56,16 +55,13 @@
          */
         iconInfo: 'computeIconInfo(data.s3, localImage)'
       },
-      userChanged: function() {
-        this.openFirebase();
-      },
       photoIdChanged: function() {
         this.openFirebase();
       },
       openFirebase: function() {
-        if (this.photoId == '' || this.user == null )
+        if (this.photoId == '')
           return;
-        this.location = this.user.getDatabaseUrl('onePhoto', this.photoId)
+        this.location = PookUtils.getFirebaseUrl('onePhoto', this.photoId)
       },
       setLocalExifData: function(exif, file) {
         this.localExif = exif;
@@ -135,20 +131,20 @@
         // this._setDataUrl( c.toDataURL('image/jpeg'), canvasWidth, canvasHeight);
       },
       dataThumbnailFromFile: function() {
+        debugger;
         console.log("dataThumbnailFromFile");
         var img = new Image();
         var fileUrl = window.URL.createObjectURL(this.localFile);
         if (!fileUrl)
           return console.error('cant create localFile url');
-        var THIS = this;
         img.onload = function() {
-          THIS.dataThumbnailFromFile(img);
+          this.dataThumbnailFromFile(img);
           window.URL.revokeObjectURL(fileUrl);
-        };
+        }.bind(this);
         img.onerror = function() {
-          THIS.revokeFileUrl(fileUrl);
+          this.revokeFileUrl(fileUrl);
           console.warn("Error loading image from local file");
-        };
+        }.bind(this);
         img.src = fileUrl; // TODO throttle
       },
       generateLocalThumbnail: function() {
@@ -175,7 +171,7 @@
         }
         else {
           return  {
-            src: this.s3url + 'loading.jpg',
+            src: PookUtils.s3url + 'loading.jpg',
             width: 256,
             height: 256
           }

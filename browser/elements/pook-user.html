@@ -11,7 +11,7 @@ singleton, all instances share common state
     });
 
 @element pook-user
-@category model
+@group model
 
 -->
 <polymer-element name='pook-user' anonRedirect="">
@@ -20,8 +20,6 @@ singleton, all instances share common state
   (function() {
 
   "use strict";
-
-  var gFireServer = 'https://torid-inferno-6070.firebaseio.com/';
 
   // Stuff common to all pook-user instances
   var Singleton = {
@@ -46,7 +44,7 @@ singleton, all instances share common state
      */
       email: ''   
     },
-    authClient: new Firebase(gFireServer),
+    authClient: new Firebase( PookUtils.firebaseLoc ),
 
     /* 
      * Shared databases
@@ -60,14 +58,14 @@ singleton, all instances share common state
     databases: {
       account: false,
       user: false,
-      userPhotos: false,
-      userBooks: false,
+      myPhotos: false,
+      myBooks: false
     },
     databasePromises : {
       account: new PookPromise(),
       user: new PookPromise(),
-      userPhotos: new PookPromise(),
-      userBooks: new PookPromise()
+      myPhotos: new PookPromise(),
+      myBooks: new PookPromise()
     },
     /**
      * @property photoCache
@@ -99,10 +97,15 @@ singleton, all instances share common state
     computed: {
       uid: 'userInfo.uid',
       email: 'userInfo.email',
+      /**
+       * @property account
+       * @type object
+       * convenience access to /users/$userId/account
+       */
       account: "databases['account'].data",
-      userPhotos: "databases['userPhotos'].data",
       userData: "databases['user'].data",
-      userBooks: "databases['userBooks'].data"
+      myPhotos: "databases['myPhotos'].data",
+      myBooks: "databases['myBooks'].data"
     },
     observe: {
       uid: 'userStatusChanged'
@@ -120,12 +123,12 @@ singleton, all instances share common state
         window.location.replace(window.location.origin + this.anonRedirect);
     },
     /**
+     * @method requestDatabase
+     * @return Promise
      * Returns a promise to a database.
      *
      * Databases not ready until user is logged in
      *
-     * @return Promise
-     * @method requestDatabase
      */
     requestDatabase: function(type) {
       if (!(type in this.databases))
@@ -147,7 +150,7 @@ singleton, all instances share common state
         for (var k in this.databases)
           if (this.databases[k] === true) {
             this.databases[k] = document.createElement('firebase-element');
-            this.databases[k].location = this.getDatabaseUrl(k);
+            this.databases[k].location = PookUtils.getFirebaseUrl(k, this.uid);
             Singleton.databasePromises[k].resolve(this.databases[k]);
             // this.databases[k].log = true;
             // if (k == 'account') {
@@ -162,50 +165,42 @@ singleton, all instances share common state
           }
       }
     },
-    getDatabaseUrl: function(type, options) {
-      switch(type) {
-        case 'user':
-          return gFireServer + "users/" + this.uid;
-        case 'account':
-          return gFireServer + "users/" + this.uid + "/account";
-        case 'userPhotos':
-          return gFireServer + "photos/" + this.uid;
-        case 'userBooks':
-          return gFireServer + "books/" + this.uid;
-        case 'onePhoto': // options is photoId
-          return gFireServer + "photos/" + this.uid + "/" + options;
-        case 'oneBook': // options is bookId
-          return gFireServer + "books/" + this.uid + "/" + options;
-        default:
-          console.error("unknown database type", type);
-      }
-    },
+    /**
+     * @method logout
+     */
     logout: function() {
       Singleton.authClient.unauth();
     },
-    createPhoto: function(file) {
-      this.photoCache.createPhotoFromFile(file);
+    createPhoto: function(file, callback) {
+      callback = callback || PookUtils.noop;
+      this.photoCache.createPhotoFromFile(file, this.uid, function(err, photoRef) {
+        if (err)
+          callback(err);
+        else {
+          this.requestDatabase('myPhotos').then( function(db) {
+            console.log(photoRef.key());
+            db.ref.child(photoRef.key()).set(true, function(err) {
+              if (err) debugger;
+              callback(err, photoRef);
+            });
+          })
+        }
+      }.bind(this)
+      );
     },
     createBook: function(title, size) {
-      this.requestDatabase('userBooks');
-      // if databaase not available, reschedule
-      if (!this.databases['userBooks'] || !this.databases['userPhotos'].ref) {
-        this.async(function() {
-          this.createBook(title, size);
-        }, null, 500);
-        return;
-      };
-      // add book to user's books
-      var bookJson = {
-        createdAt: Firebase.ServerValue.TIMESTAMP,
-        title: title,
-        info: {
-          width: size.width,
-          height: size.height
-        }
-      };
-      var bookRef = this.databases['userBooks'].push(bookJson);
-      return bookRef;
+      this.requestDatabase('userBooks').then( function(db) {
+        var bookJson = {
+          createdAt: Firebase.ServerValue.TIMESTAMP,
+          title: title,
+          info: {
+            width: size.width,
+            height: size.height
+          }
+        };
+        var bookRef = this.databases['userBooks'].push(bookJson);
+        return bookRef;
+      });
     },
     deleteBook: function(bookId) {
       this.databases['userBooks'].ref.child(bookId).remove();

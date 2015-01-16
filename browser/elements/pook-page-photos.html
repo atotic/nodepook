@@ -6,7 +6,7 @@
   pook-page-photos displays all the user's photos
 
   @element pook-page-photos
-  @category ui
+  @group ui
 -->
 
 <polymer-element name='pook-page-photos'>
@@ -77,7 +77,7 @@
     created: function() {
       this.user = document.createElement('pook-user');
       var THIS = this;
-      this.user.requestDatabase('userPhotos').then( function(database) {
+      this.user.requestDatabase('myPhotos').then( function(database) {
         database.addEventListener('data-change', THIS.userPhotosChanged.bind(THIS));
       });
     },
@@ -85,8 +85,8 @@
       this.$.addPhotoInput.addEventListener('change', this.handleAddPhotoInput.bind(this));
     },
     userPhotosChanged: function() {
-      if (this.user.userPhotos)
-        this.photoIds = Object.keys(this.user.userPhotos).reverse();
+      if (this.user.myPhotos)
+        this.photoIds = Object.keys(this.user.myPhotos).reverse();
       else
         this.photoIds = [];
       // TODO scroll added photos into view

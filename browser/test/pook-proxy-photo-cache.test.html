@@ -1,0 +1,77 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>pook-proxy-photo-cache</title>
+
+  <!-- Test harness -->
+  <script src="../vendor/webcomponentsjs/webcomponents.min.js"></script>
+  <script src="../vendor/web-component-tester/browser.js"></script>
+  <script src="testUtils.js"></script>
+  <!-- Imports -->
+  <link rel="import" href="../vendor/firebase-elements/firebase-element.html">
+  <link rel="import" href="../elements/pook-proxy-photo-cache.html">
+  <link rel="import" href="../elements/pook-auth.html">
+  <link rel="import" href="../elements/pook-utils.html">
+  <link rel="import" href="../elements/pook-user.html">
+</head>
+<body>
+  <!-- Fixtures -->
+  <p>pook-proxy-photo-cache test</p>
+  <p style="font-size:x-large"><blink>You must pick a photo file for tests to pass</blink></p>
+  <input  id="addPhotoInput" type="file" multiple="true" accept="image/*" capture="filesystem">
+  <script>
+    "use strict";
+    var photoInput = document.getElementById('addPhotoInput');
+    var photoCache = document.createElement('pook-proxy-photo-cache');
+
+    var firebase = new Firebase(PookUtils.firebaseLoc);
+
+    var credentials = {
+      email: PookUtils.randomString(6) + "@test.com",
+      password: '12345678'
+    }
+
+    var pookAuth = document.createElement('pook-auth');
+
+    suite('<pook-auth>', function() {
+
+      before( function(done) {
+        // create user, done when logged in
+        pookAuth.createPookUser(credentials, function(err) {});
+        function oneAndGone(auth) {
+          if (auth) {
+             firebase.offAuth(oneAndGone);
+             done();
+          }
+        };
+        firebase.onAuth( oneAndGone);
+      });
+
+      after( function(done) {
+        pookAuth._deletePookUser(credentials, done);
+      });
+
+      test('createPhotoFromFile', function(done) {
+        photoInput.addEventListener('change', function() {
+          if (!photoInput.files.length > 0)
+            return done( new Error('no file'));
+          var auth = firebase.getAuth();
+          photoCache.createPhotoFromFile( photoInput.files.item(0), auth.uid, 
+            function(err, photoRef) {
+              done(err);
+          });
+        });
+      });
+
+      test('pook-user.createPhoto', function(done) {
+        if (!photoInput.files.length > 0)
+          return done( new Error('no file'));
+        var pookUser = document.createElement('pook-user');
+        pookUser.createPhoto( photoInput.files.item(0), done);
+      });
+    });
+  </script>
+
+</body>
+</html>

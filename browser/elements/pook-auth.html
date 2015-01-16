@@ -14,7 +14,7 @@ All callbacks return Error with these fields:
     firebaseError: original firebase error
 
 @element pook-auth
-@category model
+@group model
 -->
 <polymer-element name='pook-auth'>
   <template></template>
@@ -36,20 +36,53 @@ All callbacks return Error with these fields:
       _deletePookUser: function(credentials, callback) {
         var credentials 
         var ref = this.firebase;
+        var userRef;
         var uid;
         async.waterfall([
           function login(cb) {
-            ref.authWithPassword(credentials, cb);
+            var auth = ref.getAuth();
+            if (auth === null || auth.password.email != credentials.email.toLowerCase())
+              ref.authWithPassword(credentials, cb);
+            else
+              cb(null, auth);
           },
-          function deleteUserRecord(ignore, cb) {
-            uid = ref.getAuth().uid;
-            ref.child('users').child(uid).remove(cb);
+          function readUserData(auth, cb) {
+            console.log('readUserData');
+            userRef = ref.child('users').child(auth.uid);
+            userRef.once('value', 
+              function success(snapshot) {
+                cb(null, snapshot.val());
+              },
+              function fail(err) {
+                cb(err);
+              });
           },
-          function deleteUserPhotos(cb) {
-            ref.child('photos').child(uid).remove(cb);
+          function deletePhotos(userData, cb) {
+            // Loop through all myPhotos, and remove them
+            async.each( 
+              Object.keys(userData.myPhotos || {}), 
+              function deleteOnePhoto(itemId, delCb) {
+                (new Firebase( PookUtils.getFirebaseUrl('onePhoto', itemId))).remove(delCb);
+              },
+              function(err) {
+                cb(err, userData);
+              }
+            );
           },
-          function deleteUserBooks(cb) {
-            ref.child('books').child(uid).remove(cb);
+          function deleteBooks(userData, cb) {
+            // Loop through all myBooks, and remove them
+            async.each( 
+              Object.keys(userData.myBooks || {}), 
+              function deleteOneBook(bookId, delCb) {
+                (new Firebase( PookUtils.getFirebaseUrl('oneBook', itemId))).remove( delCb );
+              },
+              function(err) {
+                cb(err);
+              }
+            );
+          },
+          function deleteUserRecord(cb) {
+            userRef.remove( cb );
           },
           function deleteUserAuth(cb) {
             ref.removeUser(credentials, cb);
@@ -136,7 +169,7 @@ All callbacks return Error with these fields:
         }
         );
       },
-      /**
+      /*
       Transforms firebase errors into human-readable message, and extras. See docs on top on error format.
       variant: changes text depending on situation
       */

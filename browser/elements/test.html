@@ -21,7 +21,7 @@
 </style>
 <!--
 @class test-globals
-@category junk
+@group junk
 -->
 <polymer-element name='test-globals'>
   <template>
@@ -287,7 +287,7 @@
           for (var k in this.databases)
             if (this.databases[k] === true) {
               this.databases[k] = document.createElement('firebase-element');
-              this.databases[k].location = this.getDatabaseUrl(k);
+              this.databases[k].location = PookUtils.getFirebaseUrl(k);
             }
         }
       },

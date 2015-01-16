@@ -1,4 +1,8 @@
-// exif-worker
+/**
+ * @class exif-worker
+ * Parses exif data from a file
+ * Sends parsed event when complete
+ */
 // postMessage("I\'m working before postMessage");
 
 importScripts('/vendor/jdataview/dist/browser/jdataview.js');
@@ -16,7 +20,7 @@ function parseLocalFile(file, photoId) {
   var exifData = parser.exif;
   exifData.displayName = file.name;
   // console.profileEnd();
-  postMessage({action: 'parsed', exif: exifData, photoId: photoId });
+  postMessage({action: 'parsed', exif: exifData, photoId: photoId, file: file });
 }
 
 function sliceFile(file, size) {

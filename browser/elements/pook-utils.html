@@ -7,7 +7,7 @@
 /**
   * PookPromise exposes resolve/reject methods
   * @class PookPromise
-  * @category utilities
+  * @group utilities
   */
   function PookPromise() {
     this.promise = new Promise(this.init.bind(this));
@@ -34,14 +34,63 @@
   };
 
 /**
- * Miscellaneous utility functions
+ * Utility functions
  * @class PookUtils
- * @category utilities
+ * @group utilities
  */
   PookUtils = {
+    /**
+     * @property firebaseLoc
+     * Firebase base url
+     */
     firebaseLoc: 'https://torid-inferno-6070.firebaseio.com/',
+    /**
+     * @property s3url
+     * s3 storage
+     */
     s3url: "http://pookio-test.s3-website-us-west-2.amazonaws.com/",
     
+    /**
+     * @method noop
+     * null function
+     */
+    noop: function() {},
+    /**
+     * @method getFirebaseUrl
+     * @param {String} type user account myPhotos myBooks onePhoto oneBook allBooks allPhotos
+     * @param {String} id optional
+     * returns String suitable for new Firebase(str)
+     */
+    getFirebaseUrl: function(type, id) {
+      switch(type) {
+        case 'user':
+          return this.firebaseLoc + "users/" + id;
+        case 'account':
+          return this.firebaseLoc + "users/" + id + "/account";
+        case 'myPhotos':
+          return this.firebaseLoc + "users/" + id + "/myPhotos";
+        case 'myBooks':
+          return this.firebaseLoc + "users/" + id + "/myBooks";
+        case 'onePhoto': // options is photoId
+          return this.firebaseLoc + "photos/" + id;
+        case 'oneBook': // options is bookId
+          return this.firebaseLoc + "books/" + id;
+        case 'allBooks':
+          return this.firebaseLoc + "books";
+        case 'allPhotos':
+          return this.firebaseLoc + "photos";
+        default:
+          throw new Error("unknown database type " + type);
+      }
+
+    },
+    /**
+     * @method randomString
+     * @param {Number} len string length
+     * @param {String} charSet optional character set
+     *
+     * returns a random string
+     */
     randomString: function (len, charSet) {
       charSet = charSet || 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
       var randomString = '';
@@ -51,24 +100,25 @@
       }
       return randomString;
     },
+    
     arrayToHash: function(arry) {
       var retVal = {};
       for (var i=0; i<arry.length; i++)
         retVal[arry[i]] = i;
       return retVal;
     },
-    // callback(node) return true if right node
-    mutationsFindAddedNode: function(mutations, callback) {
-      if (!mutations)
-        return null;
-      for (var i=0; i<mutations.length; i++) {
-        if (mutations[i].addedNodes)
-          for (var j=0; j<mutations[i].addedNodes.length; j++)
-            if (callback(mutations[i].addedNodes.item(j)))
-              return mutations[i].addedNodes.item(j);
-      }
-      return null;
+
+    /**
+     * returns `{key: true}`
+     * @method makeObjectWithBoolean
+     * @param {String} key   
+     */
+    makeObjectWithBoolean: function(key) {
+      var retVal = {};
+      retVal[key] = true;
+      return retVal;
     },
+    
     scrollIntoView: function(element, parentElement) {
     //           var player = document.timeline.play(new Animation(element, [
     //   {opacity: "0.5", transform: "scale(0.5)"}, 

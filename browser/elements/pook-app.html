@@ -21,7 +21,7 @@ Main pook.io application
 
 Responsible for routing
 @element pook-app
-@category ui
+@group ui
 -->
 <polymer-element name='pook-app'>
   <template>
@@ -193,7 +193,7 @@ Responsible for routing
       this.$.menu.selected = this.$.menu.children.length - 1;
 
       // load the book title from firebase, remove the book on fail
-      var bookRef = new Firebase(this.$.user.getDatabaseUrl('oneBook', bookId));
+      var bookRef = new Firebase(PookUtils.getFirebaseUrl('oneBook', bookId));
       var THIS = this;
 
       function removeBook() {
