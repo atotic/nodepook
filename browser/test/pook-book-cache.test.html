@@ -23,18 +23,23 @@
 
     var firebase = new Firebase(PookUtils.firebaseLoc);
 
-
     suite('<pook-book-cache>', function() {
 
       before( function(done) {
         TestUtils.createDefaultTestUser(done);
+      });
+      after( function(done) {
+        TestUtils.deleteDefaultTestUser(done);
       });
 
       test('createBook', function(done) {
         var auth = firebase.getAuth();
         cache.createBook(auth.uid, "title", { width: 12, height: 12},
           function(err, ref) {
-            done(err);
+            if (err)
+              done(err);
+            else
+              ref.remove(done);
         });
       });
 

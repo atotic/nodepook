@@ -1,9 +1,6 @@
 <!doctype html>
 <html>
 <head>
-  <meta charset="UTF-8">
-  <title>pook-photo-cache test</title>
-
   <!-- Test harness -->
   <script src="../vendor/webcomponentsjs/webcomponents.min.js"></script>
   <script src="../vendor/web-component-tester/browser.js"></script>
@@ -17,7 +14,7 @@
 </head>
 <body>
   <!-- Fixtures -->
-  <p>pook-proxy-photo-cache test</p>
+  <p>pook-photo-cache test</p>
   <p style="font-size:x-large"><blink>You must pick a photo file for tests to pass</blink></p>
   <input  id="addPhotoInput" type="file" multiple="true" accept="image/*" capture="filesystem">
   <script>
@@ -27,17 +24,16 @@
 
     var firebase = new Firebase(PookUtils.firebaseLoc);
 
-    var credentials = {
-      email: PookUtils.randomString(6) + "@test.com",
-      password: '12345678'
-    }
+    console.log("%cPick a file", "color:orange; background:blue; font-size: 16pt");
 
-    var pookAuth = document.createElement('pook-auth');
-
-    suite('<pook-auth>', function() {
+    suite('<pook-photo-cache>', function() {
 
       before( function(done) {
         TestUtils.createDefaultTestUser(done);
+      });
+
+      after( function(done) {
+        TestUtils.deleteDefaultTestUser(done);
       });
 
       test('createPhotoFromFile', function(done) {
@@ -47,7 +43,10 @@
           var auth = firebase.getAuth();
           photoCache.createPhotoFromFile( photoInput.files.item(0), auth.uid, 
             function(err, photoRef) {
-              done(err);
+              if (err)
+                done(err);
+              else
+                photoRef.remove(done);
           });
         });
       });
