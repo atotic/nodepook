@@ -1,0 +1,19 @@
+<!doctype html>
+<!-- testUtilsCleanup removes default test user;. Should be run after all tests are complete
+<html>
+<head>
+  <!-- Test harness -->
+  <script src="../vendor/webcomponentsjs/webcomponents.min.js"></script>
+  <script src="../vendor/web-component-tester/browser.js"></script>
+  <link rel="import" href="testUtils.html">
+</head>
+<body>
+  <script>
+    suite('cleanup', function() {
+      test('remove test user', function(done) {
+        TestUtils.deleteDefaultTestUser(done);
+      });
+    });
+  </script>
+</body>
+</html>

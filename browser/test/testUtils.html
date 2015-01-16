@@ -1,0 +1,59 @@
+<link rel="import" href="../elements/pook-auth.html">
+<link rel="import" href="../elements/pook-utils.html">
+
+<script>
+(function() {
+"use strict";
+  var TestUtils = {
+    setInputValue: function(field, value) {
+      field.value = value;
+      field.commit();
+    },
+    testCredentials: {
+      email: "test0@test.com",
+      password: '12345678'
+    },
+
+    /**
+     * @method createDefaultTestUser
+     * @param <Function> callback cb(err, auth)
+     * creates a brand new user. Multiple calls return same user
+     */
+    createDefaultTestUser: function(callback) {
+      function oneAndGone(auth) {
+        if (auth) {
+           firebase.offAuth(oneAndGone);
+           callback(null, auth);
+        }
+      };
+      var pookAuth = document.createElement('pook-auth');
+      if (!('defaultCredentials' in this)) {
+        this.defaultCredentials = {
+            email: PookUtils.randomString(6) + "@test.com",
+            password: '12345678'
+        }
+        pookAuth.createPookUser( this.defaultCredentials, PookUtils.noope);
+        firebase.onAuth( oneAndGone);
+      } else {
+        pookAuth.login(this.defaultCredentials, null, function(err, info) {
+          if (err)
+            throw err;
+          callback(null, info.auth);
+        });        
+      }
+    },
+    /**
+     * @method deleteDefaultTestUser
+     * 
+     */
+    deleteDefaultTestUser: function(callback) {
+      if (!('defaultCredentials' in this)) 
+        return callback();
+      var pookAuth = document.createElement('pook-auth');
+      pookAuth._deletePookUser(this.defaultCredentials, callback);
+    }
+  }
+  window.TestUtils = TestUtils;
+})();
+
+</script>

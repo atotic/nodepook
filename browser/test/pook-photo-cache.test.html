@@ -7,7 +7,7 @@
   <!-- Test harness -->
   <script src="../vendor/webcomponentsjs/webcomponents.min.js"></script>
   <script src="../vendor/web-component-tester/browser.js"></script>
-  <script src="testUtils.js"></script>
+  <link rel="import" href="testUtils.html">
   <!-- Imports -->
   <link rel="import" href="../vendor/firebase-elements/firebase-element.html">
   <link rel="import" href="../elements/pook-photo-cache.html">
@@ -37,19 +37,7 @@
     suite('<pook-auth>', function() {
 
       before( function(done) {
-        // create user, done when logged in
-        pookAuth.createPookUser(credentials, function(err) {});
-        function oneAndGone(auth) {
-          if (auth) {
-             firebase.offAuth(oneAndGone);
-             done();
-          }
-        };
-        firebase.onAuth( oneAndGone);
-      });
-
-      after( function(done) {
-        pookAuth._deletePookUser(credentials, done);
+        TestUtils.createDefaultTestUser(done);
       });
 
       test('createPhotoFromFile', function(done) {

@@ -1,19 +1,30 @@
 <link href="../vendor/firebase-elements/firebase-element.html" rel="import">
 <link href="pook-utils.html">
 <!--
-  Firebase book manipulation
+Firebase book manipulation
 
-  properties:
+Properties:
 
-      "createdAt": { ".validate": "newData.isNumber()"},
-      "title": { ".validate": "newData.isString()" },
-      "width": { ".validate": "newData.isNumber()" },
-      "height": { ".validate": "newData.isNumber()" },
-      "photos": { "$photoId": { ".validate": "newData.isBoolean()"}}
-      "sharing": { "$uid": { ".validate": "newData.isBoolean()" }},
+    "owner" : { ".validate": "newData.isString() && newData.val() === auth.uid"},
+    "createdAt": { ".validate": "newData.isNumber()"},
+    "title": { ".validate": "newData.isString()" },
+    "width": { ".validate": "newData.isNumber()" },
+    "height": { ".validate": "newData.isNumber()" },
+    "sides": {
+      "$sideId": {
+        "left": { ".validate": "newData.isString()"},
+        "right": { ".validate": "newData.isString()"}
+      }
+    },
+    "photos": {
+      "$photoId": { ".validate": "newData.isBoolean()"}
+    },
+    "sharedWith": {
+      "$uid": { ".validate": "newData.isBoolean()" }
+    },
 
-  @element pook-proxy-book
-  @group model
+@element pook-proxy-book
+@group model
 
 -->
 <polymer-element name='pook-proxy-book' extends='firebase-element'>
@@ -34,25 +45,7 @@
         this.location = PookUtils.firebaseLoc + '/books' + this.bookId;
       else
         this.location = null;
-    },
-    /** 
-     * Creates a new book
-     * @method createBook
-     */
-    createBook: function(title, width, height) {
-      var bookJson = {
-        title: title,
-        width: width,
-        height: height,
-        createdAt: Firebase.ServerValue.TIMESTAMP
-      }
-      var user = document.createElement('pook-user');
-      user.requestDatabase('userBooks').then( function(db) {
-        var ref = db.push(bookJson);
-        this.location = ref.toString();
-      });
     }
-
   });
   </script>
 </polymer-element>

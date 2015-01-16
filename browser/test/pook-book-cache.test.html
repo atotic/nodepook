@@ -1,0 +1,49 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="UTF-8">
+
+  <!-- Test harness -->
+  <script src="../vendor/webcomponentsjs/webcomponents.min.js"></script>
+  <script src="../vendor/web-component-tester/browser.js"></script>
+  <link rel="import" href="testUtils.html">
+  <!-- Imports -->
+  <link rel="import" href="../vendor/firebase-elements/firebase-element.html">
+  <link rel="import" href="../elements/pook-book-cache.html">
+  <link rel="import" href="../elements/pook-auth.html">
+  <link rel="import" href="../elements/pook-utils.html">
+  <link rel="import" href="../elements/pook-user.html">
+</head>
+<body>
+  <!-- Fixtures -->
+  <p>pook-book-cache</p>
+  <script>
+    "use strict";
+    var cache = document.createElement('pook-book-cache');
+
+    var firebase = new Firebase(PookUtils.firebaseLoc);
+
+
+    suite('<pook-book-cache>', function() {
+
+      before( function(done) {
+        TestUtils.createDefaultTestUser(done);
+      });
+
+      test('createBook', function(done) {
+        var auth = firebase.getAuth();
+        cache.createBook(auth.uid, "title", { width: 12, height: 12},
+          function(err, ref) {
+            done(err);
+        });
+      });
+
+      test('pook-user.createBook', function(done) {
+        var pookUser = document.createElement('pook-user');
+        pookUser.createBook( "title",  { width: 12, height: 12}, done);
+      });
+    });
+  </script>
+
+</body>
+</html>

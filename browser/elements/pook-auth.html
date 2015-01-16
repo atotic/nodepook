@@ -23,6 +23,7 @@ All callbacks return Error with these fields:
       created: function() {
         this.firebase = new Firebase(PookUtils.firebaseLoc);
       },
+      // create firebase user
       _fbCreateUser: function(credentials, callback) {
         this.firebase.createUser( credentials,
           function(err) {
@@ -34,7 +35,6 @@ All callbacks return Error with these fields:
       },
       // testing only!
       _deletePookUser: function(credentials, callback) {
-        var credentials 
         var ref = this.firebase;
         var userRef;
         var uid;
@@ -47,7 +47,7 @@ All callbacks return Error with these fields:
               cb(null, auth);
           },
           function readUserData(auth, cb) {
-            console.log('readUserData');
+            // console.log('readUserData');
             userRef = ref.child('users').child(auth.uid);
             userRef.once('value', 
               function success(snapshot) {
@@ -59,6 +59,7 @@ All callbacks return Error with these fields:
           },
           function deletePhotos(userData, cb) {
             // Loop through all myPhotos, and remove them
+            if (!userData) return cb(null, userData);
             async.each( 
               Object.keys(userData.myPhotos || {}), 
               function deleteOnePhoto(itemId, delCb) {
@@ -71,9 +72,10 @@ All callbacks return Error with these fields:
           },
           function deleteBooks(userData, cb) {
             // Loop through all myBooks, and remove them
+            if (!userData) return cb(null, userData);
             async.each( 
               Object.keys(userData.myBooks || {}), 
-              function deleteOneBook(bookId, delCb) {
+              function deleteOneBook(itemId, delCb) {
                 (new Firebase( PookUtils.getFirebaseUrl('oneBook', itemId))).remove( delCb );
               },
               function(err) {
@@ -150,6 +152,7 @@ All callbacks return Error with these fields:
        * user create and login
        */
       createPookUser: function(credentials, callback) {
+        this.firebase.unauth();
         async.waterfall(
         [
           function(cb) {

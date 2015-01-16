@@ -1,0 +1,68 @@
+<link href="../vendor/polymer/polymer.html" rel="import">
+
+<link rel="import" href="pook-proxy-book.html">
+
+<!--
+@element pook-book-cache
+@group model
+Cache of pook-proxy-book elements
+
+-->
+
+<polymer-element name="pook-book-cache">
+  <template></template>
+  <script>
+  "use strict";
+  (function() {
+  var Singleton = {
+    books: {} // "$bookId" -> <pook-proxy-book>
+  }
+
+  Polymer({
+    publish: {
+      /**
+       * @property books
+       * @type Map
+       * "$bookId" -> `<pook-proxy-book>`
+       */
+      books: null
+    },
+    created: function() {
+      this.books = Singleton.books;
+    },
+    /**
+     * @method getBook
+     * Returns pook-proxy-book. After fetch, also accessible through books[id] for template use
+     */
+    getBook: function(id) {
+      if (!(id in this.books)) {
+        this.books[id] = document.createElement('pook-proxy-book');
+        this.books[id].bookId = id;
+      }
+      return this.books[id];
+    },
+    /**
+     * @method createBook
+     * @param {String} ownerId owner user id
+     * @param {String} title title
+     * @param {Object} size size.width, size.height in inches
+     * @param {Function} callback fn(err, bookRef)
+     *
+     * creates new book inside /books/$bookId. Use user.creawteBook for complete assignment
+     */
+    createBook: function(ownerId, title, size, callback) {
+      var json = {
+        createdAt: Firebase.ServerValue.TIMESTAMP,
+        owner: ownerId,
+        title: title,
+        width: size.width,
+        height: size.height
+      }
+      var db = new Firebase( PookUtils.getFirebaseUrl('allBooks'));
+      var ref = db.push(json);
+      callback(null, ref);
+    }
+  });
+  })();
+  </script>
+</polymer-element>

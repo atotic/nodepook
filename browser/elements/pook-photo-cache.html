@@ -29,9 +29,9 @@ Create raw new photo, and uploades it
 -->
 
 <polymer-element name='pook-photo-cache'>
-  <template>
-  </template>
+  <template></template>
   <script>
+  (function() {
   "use strict";
 
 
@@ -130,12 +130,6 @@ Create raw new photo, and uploades it
         Cache of pook-proxy-photo objects
         Use this to access photo data. requestPhotoProxy() requests data in cache
       */
-      // photoId: pook-proxy-photo
-    },
-    get user() {
-      if (!('_user' in this))
-        this._user = document.createElement('pook-user');
-      return this._user;
     },
     get exifWorker() {
       if (!('_exifWorker' in this)) {
@@ -177,7 +171,7 @@ Create raw new photo, and uploades it
     publish: {
       /**
        * @property photos
-       * @type Object { $photoId: pook-proxy-photo } 
+       * @type Map { $photoId: pook-proxy-photo } 
        * cache of `pook-proxy-photo` objects
        */
       photos: null
@@ -220,19 +214,20 @@ Create raw new photo, and uploades it
       if (!ownerId)
         throw new Error("ownerId cant be null");
 
-      var photoDb = new Firebase( PookUtils.getFirebaseUrl('allPhotos'));
+      var db = new Firebase( PookUtils.getFirebaseUrl('allPhotos'));
       // create the photo
-      var photoJson = {
+      var json = {
         createdAt: Firebase.ServerValue.TIMESTAMP,
         displayName: file.name,
         owner: ownerId
       }
-      var photoRef = photoDb.push(photoJson);
+      var ref = db.push(json);
         // uploads the file
-      this.uploadFile(file, photoRef.key());
-      callback(null, photoRef);
+      this.uploadFile(file, ref.key());
+      callback(null, ref);
     }
 
   });
+  })();
   </script>
 </polymer-element>

@@ -56,6 +56,14 @@
      */
     noop: function() {},
     /**
+     * @method noope
+     * noop that logs errors
+     */
+    noope: function(err) {
+      if (err)
+        console.error("Unexpected error:", err);
+    },
+    /**
      * @method getFirebaseUrl
      * @param {String} type user account myPhotos myBooks onePhoto oneBook allBooks allPhotos
      * @param {String} id optional

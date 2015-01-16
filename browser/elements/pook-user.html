@@ -1,5 +1,7 @@
 <link href="../vendor/polymer/polymer.html" rel="import">
 <link href="pook-utils.html" rel="import">
+<link rel="import" href="pook-book-cache.html">
+<link rel="import" href="pook-photo-cache.html">
 
 <!--
 current user entry point
@@ -47,13 +49,14 @@ singleton, all instances share common state
     authClient: new Firebase( PookUtils.firebaseLoc ),
 
     /* 
-     * Shared databases
-    Shared databases as firebase-element objects
+    User related databases
+    User databases contain $userId in their path, and can only be loaded after we know userId
+    Requests for user database return Promise, which is fullfilled when user authenticates
+
     state can have 3 values:
     false: database has not been requested
     true: database has been requested
     object: this is the database, firebase-element
-    databases are created when user logged in && requested with requestDatabase
     */  
     databases: {
       account: false,
@@ -76,6 +79,12 @@ singleton, all instances share common state
       if (!('_photoCache' in this))
         this._photoCache = document.createElement('pook-photo-cache');
       return this._photoCache;
+    },
+
+    get bookCache() {
+      if (!('_bookCache' in this))
+        this._bookCache = document.createElement('pook-book-cache');
+      return this._bookCache;
     }
   };
 
@@ -92,7 +101,16 @@ singleton, all instances share common state
       anonRedirect: '',
       userInfo: null,
       databases: null,
-      photoCache: null
+      /**
+       * @property photoCache
+       * @type pook-photo-cache
+       */
+      photoCache: null,
+      /**
+       * @property bookCache
+       * @type pook-book-cache
+       */
+      bookCache: null
     },
     computed: {
       uid: 'userInfo.uid',
@@ -114,6 +132,7 @@ singleton, all instances share common state
       this.userInfo = Singleton.userInfo;
       this.databases = Singleton.databases;
       this.photoCache = Singleton.photoCache;
+      this.bookCache = Singleton.bookCache;
     },
     userStatusChanged: function() {
       // console.log("userStatusChanged", this.uid);
@@ -171,36 +190,43 @@ singleton, all instances share common state
     logout: function() {
       Singleton.authClient.unauth();
     },
+    /**
+     * @method createPhoto
+     * @param <File> file local file
+     * creates photo record in db, and uploads file to server
+     */
     createPhoto: function(file, callback) {
-      callback = callback || PookUtils.noop;
+      callback = callback || PookUtils.noope;
       this.photoCache.createPhotoFromFile(file, this.uid, function(err, photoRef) {
         if (err)
-          callback(err);
-        else {
-          this.requestDatabase('myPhotos').then( function(db) {
-            db.ref.child(photoRef.key()).set(true, function(err) {
-              if (err) debugger;
-              callback(err, photoRef);
-            });
-          })
-        }
+          return callback(err);
+        this.requestDatabase('myPhotos').then( function(db) {
+          db.ref.child(photoRef.key()).set(true, function(err) {
+            if (err) debugger;
+            callback(err, photoRef);
+          });
+        })
       }.bind(this)
       );
     },
-    createBook: function(title, size) {
-      this.requestDatabase('userBooks').then( function(db) {
-        var bookJson = {
-          createdAt: Firebase.ServerValue.TIMESTAMP,
-          title: title,
-          info: {
-            width: size.width,
-            height: size.height
-          }
-        };
-        var bookRef = this.databases['userBooks'].push(bookJson);
-        return bookRef;
-      });
+    /**
+     * @method createBook
+     * 
+     */
+    createBook: function(title, size, callback) {
+      callback = callback || PookUtils.noope;
+      this.bookCache.createBook(this.uid, title, size, function(err, ref) {
+        if (err) 
+          return callback(err);
+        this.requestDatabase('myBooks').then( function(db) {
+          db.ref.child(ref.key()).set(true, function(err) {
+            if (err) debugger;
+            callback(err, ref);
+          })
+        }.bind(this));
+      }.bind(this));
     },
+
     deleteBook: function(bookId) {
       this.databases['userBooks'].ref.child(bookId).remove();
     }
