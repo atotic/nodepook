@@ -47,13 +47,17 @@
   </template>
   <script>
   Polymer( {
-    publish: {
-      user: null
-    },
     created: function() {
       this.user = document.createElement('pook-user');
       this.user.requestDatabase('user');
-      this.user.requestDatabase('account');
+      this.user.requestDatabase('account').then(function(db) {
+        // Workaround for "null data does not get saved" firebase-element bug
+        // See https://github.com/Polymer/firebase-element
+        db.ref.once('value', function(snapshot) {
+          if (db.data === null)
+            db.data = {};
+        });
+      });
     }
   });
   </script>

@@ -3,8 +3,10 @@
     "/docs/developer.txt",
     "/docs/devops.txt",
     "/docs/firebase.txt",
+    "/docs/index.html",
     "/docs/json.txt",
-    "/docs/notes.txt"
+    "/docs/notes.txt",
+    "/docs/sourceSet.json"
   ],
   "Elements": [
     "/elements/async.html",
@@ -15,16 +17,18 @@
     "/elements/pook-auth-ui.html",
     "/elements/pook-auth.html",
     "/elements/pook-body-file-drop.html",
-    "/elements/pook-dialog-new-book.html",
+    "/elements/pook-book-cache.html",
     "/elements/pook-flash.html",
+    "/elements/pook-new-book-dialog.html",
     "/elements/pook-page-account.html",
     "/elements/pook-page-book-editor.html",
     "/elements/pook-page-books.html",
     "/elements/pook-page-photos.html",
     "/elements/pook-page-security.html",
+    "/elements/pook-photo-cache.html",
     "/elements/pook-proxy-book.html",
-    "/elements/pook-proxy-photo-cache.html",
     "/elements/pook-proxy-photo.html",
+    "/elements/pook-share-book-dialog.html",
     "/elements/pook-state-dropdown.html",
     "/elements/pook-styles.html",
     "/elements/pook-user.html",
@@ -113,5 +117,8 @@
     "/vendor/sampler-scaffold/sampler-scaffold.html",
     "/vendor/sanity-check/sanity-check.html"
   ],
-  "References": ["http://blog.keithcirkel.co.uk/how-to-use-npm-as-a-build-tool/"]
+  "References": [
+    "http://blog.keithcirkel.co.uk/how-to-use-npm-as-a-build-tool/",
+    "http://iamralpht.github.io/physics/"
+  ]
 }

@@ -7,14 +7,16 @@
 
 <link rel="import" href="pook-user.html">
 <!--
-Dialog for new book creation
+Dialog for new book creation.
 
-@element pook-dialog-new-book
+Gets deleted from DOM on close.
+
+@element pook-new-book-dialog
 @group ui
 -->
-<polymer-element name='pook-dialog-new-book'>
+<polymer-element name='pook-new-book-dialog'>
   <template>
-      <paper-action-dialog id='newBookDialog' heading="Lets make a book" transition="paper-dialog-transition-bottom">
+      <paper-action-dialog id='dialog' heading="Lets make a book" transition="paper-dialog-transition-bottom">
 
        <style>
          polyfill-unscoped-rule {
@@ -70,33 +72,30 @@ Dialog for new book creation
   </template>
   <script>
 
-  var bookSizes = [
-  { width: 7, height: 5},
-  { width: 11, height: 8},
-  { width: 8, height: 8},
-  { width: 12, height: 12}
-  ];
   Polymer( {
     publish: {
-      user: null,
-      bookSizes: null,
+      bookSizes: [
+        { width: 7, height: 5},
+        { width: 11, height: 8},
+        { width: 8, height: 8},
+        { width: 12, height: 12}
+      ],
       newBookTitle: null,
       newBookSizeSelection: -1,
     },
     computed: {
       validNewBookDialog: 'validateNewBookDialog(newBookTitle, newBookSizeSelection )'
     },
-    created: function() {
-      this.bookSizes = bookSizes;
-      this.user = document.createElement('pook-user');
-    },
-    toggle: function() {
-      this.newBookTitle = "";
-      this.$.newBookDialog.toggle();
-      setTimeout( (function() { this.$.newBookDialogTitle.focus(); }).bind(this), 500);
+    ready: function() {
+      this.$.dialog.addEventListener('core-overlay-close-completed', function() {
+        this.parentNode.removeChild(this);
+      }.bind(this));  // remove from dom on close
+      this.$.dialog.open();
     },
     createNewBook: function() {
-      this.user.createBook(this.newBookTitle, this.bookSizes[this.newBookSizeSelection]);
+      document.createElement('pook-user').createBook(
+        this.newBookTitle, 
+        this.bookSizes[this.newBookSizeSelection]);
     },
     validateNewBookDialog: function(title, sizeIndex) {
       return ((typeof title) === 'string') && title.length > 0 &&

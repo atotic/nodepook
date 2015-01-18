@@ -6,25 +6,25 @@
 @element pook-photo-cache
 @group model
 
-Cache of pook-proxy-photo objects
+Cache of pook-proxy-photo objects. Singleton.
 
 Also, utility routines to create/upload photos, read exif data from file with exif-worker.
 
 Access photo from cache:
 
-    
-    var photoProxy = user.photoCache.getPhoto(photoId)
+    var photoCache = document.createElement('pook-photo-cache');
+    var photoProxy = photoCache.getPhoto(photoId)
     // after photo was accessed once, you can get it directly
     // this is useful for templates, which can't do function calls
-    photoProxy = user.photoCache.photos[photoId]
+    photoCache.getPhoto(photoId) === photoCache.photos[photoId]
 
 Create new photo accociated with user (updates user.myPhotos)
 
     user.createPhoto(file)
 
-Create raw new photo, and uploades it
+Create raw new photo, and upload it. Does not update user's record.
 
-    user.photos.createPhotoFromFile(file, ownerId) creates photo, and uploads it
+    photoCache.createPhotoFromFile(file, ownerId) creates photo, and uploads it
 
 -->
 

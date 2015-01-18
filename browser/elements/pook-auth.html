@@ -120,7 +120,7 @@ All callbacks return Error with these fields:
         var userRef = this.firebase.child('users').child(auth.uid);
         userRef.update( {
             createdAt: Firebase.ServerValue.TIMESTAMP, 
-            email: auth.password.email              
+            email: auth.password.email     
           },
           function(err) {
             try { 

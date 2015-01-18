@@ -40,9 +40,9 @@ Properties:
        */
       bookId: null, 
     },
-    bookLocChanged: function() {
-      if (this.bookLoc)
-        this.location = PookUtils.firebaseLoc + '/books' + this.bookId;
+    bookIdChanged: function() {
+      if (this.bookId)
+        this.location = PookUtils.getFirebaseUrl('oneBook', this.bookId);
       else
         this.location = null;
     }

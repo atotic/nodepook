@@ -5,11 +5,13 @@
 <link href="../vendor/core-icons/core-icons.html" rel="import">
 <link href="../vendor/core-icons/social-icons.html" rel="import">
 
-<link href="pook-user.html" rel="import">
+<link rel="import" href="pook-user.html">
+<link rel="import" href="pook-new-book-dialog.html">
+<link rel="import" href="pook-share-book-dialog.html">
 
 <!--
 /**
-  * Book listing 
+  * Book listing and actions
   *
   * @element pook-page-books
   # @group ui
@@ -89,30 +91,28 @@
         overflow:hidden;
       }
     </style>
-    <pook-dialog-new-book id='newBookDialog'></pook-dialog-new-book>
     <div id='selectorContainer' on-tap='{{clearSelection}}'>
       <core-selector id='bookSelector' touch-action="none" >
         <div style="padding:0 8px 0 4px; width: 100px; height: 100px; position:relative">
           <paper-button on-tap="{{showNewBookDialog}}" raised style="position:absolute; bottom:10px;">Start a new book...</paper-button>
         </div>
         <template id="bookList" repeat="{{k in bookIds}}">
-         <p>BOOK!</p>
-<!--            <div layout vertical 
+            <div layout vertical 
               class="book-tile {{ k | computeTileClass }}"
-              style="width:{{user.userBooks[k].info.width * 8}}px;height:{{user.userBooks[k].info.height*8}}px" 
+              style="width:{{user.bookCache.books[k].data.width * 8}}px;height:{{user.bookCache.books[k].data.height*8}}px" 
               on-tap="{{bookTapHandler}}"
               on-animationend="{{handleTileAnimationEnd}}" 
               on-webkitAnimationEnd="{{handleTileAnimationEnd}}"  
               on-mozAnimationEnd="{{handleTileAnimationEnd}}"
             >
-              <p>{{user.userBooks[k].title}}</p>
+              <p>{{user.bookCache.books[k].data.title}}</p>
             </div>
--->        </template>
+        </template>
       </core-selector>
     </div>
     <core-toolbar>
       <paper-button style='min-width:0' on-tap="{{editBook}}" disabled?="{{$.bookSelector.selectedIndex === -1}}">edit</paper-button>
-      <paper-icon-button icon="social:share" on-tap="{{shareBook}}" disabled?="{{$.bookSelector.selectedIndex === -1}}"></paper-icon-button>
+      <paper-icon-button icon="social:share" on-tap="{{showShareBookDialog}}" disabled?="{{$.bookSelector.selectedIndex === -1}}"></paper-icon-button>
       <span flex></span>
       <paper-icon-button icon="delete" on-tap="{{deleteBook}}" disabled?="{{$.bookSelector.selectedIndex === -1}}"></paper-icon-button>
     </core-toolbar>
@@ -146,7 +146,13 @@
         this.editBook();
     },
     showNewBookDialog: function() {
-      this.$.newBookDialog.toggle();
+      var dialog = document.createElement('pook-new-book-dialog');
+      this.shadowRoot.appendChild(dialog);
+    },
+    showShareBookDialog: function() {
+      var shareDialog = document.createElement('pook-share-book-dialog');
+      shareDialog.bookId = this.bookIds[this.$.bookSelector.selectedIndex - 1];
+      this.shadowRoot.appendChild(shareDialog);
     },
     deleteBook: function() {
       if (this.$.bookSelector.selectedIndex === -1)
@@ -157,9 +163,6 @@
     editBook: function() {
       document.querySelector('pook-app').editBook( this.bookIds[this.$.bookSelector.selectedIndex - 1]);
     },
-    shareBook: function() {
-      console.log('TODO');
-    },
     findTemplateInstanceByKey: function(k) {
       var instances = this.$.bookSelector.querySelectorAll('.book-tile');
       for (var i=0; i<instances.length; i++)
@@ -169,8 +172,11 @@
     computeBookIds: function() {
       if (!this.user.myBooks)
         return [];
-      else
-        return Object.keys( this.user.myBooks ).reverse();
+      else {
+        var ids = Object.keys( this.user.myBooks ).reverse();
+        ids.forEach( this.user.bookCache.getBook.bind(this.user.bookCache));
+        return ids;
+      }
     },
     computeDelta: function(newKeys, oldKeys) {
       var newHash = PookUtils.arrayToHash( newKeys );

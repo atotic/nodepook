@@ -70,22 +70,8 @@ singleton, all instances share common state
       myPhotos: new PookPromise(),
       myBooks: new PookPromise()
     },
-    /**
-     * @property photoCache
-     * @type pook-photo-cache
-     * [pook-photo-cache](#pook-proxy-photo-cache.html)
-     */
-    get photoCache() {
-      if (!('_photoCache' in this))
-        this._photoCache = document.createElement('pook-photo-cache');
-      return this._photoCache;
-    },
-
-    get bookCache() {
-      if (!('_bookCache' in this))
-        this._bookCache = document.createElement('pook-book-cache');
-      return this._bookCache;
-    }
+    photoCache: document.createElement('pook-photo-cache'),
+    bookCache: document.createElement('pook-book-cache')
   };
 
   Singleton.authClient.onAuth( function(user) {
@@ -119,6 +105,7 @@ singleton, all instances share common state
        * @property account
        * @type object
        * convenience access to /users/$userId/account
+       * must use this instead of userData.account.street1 because bindings only broadcast changes 1 deep
        */
       account: "databases['account'].data",
       userData: "databases['user'].data",
@@ -197,7 +184,7 @@ singleton, all instances share common state
      */
     createPhoto: function(file, callback) {
       callback = callback || PookUtils.noope;
-      this.photoCache.createPhotoFromFile(file, this.uid, function(err, photoRef) {
+      Singleton.photoCache.createPhotoFromFile(file, this.uid, function(err, photoRef) {
         if (err)
           return callback(err);
         this.requestDatabase('myPhotos').then( function(db) {

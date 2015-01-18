@@ -1,0 +1,66 @@
+<link rel="import" href="../vendor/polymer/polymer.html">
+<link rel="import" href="../vendor/paper-button/paper-button.html">
+<link rel="import" href="../vendor/paper-dialog/paper-action-dialog.html">
+<link rel="import" href="../vendor/paper-dialog/paper-dialog-transition.html">
+<link rel="import" href="../vendor/paper-input/paper-input.html">
+<link rel="import" href="../vendor/core-selector/core-selector.html">
+
+<link rel="import" href="pook-user.html">
+<link rel="import" href="pook-book-cache.html">
+
+<!--
+Book sharing dialog
+
+Shows dialog on insertion into dom, removes itself from DOM on closure.
+
+Usage:
+
+    var shareDialog = document.createElement('pook-share-book-dialog');
+    shareDialog.bookId = bookId
+    this.shadowRoot.appendChild(shareDialog);
+
+@element pook-share-book-dialog
+@group ui
+-->
+<polymer-element name="pook-share-book-dialog">
+  <template>
+      <paper-action-dialog id="dialog" heading="Sharing {{book.data.title}}" transition="paper-dialog-transition-bottom">
+
+       <style>
+      </style>
+
+      <paper-button dismissive raised>Cancel</paper-button>
+      <paper-button affirmative default on-tap='{{createNewBook}}' raised disabled="{{!validNewBookDialog}}">Lets do it</paper-button>
+    </paper-action-dialog>
+  </template>
+  <script>
+
+  Polymer( {
+    /**
+     * @attribute bookId
+     * @type <String>
+     * id of book to share
+     */
+    publish: {
+      bookId: null
+    },
+    computed: {
+      book: "bookCache.books[bookId]"
+    },
+    ready: function() {
+      this.bookCache = document.createElement('pook-book-cache');
+      this.$.dialog.addEventListener('core-overlay-close-completed', function() {
+        this.parentNode.removeChild(this);
+      }.bind(this));
+      this.$.dialog.open();
+    },
+    createNewBook: function() {
+      this.user.createBook(this.newBookTitle, this.bookSizes[this.newBookSizeSelection]);
+    },
+    validateNewBookDialog: function(title, sizeIndex) {
+      return ((typeof title) === 'string') && title.length > 0 &&
+              sizeIndex >= 0 && sizeIndex < this.bookSizes.length;
+    }
+  });
+  </script>
+</polymer-element>
