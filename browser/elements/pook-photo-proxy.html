@@ -2,7 +2,7 @@
 <link rel="import" href="pook-utils.html">
 
 <!--
-  pook-proxy-photo wraps native firebase photo object with utility routines.
+  pook-photo-proxy wraps native firebase photo object with utility routines.
 
   On upload, uses local photo data to 
   
@@ -19,11 +19,11 @@
       "longitude": { ".validate": "newData.isNumber()"},
       "longitudeRef": { ".validate": "newData.isString()"},
 
-  @element pook-proxy-photo
+  @element pook-photo-proxy
   @group model
 -->
 
-<polymer-element name='pook-proxy-photo' extends='firebase-element'>
+<polymer-element name='pook-photo-proxy' extends='firebase-element'>
   <template></template>
   <script>
   (function() {

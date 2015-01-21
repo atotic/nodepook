@@ -1,11 +1,11 @@
 <link href="../vendor/polymer/polymer.html" rel="import">
 
-<link rel="import" href="pook-proxy-book.html">
+<link rel="import" href="pook-book-proxy.html">
 
 <!--
 @element pook-book-cache
 @group model
-Cache of pook-proxy-book elements
+Cache of pook-book-proxy elements
 
 -->
 
@@ -15,14 +15,14 @@ Cache of pook-proxy-book elements
   "use strict";
   (function() {
   var Singleton = {
-    books: {} // "$bookId" -> <pook-proxy-book>
+    books: {} // "$bookId" -> <pook-book-proxy>
   }
   Polymer('pook-book-cache', {
     publish: {
       /**
        * @property books
        * @type Map
-       * "$bookId" -> `<pook-proxy-book>`
+       * "$bookId" -> `<pook-book-proxy>`
        */
       books: null
     },
@@ -31,11 +31,11 @@ Cache of pook-proxy-book elements
     },
     /**
      * @method getBook
-     * Returns pook-proxy-book. After fetch, also accessible through books[id] for template use
+     * Returns pook-book-proxy. After fetch, also accessible through books[id] for template use
      */
     getBook: function(id) {
       if (!(id in this.books)) {
-        this.books[id] = document.createElement('pook-proxy-book');
+        this.books[id] = document.createElement('pook-book-proxy');
         this.books[id].bookId = id;
       }
       return this.books[id];

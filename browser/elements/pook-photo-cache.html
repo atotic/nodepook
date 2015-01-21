@@ -1,12 +1,12 @@
 <link href="../vendor/polymer/polymer.html" rel="import">
 
 <link href="async.html" rel="import">
-<link rel="import" href="pook-proxy-photo.html">
+<link rel="import" href="pook-photo-proxy.html">
 <!--
 @element pook-photo-cache
 @group model
 
-Cache of pook-proxy-photo objects. Singleton.
+Cache of pook-photo-proxy objects. Singleton.
 
 Also, utility routines to create/upload photos, read exif data from file with exif-worker.
 
@@ -127,7 +127,7 @@ Create raw new photo, and upload it. Does not update user's record.
   var Singleton = {
     photos: {
       /* 
-        Cache of pook-proxy-photo objects
+        Cache of pook-photo-proxy objects
       */
     },
     get exifWorker() {
@@ -170,8 +170,8 @@ Create raw new photo, and upload it. Does not update user's record.
     publish: {
       /**
        * @property photos
-       * @type Map { $photoId: pook-proxy-photo } 
-       * cache of `pook-proxy-photo` objects
+       * @type Map { $photoId: pook-photo-proxy } 
+       * cache of `pook-photo-proxy` objects
        */
       photos: null
     },
@@ -181,12 +181,12 @@ Create raw new photo, and upload it. Does not update user's record.
     /**
      * @method getPhoto
      * @param <String> photoId photo id
-     * Returns pook-proxy-photo. After photo was fetched once, it'll be accessible
+     * Returns pook-photo-proxy. After photo was fetched once, it'll be accessible
      * through `photoCache.photos[$photoId]`
      */
     getPhoto: function(photoId) {
       if (!(photoId in this.photos)) {
-        this.photos[photoId] = document.createElement('pook-proxy-photo');
+        this.photos[photoId] = document.createElement('pook-photo-proxy');
         this.photos[photoId].photoId = photoId;
       }
       return this.photos[photoId];
