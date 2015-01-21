@@ -193,7 +193,7 @@ Responsible for routing
       this.$.menu.selected = this.$.menu.children.length - 1;
 
       // load the book title from firebase, remove the book on fail
-      var bookRef = new Firebase(PookUtils.getFirebaseUrl('oneBook', bookId));
+      var bookRef = new Firebase(CommonUtils.getFirebaseUrl('oneBook', bookId));
       var THIS = this;
 
       function removeBook() {

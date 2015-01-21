@@ -24,12 +24,11 @@
     var pookAuthUi = document.querySelector('pook-auth-ui');
 
     var credentials = {
-      email: PookUtils.randomString(6) + "@test.com",
+      email: CommonUtils.randomString(6) + "@test.com",
       password: '12345678'
     }
-    
-    suite('<pook-auth>', function() {
 
+    suite('<pook-auth>', function() {
       test('pook-auth.createAccount', function(done) {
         pookAuth.createPookUser(credentials, done);
       });

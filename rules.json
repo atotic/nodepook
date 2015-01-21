@@ -23,6 +23,13 @@
           "zip": { ".validate": "newData.isString()"},
           "$other": { ".validate": false }
         },
+        "notifications": {
+          "$notificationId": {
+            "type": { ".validate": "newData.isString()"},
+            "message": {".validate": "newData.isString()"},
+            "$other": { ".validate": false }
+          }
+        },
         "myPhotos": {
           "$photoId": { 
             ".validate" : "newData.isBoolean() && root.child('photos').child($photoId).child('owner').val() === $userId" 

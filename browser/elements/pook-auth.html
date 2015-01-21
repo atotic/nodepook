@@ -21,7 +21,7 @@ All callbacks return Error with these fields:
   <script>
     Polymer({
       created: function() {
-        this.firebase = new Firebase(PookUtils.firebaseLoc);
+        this.firebase = new Firebase(CommonUtils.firebaseLoc);
       },
       // create firebase user
       _fbCreateUser: function(credentials, callback) {
@@ -62,7 +62,7 @@ All callbacks return Error with these fields:
             async.each( 
               Object.keys(userData.myPhotos || {}), 
               function deleteOnePhoto(itemId, delCb) {
-                (new Firebase( PookUtils.getFirebaseUrl('onePhoto', itemId))).remove(delCb);
+                (new Firebase( CommonUtils.getFirebaseUrl('onePhoto', itemId))).remove(delCb);
               },
               function(err) {
                 cb(err, userData);
@@ -74,7 +74,7 @@ All callbacks return Error with these fields:
             async.each( 
               Object.keys(userData.myBooks || {}), 
               function deleteOneBook(itemId, delCb) {
-                var fb = new Firebase( PookUtils.getFirebaseUrl('oneBook', itemId));
+                var fb = new Firebase( CommonUtils.getFirebaseUrl('oneBook', itemId));
                 fb.remove(delCb);
               },
               function(err) {

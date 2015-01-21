@@ -17,8 +17,7 @@ Cache of pook-proxy-book elements
   var Singleton = {
     books: {} // "$bookId" -> <pook-proxy-book>
   }
-
-  Polymer({
+  Polymer('pook-book-cache', {
     publish: {
       /**
        * @property books
@@ -58,7 +57,7 @@ Cache of pook-proxy-book elements
         width: size.width,
         height: size.height
       }
-      var db = new Firebase( PookUtils.getFirebaseUrl('allBooks'));
+      var db = new Firebase( CommonUtils.getFirebaseUrl('allBooks'));
       var ref = db.push(json);
       callback(null, ref);
     }

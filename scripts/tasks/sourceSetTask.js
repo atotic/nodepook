@@ -12,7 +12,8 @@ var sourceSet = {
   Bower: [],
   References: [
     "http://blog.keithcirkel.co.uk/how-to-use-npm-as-a-build-tool/",
-    "http://iamralpht.github.io/physics/"
+    "http://iamralpht.github.io/physics/",
+    "http://aws.amazon.com/ses/"
   ]
 }
 var docFolder = "browser/docs";

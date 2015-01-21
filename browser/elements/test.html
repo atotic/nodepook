@@ -287,7 +287,7 @@
           for (var k in this.databases)
             if (this.databases[k] === true) {
               this.databases[k] = document.createElement('firebase-element');
-              this.databases[k].location = PookUtils.getFirebaseUrl(k);
+              this.databases[k].location = CommonUtils.getFirebaseUrl(k);
             }
         }
       },

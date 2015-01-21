@@ -28,9 +28,18 @@ Usage:
 
        <style>
       </style>
+      <template if="{{sharedWith}}">
+        <div>Shared with:</div>
+        <template repeat="{{uid in sharedWith}}">
+          <div>{{uid}}<paper-button on-tap="stopSharing"></paper-button></div>
+        </template>
+      </template>
+      <div>Add email of the person you'd like to share with:</div>
+      <paper-input id="email" label="email" value="{{email}}" raised></paper-input>
+      <paper-button on-tap="{{addShare}}" raised>Add</paper-button>
 
       <paper-button dismissive raised>Cancel</paper-button>
-      <paper-button affirmative default on-tap='{{createNewBook}}' raised disabled="{{!validNewBookDialog}}">Lets do it</paper-button>
+      <paper-button affirmative default raised>Done</paper-button>
     </paper-action-dialog>
   </template>
   <script>
@@ -42,24 +51,31 @@ Usage:
      * id of book to share
      */
     publish: {
-      bookId: null
+      bookId: null,
+      email: null
     },
     computed: {
-      book: "bookCache.books[bookId]"
+      book: "bookCache.books[bookId]",
+      sharedWith: "computeSharedWith(book.data.sharedWith)"
     },
     ready: function() {
       this.bookCache = document.createElement('pook-book-cache');
+      // remove from dom on close
       this.$.dialog.addEventListener('core-overlay-close-completed', function() {
         this.parentNode.removeChild(this);
       }.bind(this));
       this.$.dialog.open();
     },
-    createNewBook: function() {
-      this.user.createBook(this.newBookTitle, this.bookSizes[this.newBookSizeSelection]);
+    computeSharedWith: function(sharedIds) {
+      if (sharedIds)
+        return Object.keys(sharedIds);
+      else
+        return null;
     },
-    validateNewBookDialog: function(title, sizeIndex) {
-      return ((typeof title) === 'string') && title.length > 0 &&
-              sizeIndex >= 0 && sizeIndex < this.bookSizes.length;
+    addShare: function() {
+
+    },
+    stopSharing: function(el) {
     }
   });
   </script>

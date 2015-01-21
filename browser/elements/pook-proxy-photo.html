@@ -75,7 +75,7 @@
       openFirebase: function() {
         if (this.photoId == '')
           return;
-        this.location = PookUtils.getFirebaseUrl('onePhoto', this.photoId)
+        this.location = CommonUtils.getFirebaseUrl('onePhoto', this.photoId)
       },
       setLocalExifData: function(exif, file) {
         this.localExif = exif;
@@ -177,7 +177,7 @@
       computeIconInfo: function(s3, localImage) {
         if (s3) { // standard, stored in s3
           return {
-            src: PookUtils.s3url + s3 + "~256",
+            src: CommonUtils.s3url + s3 + "~256",
             height: 256,
             width: Math.round( 256 * this.data.width / this.data.height)
           }
@@ -187,7 +187,7 @@
         }
         else { // no info, display generic loading pix
           return  {
-            src: PookUtils.s3url + 'loading.jpg',
+            src: CommonUtils.s3url + 'loading.jpg',
             width: 256,
             height: 256
           }

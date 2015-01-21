@@ -9,7 +9,9 @@ var async = require('async');
 var Firebase = require("firebase");
 var FirebaseTokenGenerator = require("firebase-token-generator");
 
-var ref = new Firebase(process.env['FIREBASE_URL']);
+var commonUtils = require("../../browser/elements/commonUtils.js");
+
+var ref = new Firebase(commonUtils.firebaseLoc);
 var usersRef = ref.child('users');
 
 // 

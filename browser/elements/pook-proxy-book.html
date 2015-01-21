@@ -42,9 +42,35 @@ Properties:
     },
     bookIdChanged: function() {
       if (this.bookId)
-        this.location = PookUtils.getFirebaseUrl('oneBook', this.bookId);
+        this.location = CommonUtils.getFirebaseUrl('oneBook', this.bookId);
       else
         this.location = null;
+    },
+    /**
+     * @method addShare
+     * @param <String> email email of the person
+     * sends a sharing request to the server
+     */
+    addShare: function(email) {
+      var request =  {
+        type: "start",
+        madeBy: document.createElement('pook-user').uid,
+        bookId: this.bookId,
+        shareWith: email
+      };
+      var fb = new Firebase( CommonUtils.getFirebaseUrl('requestShareBook'));
+      fb.push(request);
+    },
+    stopShare: function(u) {
+      var fb = new Firebase( CommonUtils.getFirebaseUrl('requestShareBook'));
+      var request =  {
+        type: "stop",
+        madeBy: document.createElement('pook-user').uid,
+        bookId: this.bookId,
+        shareWith: email
+      };
+      var fb = new Firebase( CommonUtils.getFirebaseUrl('requestShareBook'));
+      fb.push(request);
     }
   });
   </script>

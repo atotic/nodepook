@@ -7,10 +7,7 @@ sudo chkconfig --add s53hostname # adds init.d script to startup
 ssh -i ~/.ssh/AmazonEC2KeyPair_May2014.pem ec2-user@AmazonHost
 
 # Testing
-npm run testServer
-
-# Grunt
-grunt eraseDatabase
+see test/README.txt
 
 # Database
 
@@ -54,15 +51,15 @@ https://github.com/Polymer/vulcanize
 browser> vulcanize --inline -s elements/pook-all.html 
 
 http://localhost:3000/user#account reload:
-Firefox: 4s
 Chrome: 1.5s
-iPad: 11s
+Firefox: 4s
 Safari: 2.3s
+iPad: 11s
 iPhone 6: 3.1s
 
 with vulcanize:
-Safari: 1.1s
 Chrome: 1.1s
 Firefox: 3s
+Safari: 1.1s
 iPad: 10s
 iPhone 6: 3.8s

@@ -1,6 +1,7 @@
-<link href="../vendor/polymer/polymer.html" rel="import">
-<link href='../vendor/core-icons/core-icons.html' rel='import'>
-<link href='../vendor/paper-icon-button/paper-icon-button.html' rel='import'>
+<link rel="import" href="../vendor/polymer/polymer.html">
+<link rel="import" href='../vendor/core-icons/core-icons.html'>
+<link rel="import" href='../vendor/paper-icon-button/paper-icon-button.html'>
+
 <!---
   Standard flash messages
 
@@ -26,7 +27,7 @@
       min-width:50%;
       z-index: 1;
     }
-    #error, #warn, #message {
+    .error, .warn, .message {
       position: relative;
       padding: 10px;
       padding-right: 34px;
@@ -35,17 +36,17 @@
       margin: 0 24px 0 24px;
       min-width:50%;
     }
-    #error {
+    .error {
       color: #A94442;
       background-color: #F2DEDE;
       border-color: #EBCCD1;
       }
-    #warn {
+    .warn {
       color: #8A6D3B;
       background-color: #FCF8E3;
       border-color: #FAEBCC;
     }
-    #message {
+    .message {
       color: #31708F;
       background-color: #D9EDF7;
       border-color: #BCE8F1;
@@ -57,33 +58,55 @@
     }
     </style>
     <template if='{{error}}'>
-      <div id='error'>
+      <div class='error'>
         {{error}}
         <paper-icon-button icon=close on-tap={{closeError}}></paper-icon-button>
       </div>
     </template>
     <template if='{{warn}}'>
-      <div id='warn'>
+      <div class='warn'>
         {{warn}}
         <paper-icon-button icon=close on-tap={{closeWarn}}></paper-icon-button>
       </div>
     </template>
     <template if='{{message}}'>
-      <div id='message'>
+      <div class='message'>
         {{message}}
         <paper-icon-button icon=close on-tap={{closeMessage}}></paper-icon-button>
       </div>
     </template>
+    <template repeat="{{k in notificationIds}}">
+      <div class="{{user.notifications[k].type}}">
+      {{user.notifications[k].message}}
+        <paper-icon-button icon=close on-tap={{closeNotification}}></paper-icon-button>
+      </div>
+    </template>
   </template>
   <script>
-    Polymer('pook-flash', {
+    Polymer({
+      publish: {
+        notificationIds: []
+      },
+      created: function() {
+        this.user = document.createElement('pook-user');
+        this.user.requestDatabase('notifications').then( 
+          function(db) {
+            db.addEventListener('data-change', this.notificationsChanged.bind(this))
+          }.bind(this));
+      },
+      notificationsChanged: function() {
+        this.notificationIds = CommonUtils.objectKeys(this.user.notifications);
+      },
+      closeNotification: function(ev) {
+        this.user.deleteNotification(ev.currentTarget.templateInstance.model.k);
+      },
       error: '',
       warn: '',
       message: '',
       closeError: function() { this.error = ''},
       closeWarn: function() { this.warn = ''},
       closeMessage: function() { this.message = ''},
-      clear: function() { this.error = this.warn = this.message = ''}
+      clear: function() { this.error = this.warn = this.message = ''},
     });
   </script>
 </polymer-element>

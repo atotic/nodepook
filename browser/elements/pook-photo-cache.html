@@ -128,7 +128,6 @@ Create raw new photo, and upload it. Does not update user's record.
     photos: {
       /* 
         Cache of pook-proxy-photo objects
-        Use this to access photo data. requestPhotoProxy() requests data in cache
       */
     },
     get exifWorker() {
@@ -214,7 +213,7 @@ Create raw new photo, and upload it. Does not update user's record.
       if (!ownerId)
         throw new Error("ownerId cant be null");
 
-      var db = new Firebase( PookUtils.getFirebaseUrl('allPhotos'));
+      var db = new Firebase( CommonUtils.getFirebaseUrl('allPhotos'));
       // create the photo
       var json = {
         createdAt: Firebase.ServerValue.TIMESTAMP,

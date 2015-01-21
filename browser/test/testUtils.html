@@ -29,10 +29,10 @@
       var pookAuth = document.createElement('pook-auth');
       if (!('defaultCredentials' in this)) {
         this.defaultCredentials = {
-            email: PookUtils.randomString(6) + "@test.com",
+            email: CommonUtils.randomString(6) + "@test.com",
             password: '12345678'
         }
-        pookAuth.createPookUser( this.defaultCredentials, PookUtils.noope);
+        pookAuth.createPookUser( this.defaultCredentials, CommonUtils.noope);
         firebase.onAuth( oneAndGone);
       } else {
         pookAuth.login(this.defaultCredentials, null, function(err, info) {

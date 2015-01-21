@@ -1,17 +1,27 @@
-developer.txt
+TODO
+Phase 1: Photobook organizer with sharing
+- bug: no books on firefox/ipad
+- sharing: share dialog ui
+- if no email in db, notify user.
+  $userId:
+    notifications
+    permanently displayed
+  eventually: email new user, give them read access until they sign up
+- display books shared with you
+- pages
+  - show all pages
+  - resize pages
+  - add pages
+  - add photos to pages
+  - move photos between pages
+  - move pages around
+  - title pages
 
-browser
-
-2 kinds of elements: UI, and DATA
-
-UI elements, easy 
-pook-app - application
-pook-page* - right side pages
-pook-flash - notifications
 
 
-maintenance:
-- update node to latest stable
-  sudo npm cache clean -f;sudo npm install -g n; sudo n stable 
+Phase 2: Photobook editor
 
-http://blog.keithcirkel.co.uk/how-to-use-npm-as-a-build-tool/
+## Firebase
+rules.json defines our firebase schema
+Main schema design principle: do not use hierarchy in security rules (no $userId/$photoId). Each object has an owner.
+

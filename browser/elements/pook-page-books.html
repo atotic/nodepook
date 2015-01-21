@@ -130,11 +130,10 @@
     },
     created: function() {
       this.user = document.createElement('pook-user');
-      var THIS = this;
-      this.user.requestDatabase('myBooks')
-        .then( function(database) {
-          database.addEventListener('data-change', THIS.booksChanged.bind(THIS));
-        });
+      this.user.requestDatabase('myBooks').then( function(db) {
+          db.addEventListener('data-change', 
+            this.booksChanged.bind(this));
+        }.bind(this));
     },
     clearSelection: function(ev) {
       // clear selection on taps outside books

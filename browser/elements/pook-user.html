@@ -44,9 +44,9 @@ singleton, all instances share common state
      * @property email
      * @type string
      */
-      email: ''   
+      email: ''
     },
-    authClient: new Firebase( PookUtils.firebaseLoc ),
+    authClient: new Firebase( CommonUtils.firebaseLoc ),
 
     /* 
     User related databases
@@ -62,16 +62,18 @@ singleton, all instances share common state
       account: false,
       user: false,
       myPhotos: false,
-      myBooks: false
+      myBooks: false,
+      notifications: false
     },
     databasePromises : {
       account: new PookPromise(),
       user: new PookPromise(),
       myPhotos: new PookPromise(),
-      myBooks: new PookPromise()
+      myBooks: new PookPromise(),
+      notifications: new PookPromise()
     },
-    photoCache: document.createElement('pook-photo-cache'),
-    bookCache: document.createElement('pook-book-cache')
+    photoCache: null, // document.createElement('pook-photo-cache'),
+    bookCache: null //document.createElement('pook-book-cache')
   };
 
   Singleton.authClient.onAuth( function(user) {
@@ -79,7 +81,6 @@ singleton, all instances share common state
       Singleton.userInfo.email = user ? user.password.email : '';
     }
   );
-
 
   Polymer({
     publish: {
@@ -110,7 +111,8 @@ singleton, all instances share common state
       account: "databases['account'].data",
       userData: "databases['user'].data",
       myPhotos: "databases['myPhotos'].data",
-      myBooks: "databases['myBooks'].data"
+      myBooks: "databases['myBooks'].data",
+      notifications: "databases['notifications'].data"
     },
     observe: {
       uid: 'userStatusChanged'
@@ -118,6 +120,10 @@ singleton, all instances share common state
     created: function() {
       this.userInfo = Singleton.userInfo;
       this.databases = Singleton.databases;
+      if (Singleton.photoCache === null)
+        Singleton.photoCache = document.createElement('pook-photo-cache');
+      if (Singleton.bookCache === null)
+        Singleton.bookCache = document.createElement('pook-book-cache');
       this.photoCache = Singleton.photoCache;
       this.bookCache = Singleton.bookCache;
     },
@@ -156,7 +162,7 @@ singleton, all instances share common state
         for (var k in this.databases)
           if (this.databases[k] === true) {
             this.databases[k] = document.createElement('firebase-element');
-            this.databases[k].location = PookUtils.getFirebaseUrl(k, this.uid);
+            this.databases[k].location = CommonUtils.getFirebaseUrl(k, this.uid);
             Singleton.databasePromises[k].resolve(this.databases[k]);
             // this.databases[k].log = true;
             // if (k == 'account') {
@@ -183,7 +189,7 @@ singleton, all instances share common state
      * creates photo record in db, and uploads file to server
      */
     createPhoto: function(file, callback) {
-      callback = callback || PookUtils.noope;
+      callback = callback || CommonUtils.noope;
       Singleton.photoCache.createPhotoFromFile(file, this.uid, function(err, photoRef) {
         if (err)
           return callback(err);
@@ -201,7 +207,7 @@ singleton, all instances share common state
      * 
      */
     createBook: function(title, size, callback) {
-      callback = callback || PookUtils.noope;
+      callback = callback || CommonUtils.noope;
       this.bookCache.createBook(this.uid, title, size, function(err, ref) {
         if (err) 
           return callback(err);
@@ -215,10 +221,15 @@ singleton, all instances share common state
     },
 
     deleteBook: function(bookId) {
-      this.databases['userBooks'].ref.child(bookId).remove();
+      this.databases['myBooks'].ref.child(bookId).remove();
+      (new Firebase( CommonUtils.getFirebaseUrl('oneBook', bookId))).remove();
+    },
+    deleteNotification: function(notificationId) {
+      (new Firebase( 
+        CommonUtils.getFirebaseUrl('oneNotification', this.uid, notificationId)))
+        .remove();
     }
   });
-
   })();
   </script>
 </polymer-element>
