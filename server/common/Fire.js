@@ -63,7 +63,7 @@ function processStartSharing(request, callback) {
     var users = snapshot.val();
     // TODO in the future, invite the non-existent user to read the book through email
     if (!users)
-      return callback( new Error("Cant share book. " + request.shareWith + " user is not registered with pook.io"));
+      return callback( new Error(request.shareWith + " is not registered with pook.io. In the future, we'll be able to do this."));
 
     var shareWithId = Object.keys(users)[0];
     debug("Target user for sharing is", shareWithId);
@@ -99,7 +99,7 @@ function initShareWatcher() {
       case 'start':
         processStartSharing(request, function(err) {
           if (err)
-            notifyUser(request.madeBy, "error", "Error while sharing book with " + request.shareWith + err.message);
+            notifyUser(request.madeBy, "error", "Error while sharing book with " + request.shareWith + ". " + err.message);
           else
             notifyUser(request.madeBy, "message", "your book has been shared successfully");
         });

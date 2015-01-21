@@ -1,0 +1,79 @@
+<link href="../vendor/polymer/polymer.html" rel="import">
+
+<link rel="import" href="pook-book-proxy.html">
+<link rel="import" href="pook-utils.html">
+
+<!--
+@element pook-other-user-cache
+@group model
+Cache of other users. `pook-other-user-proxy` 
+-->
+<polymer-element name="pook-other-user-cache">
+  <template></template>
+  <script>
+  "use strict";
+  (function() {
+  var Singleton = {
+    users: {} // "$userId" -> <pook-other-user-proxy>
+  }
+  Polymer({
+    publish: {
+      /**
+       * @property users
+       * @type Map
+       * `$userId` -> <pook-other-user-proxy>
+       */
+      users: null
+    },
+    created: function() {
+      this.users = Singleton.users;
+    },
+    /**
+     * @method getBook
+     * Returns pook-book-proxy. After fetch, also accessible through books[id] for template use
+     */
+    getUser: function(id) {
+      if (!(id in this.users)) {
+        this.users[id] = document.createElement('pook-other-user-proxy');
+        this.users[id].userId = id;
+      }
+      return this.users[id];
+    }
+  });
+  })();
+  </script>
+</polymer-element>
+
+<!--
+@element pook-other-user-proxy
+@group model
+Information about another user: email/firstName/lastName
+-->
+
+<polymer-element name="pook-other-user-proxy" attribute="userId">
+  <template></template>
+  <script>
+    Polymer({
+      publish: {
+        email: "",
+        firstName: "",
+        lastName: ""
+      },
+      userIdChanged: function() {
+        if (this.userId) {
+          var userPath = CommonUtils.getFirebaseUrl('user', this.userId);
+          // got to query each attribute individually for security reasons
+          (new Firebase(userPath + "/firstName")).once('value', function(snapshot) {
+            this.firstName = snapshot.val();
+          }.bind(this));
+          (new Firebase(userPath + "/lastName")).once('value', function(snapshot) {
+            this.lastName = snapshot.val();
+          }.bind(this));
+          (new Firebase(userPath + "/email")).once('value', function(snapshot) {
+            this.email = snapshot.val();
+          }.bind(this));
+        }
+      }
+    });
+  </script>
+</polymer-element>

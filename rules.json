@@ -6,7 +6,10 @@
         ".write": "auth.uid === $userId",
         ".read": "auth.uid === $userId",
         "createdAt": { ".validate": "newData.isNumber()"},
-        "email": { ".validate" : "newData.isString()" },        
+        "email": { 
+          ".read": "auth !== null", 
+          ".validate" : "newData.isString()" 
+        },
         "firstName": {
           ".read": "auth !== null", 
           ".validate" : "newData.isString()" 

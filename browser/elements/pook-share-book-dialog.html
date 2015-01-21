@@ -8,6 +8,8 @@
 <link rel="import" href="pook-user.html">
 <link rel="import" href="pook-book-cache.html">
 <link rel="import" href="pook-book-icon.html">
+<link rel="import" href="pook-other-user-cache.html">
+
 <!--
 Book sharing dialog
 
@@ -35,7 +37,7 @@ Usage:
       <template if="{{sharedWith.length > 0}}">
         <div>Shared with:</div>
         <template repeat="{{uid in sharedWith}}">
-          <div>{{uid}}<paper-button on-tap="{{stopShare}}">Remove</paper-button></div>
+          <div>{{otherUserCache.users[uid].email}}<paper-button on-tap="{{stopShare}}">Remove</paper-button></div>
         </template>
       </template>
       <div>Email of the person you'd like to share with:</div>
@@ -61,8 +63,11 @@ Usage:
       book: "bookCache.books[bookId]",
       sharedWith: "computeSharedWith(book.data.sharedWith)"
     },
-    ready: function() {
+    created: function() {
       this.bookCache = document.createElement('pook-book-cache');
+      this.otherUserCache = document.createElement('pook-other-user-cache');
+    },
+    ready: function() {
       // remove from dom on close
       this.$.dialog.addEventListener('core-overlay-close-completed', function() {
         this.parentNode.removeChild(this);
@@ -70,7 +75,9 @@ Usage:
       this.$.dialog.open();
     },
     computeSharedWith: function(sharedIds) {
-      return CommonUtils.objectKeys( sharedIds);
+      var ids = CommonUtils.objectKeys( sharedIds);
+      ids.forEach( this.otherUserCache.getUser.bind( this.otherUserCache));
+      return ids;
     },
     addShare: function() {
       this.book.addShare(this.email);

@@ -48,7 +48,7 @@ Properties:
     },
     /**
      * @method addShare
-     * @param <String> email email of the person
+     * @param {String} email email to share with
      * sends a sharing request to the server
      */
     addShare: function(email) {
@@ -63,7 +63,8 @@ Properties:
     },
     /**
      * @method stopShare
-     * @param <String> uid user who has sharing access
+     * @param {String} uid user who has sharing access
+     * sends stop share request to server
      */
     stopShare: function(uid) {
       var fb = new Firebase( CommonUtils.getFirebaseUrl('requestShareBook'));

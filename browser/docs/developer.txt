@@ -2,15 +2,9 @@ TODO
 Platform:
 - recompute('propertyId'): force recompute of computed properties
 - firebase-element-array: firebase-element that transforms data into array
+- requestDatabase: get rid of it, use blank Firebase instead
+
 Phase 1: Photobook organizer with sharing
-- bug: no books on firefox/ipad
-- sharing: share dialog ui
-- if no email in db, notify user.
-  $userId:
-    notifications
-    permanently displayed
-  eventually: email new user, give them read access until they sign up
-- display books shared with you
 - pages
   - show all pages
   - resize pages
@@ -20,7 +14,8 @@ Phase 1: Photobook organizer with sharing
   - move pages around
   - title pages
 
-
+Done:
+- book creation, sharing
 
 Phase 2: Photobook editor
 
