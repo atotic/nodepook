@@ -63,14 +63,16 @@ singleton, all instances share common state
       user: false,
       myPhotos: false,
       myBooks: false,
-      notifications: false
+      notifications: false,
+      booksSharedWithMe: false
     },
     databasePromises : {
       account: new PookPromise(),
       user: new PookPromise(),
       myPhotos: new PookPromise(),
       myBooks: new PookPromise(),
-      notifications: new PookPromise()
+      notifications: new PookPromise(),
+      booksSharedWithMe: new PookPromise()
     },
     photoCache: null, // document.createElement('pook-photo-cache'),
     bookCache: null //document.createElement('pook-book-cache')
@@ -112,7 +114,8 @@ singleton, all instances share common state
       userData: "databases['user'].data",
       myPhotos: "databases['myPhotos'].data",
       myBooks: "databases['myBooks'].data",
-      notifications: "databases['notifications'].data"
+      notifications: "databases['notifications'].data",
+      booksSharedWithMe: "databases['booksSharedWithMe'].data"
     },
     observe: {
       uid: 'userStatusChanged'

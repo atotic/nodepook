@@ -7,7 +7,7 @@
 
 <link rel="import" href="pook-user.html">
 <link rel="import" href="pook-book-cache.html">
-
+<link rel="import" href="pook-book-icon.html">
 <!--
 Book sharing dialog
 
@@ -24,22 +24,25 @@ Usage:
 -->
 <polymer-element name="pook-share-book-dialog">
   <template>
-      <paper-action-dialog id="dialog" heading="Sharing {{book.data.title}}" transition="paper-dialog-transition-bottom">
+      <paper-action-dialog id="dialog" heading="Sharing" transition="paper-dialog-transition-bottom">
 
-       <style>
+      <style>
+        pook-book-icon {
+          margin: 8px 0px 24px 0px;
+        }
       </style>
-      <template if="{{sharedWith}}">
+      <pook-book-icon bookId="{{bookId}}"></pook-book-icon>
+      <template if="{{sharedWith.length > 0}}">
         <div>Shared with:</div>
         <template repeat="{{uid in sharedWith}}">
-          <div>{{uid}}<paper-button on-tap="stopSharing"></paper-button></div>
+          <div>{{uid}}<paper-button on-tap="{{stopShare}}">Remove</paper-button></div>
         </template>
       </template>
-      <div>Add email of the person you'd like to share with:</div>
+      <div>Email of the person you'd like to share with:</div>
       <paper-input id="email" label="email" value="{{email}}" raised></paper-input>
       <paper-button on-tap="{{addShare}}" raised>Add</paper-button>
 
-      <paper-button dismissive raised>Cancel</paper-button>
-      <paper-button affirmative default raised>Done</paper-button>
+      <paper-button affirmative default raised>Close</paper-button>
     </paper-action-dialog>
   </template>
   <script>
@@ -67,15 +70,15 @@ Usage:
       this.$.dialog.open();
     },
     computeSharedWith: function(sharedIds) {
-      if (sharedIds)
-        return Object.keys(sharedIds);
-      else
-        return null;
+      return CommonUtils.objectKeys( sharedIds);
     },
     addShare: function() {
-
+      this.book.addShare(this.email);
+      this.$.dialog.close();
     },
-    stopSharing: function(el) {
+    stopShare: function(ev) {
+      this.book.stopShare(ev.currentTarget.templateInstance.model.uid);
+      this.$.dialog.close();
     }
   });
   </script>

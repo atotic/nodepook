@@ -1,14 +1,14 @@
-<link href="../vendor/polymer/polymer.html" rel="import">
-<link href="../vendor/paper-button/paper-button.html" rel="import">
-<link href="../vendor/core-selector/core-selector.html" rel="import">
-<link href="../vendor/paper-icon-button/paper-icon-button.html" rel="import">
-<link href="../vendor/core-icons/core-icons.html" rel="import">
-<link href="../vendor/core-icons/social-icons.html" rel="import">
+<link rel="import" href="../vendor/polymer/polymer.html">
+<link rel="import" href="../vendor/paper-button/paper-button.html">
+<link rel="import" href="../vendor/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../vendor/core-icons/core-icons.html" >
+<link rel="import" href="../vendor/core-icons/social-icons.html" >
 
 <link rel="import" href="pook-user.html">
 <link rel="import" href="pook-new-book-dialog.html">
 <link rel="import" href="pook-share-book-dialog.html">
-
+<link rel="import" href="pook-book-icon.html">
+<link rel="import" href="pook-utils.html">
 <!--
 /**
   * Book listing and actions
@@ -21,33 +21,14 @@
   <template>
     <core-style ref='pook-animations'></core-style>
     <style>
-      .book-tile {
-        position: relative;
-        width: 50px;
-        height: 50px;
-        border: 1px solid #555;
-        vertical-align: bottom;
-        margin: 8px;
-        padding: 8px;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        user-select: none;
-        -webkit-user-select: none;
-        cursor: pointer;
+      :host {
+        display: flex;
+        display: -webkit-flex;
+        flex-direction: column;
+        -webkit-flex-direction: column;
       }
-      .book-tile.core-selected:after {
-        position: absolute;
-        content: "\2713";
-        text-align: left;
-        bottom: 4px;
-        right: 4px;
-
-        border: 1px solid #aaa;
-        width: 20px;
-        height: 20px;
-        border-radius: 10px;
-        background-color: #0BA8F2;
-        color: #DDD;
+      .book-tile {
+        cursor: pointer;
       }
       .book-tile.animate-add {
         z-index: 999;
@@ -63,19 +44,13 @@
         -webkit-animation-name:fade-out;
                 animation-name:fade-out;    
       }
-
-      :host {
-        display: flex;
-        display: -webkit-flex;
-        flex-direction: column;
-        -webkit-flex-direction: column;
-      }
       #selectorContainer {
         flex: 1;
         -webkit-flex: 1;
         overflow: scroll;
       }
-      #bookSelector {
+      .book-list {
+        margin: 12px;
         display: flex;
         display: -webkit-flex;
         flex-flow: wrap;
@@ -84,7 +59,6 @@
         -webkit-align-items: flex-end;
         flex-direction: row;
         -webkit-flex-direction: row;
-        margin: 12px;
       }
       core-toolbar, core-toolbar::shadow .toolbar-tools {
         height: 36px;
@@ -92,55 +66,81 @@
       }
     </style>
     <div id='selectorContainer' on-tap='{{clearSelection}}'>
-      <core-selector id='bookSelector' touch-action="none" >
+      <section id="myBooks" class="book-list">
         <div style="padding:0 8px 0 4px; width: 100px; height: 100px; position:relative">
           <paper-button on-tap="{{showNewBookDialog}}" raised style="position:absolute; bottom:10px;">Start a new book...</paper-button>
         </div>
         <template id="bookList" repeat="{{k in bookIds}}">
-            <div layout vertical 
-              class="book-tile {{ k | computeTileClass }}"
-              style="width:{{user.bookCache.books[k].data.width * 8}}px;height:{{user.bookCache.books[k].data.height*8}}px" 
-              on-tap="{{bookTapHandler}}"
-              on-animationend="{{handleTileAnimationEnd}}" 
-              on-webkitAnimationEnd="{{handleTileAnimationEnd}}"  
-              on-mozAnimationEnd="{{handleTileAnimationEnd}}"
-            >
-              <p>{{user.bookCache.books[k].data.title}}</p>
-            </div>
+          <pook-book-icon bookId="{{k}}"
+            class="book-tile {{ k | computeTileClass }}"
+            on-tap="{{bookTapHandler}}"
+            on-animationend="{{handleTileAnimationEnd}}" 
+            on-webkitAnimationEnd="{{handleTileAnimationEnd}}"  
+            on-mozAnimationEnd="{{handleTileAnimationEnd}}"
+           ></pook-book-icon>
         </template>
-      </core-selector>
+      </section>
+      <section id="sharedBooks">
+        <template if="{{booksSharedWithMeIds.length > 0}}">
+          <p>Books shared with me</p>
+          <div class="book-list">
+            <template repeat="{{k in booksSharedWithMeIds}}">
+              <pook-book-icon bookId="{{k}}"
+                sharedWithMe
+                class="book-tile"
+                on-tap="{{bookTapHandler}}"
+              ></pook-book-icon>
+            </template>
+          </div>
+        </template>
+      </section>
     </div>
     <core-toolbar>
-      <paper-button style='min-width:0' on-tap="{{editBook}}" disabled?="{{$.bookSelector.selectedIndex === -1}}">edit</paper-button>
-      <paper-icon-button icon="social:share" on-tap="{{showShareBookDialog}}" disabled?="{{$.bookSelector.selectedIndex === -1}}"></paper-icon-button>
+      <paper-button style='min-width:0' on-tap="{{editBook}}" disabled?="{{!bookSelection}}">edit</paper-button>
+      <paper-icon-button icon="social:share" on-tap="{{showShareBookDialog}}" disabled?="{{!bookSelection}}"></paper-icon-button>
       <span flex></span>
-      <paper-icon-button icon="delete" on-tap="{{deleteBook}}" disabled?="{{$.bookSelector.selectedIndex === -1}}"></paper-icon-button>
+      <paper-icon-button icon="delete" on-tap="{{deleteBook}}" disabled?="{{!bookSelection}}"></paper-icon-button>
     </core-toolbar>
   </template>
   <script>
 
   Polymer( {
     publish: {
-      user: null,
       bookIds: [],
-      delta: {
-        add: {}, // # key => true
-        remove: {} // # key => index in old array
-      },
+      booksSharedWithMeIds: [],
+      bookSelection: null
     },
     created: function() {
+      this.delta = {
+        add: {}, // # key => true
+        remove: {} // # key => index in old array
+      };
+
       this.user = document.createElement('pook-user');
       this.user.requestDatabase('myBooks').then( function(db) {
           db.addEventListener('data-change', 
             this.booksChanged.bind(this));
         }.bind(this));
+      this.user.requestDatabase('booksSharedWithMe').then( function(db) {
+        db.addEventListener('data-change', 
+          this.booksSharedWithMeChanged.bind(this));
+      }.bind(this));
+    },
+    setSelection: function(item) {
+      if (this.bookSelection)
+        this.bookSelection.classList.remove('core-selected');
+      this.bookSelection = item;
+      if (item)
+        item.classList.add('core-selected');
     },
     clearSelection: function(ev) {
       // clear selection on taps outside books
-      if (ev.target === this.$.selectorContainer)
-        this.$.bookSelector.selected = null;
+      if (!ev || ev.target === this.$.selectorContainer)
+        this.setSelection(null);
     },
     bookTapHandler: function(ev) {
+      if (ev.detail === 1) // select book
+        this.setSelection(ev.currentTarget);
       if (ev.detail === 2) // double-tap
         this.editBook();
     },
@@ -150,17 +150,25 @@
     },
     showShareBookDialog: function() {
       var shareDialog = document.createElement('pook-share-book-dialog');
-      shareDialog.bookId = this.bookIds[this.$.bookSelector.selectedIndex - 1];
+      shareDialog.bookId = this.bookSelection.bookId;
       this.shadowRoot.appendChild(shareDialog);
     },
     deleteBook: function() {
-      if (this.$.bookSelector.selectedIndex === -1)
-        return;
-      this.user.deleteBook( this.bookIds[this.$.bookSelector.selectedIndex - 1]);
-      this.$.bookSelector.selected = null;
+      var bookId = this.bookSelection.bookId;
+      if ( this.bookIds.indexOf( bookId) >= 0)   // my book, delete
+        this.user.deleteBook( this.bookSelection.bookId );
+      else
+        this.bookSelection.getBook().stopShare(this.user.uid);
+      this.clearSelection();
     },
     editBook: function() {
-      document.querySelector('pook-app').editBook( this.bookIds[this.$.bookSelector.selectedIndex - 1]);
+      document.querySelector('pook-app').editBook( this.bookSelection.bookId );
+    },
+    booksSharedWithMeChanged: function() {
+      this.booksSharedWithMeIds = CommonUtils.objectKeys(this.user.booksSharedWithMe);
+      this.booksSharedWithMeIds.forEach( 
+        this.user.bookCache.getBook.bind(this.user.bookCache) 
+      ); 
     },
     findTemplateInstanceByKey: function(k) {
       var instances = this.$.bookSelector.querySelectorAll('.book-tile');

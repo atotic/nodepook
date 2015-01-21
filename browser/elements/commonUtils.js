@@ -46,6 +46,8 @@
           return this.firebaseLoc + "users/" + id + "/myPhotos";
         case 'myBooks':
           return this.firebaseLoc + "users/" + id + "/myBooks";
+        case 'booksSharedWithMe':
+          return this.firebaseLoc + "users/" + id + "/booksSharedWithMe";
         case 'notifications':
           return this.firebaseLoc + "users/" + id + "/notifications";
         case 'onePhoto': // id is photoId
@@ -58,6 +60,8 @@
           return this.firebaseLoc + "books";
         case 'allPhotos':
           return this.firebaseLoc + "photos";
+        case 'allUsers':
+          return this.firebaseLoc + "users";
         case 'requestShareBook':
           return this.firebaseLoc + "requestShareBook";
         default:

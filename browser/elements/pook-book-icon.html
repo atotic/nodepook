@@ -1,0 +1,82 @@
+<link rel="import" href="../vendor/polymer/polymer.html">
+
+<link rel="import" href="pook-book-cache.html">
+
+<!--
+Book icon. Pretty book icon
+@element pook-book-icon
+@group ui
+-->
+<polymer-element name='pook-book-icon' layout vertical pixPerInch="8" defaultSize="50"attributes="bookId pixPerInch">
+  <template>
+    <style>
+      :host {
+        vertical-align: bottom;
+        margin: 8px;
+      }
+      #tile {
+        position: relative;
+        padding: 8px;
+        width: 50px;
+        height: 50px;
+        border: 1px solid #555;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        user-select: none;
+        -webkit-user-select: none;
+      }
+      :host(.core-selected) :after {
+        position: absolute;
+        content: "\2713";
+        text-align: left;
+        bottom: 4px;
+        right: 4px;
+
+        border: 1px solid #aaa;
+        width: 20px;
+        height: 20px;
+        border-radius: 10px;
+        background-color: #0BA8F2;
+        color: #DDD;
+      }
+    </style>
+    <div id="tile" style="width:{{width}}px;height:{{height}}px">
+      <p>{{bookTitle}}</p>
+    </div>
+  </template>
+  <script>
+  (function() {
+    var Singleton = {
+      get bookCache() {
+        if (!("_bookCache" in this))
+          this._bookCache = document.createElement('pook-book-cache');
+        return this._bookCache;
+      }
+    };
+
+    Polymer({
+
+      computed: {
+        bookTitle: "book.data.title",
+        width: "(book.data.width * pixPerInch) || defaultSize",
+        height: "(book.data.height * pixPerInch) || defaultSize"
+      },
+      bookIdChanged: function() {
+        if (this.bookId)
+          this.book = Singleton.bookCache.getBook( this.bookId );
+        else
+          this.book = null;
+      },
+     /**
+      * @method getBook
+      * returns book displayed by icon. 
+      */
+      // Courtesy method, so you do not have to fetch your own book-cache if you have the icon
+      getBook: function() {
+        return this.book;
+      }
+
+    });
+  })();
+  </script>
+</polymer-element>

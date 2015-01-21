@@ -1,4 +1,7 @@
 TODO
+Platform:
+- recompute('propertyId'): force recompute of computed properties
+- firebase-element-array: firebase-element that transforms data into array
 Phase 1: Photobook organizer with sharing
 - bug: no books on firefox/ipad
 - sharing: share dialog ui

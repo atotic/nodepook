@@ -36,33 +36,92 @@ function shareBook(bookId, shareWithUid, startOrStop) {
   }
 }
 
-function requestShareWatcher() {
-  var requestShareBookRef = ref.child('requestShareBook');
-  requestShareBookRef.on('child_added', function(snapshot) {
+function notifyUser(uid, type, message) {
+  var notificationRef = new Firebase( commonUtils.getFirebaseUrl('notifications',uid));
+  notificationRef.push( {
+    type: type,
+    message: message
+  }, reportError("notifying user"));
+}
+
+/*
+ * @param <Function> callback listens to firebase 'value' event on the query
+ */
+function findUserByEmail(email, callback) {
+  (new Firebase( commonUtils.getFirebaseUrl('allUsers')))
+    .orderByChild('email')
+    .startAt(email)
+    .endAt(email)
+    .limitToFirst(1)
+    .once('value', callback);
+}
+/*
+ * @param <Function> callback fn(err), err message can be shown to the user
+ */
+function processStartSharing(request, callback) {
+  findUserByEmail( request.shareWith, function(snapshot) {
+    var users = snapshot.val();
+    // TODO in the future, invite the non-existent user to read the book through email
+    if (!users)
+      return callback( new Error("Cant share book. " + request.shareWith + " user is not registered with pook.io"));
+
+    var shareWithId = Object.keys(users)[0];
+    debug("Target user for sharing is", shareWithId);
+    var targetUserRef = new Firebase( commonUtils.getFirebaseUrl('user', shareWithId));
+    targetUserRef.child('booksSharedWithMe').child(request.bookId).set(true);
+
+    var bookRef = new Firebase( commonUtils.getFirebaseUrl('oneBook', request.bookId));
+    bookRef.child("sharedWith").child(shareWithId).set(true);
+
+    callback();
+  });
+}
+
+function processStopSharing(request, callback) {
+  var targetUserRef = new Firebase(commonUtils.getFirebaseUrl('user', request.shareWith));
+  targetUserRef.child('booksSharedWithMe').child(request.bookId).remove();
+
+  var bookRef = new Firebase( commonUtils.getFirebaseUrl('oneBook', request.bookId));
+  bookRef.child("sharedWith").child(request.shareWith).remove();
+
+  callback();
+}
+function initShareWatcher() {
+  var shareRef = new Firebase( commonUtils.getFirebaseUrl( 'requestShareBook'));
+
+  shareRef.on('child_added', function(snapshot) {
     var request = snapshot.val();
+    
+    // delete the request
+    shareRef.child( snapshot.key()).remove();
+
+    switch( request.type) {
+      case 'start':
+        processStartSharing(request, function(err) {
+          if (err)
+            notifyUser(request.madeBy, "error", "Error while sharing book with " + request.shareWith + err.message);
+          else
+            notifyUser(request.madeBy, "message", "your book has been shared successfully");
+        });
+        break;
+      case 'stop':
+        processStopSharing(request, function(err) {
+          if (err)
+            notifyUser(request.madeBy, "error", "Error while stopping sharing book with " + request.shareWith + err.message);
+          else
+            notifyUser(request.madeBy, "message", "Stopped sharing successfully");
+        });
+        break;
+      default:
+        debug('error processing sharing request: bad request type' + request.type);
+    }
     debug('share book request received', request.shareWith);
-
-    // remove the request
-    requestShareBookRef.ref().remove( reportError("request share remove"));
-
-    // find user
-    usersRef
-      .orderBy('email')
-      .startAt(request.shareWith)
-      .endAt(request.shareWith)
-      .limitToFirst(1)
-      .once('value', function(snapshot) {
-        var user = snapshot.val();
-        if (!user)
-          return debug("Could not share with ", request.shareWith, ". User not found");
-        request.shareWithUid = Object.keys(user)[0];
-        shareBook(request.bookId, Object.keys(user)[0], request.type);
-      });
+    debug('request key', snapshot.key());
   });
 }
 // Watch database, and perform actions
 function initWatchers() {
-  requestShareWatcher();
+  initShareWatcher();
 }
 
 // Connect to Firebase server

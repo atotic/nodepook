@@ -89,7 +89,7 @@ Responsible for routing
             </template>
           </span>
           <span flex>pook.io</span>
-          <paper-button on-tap='{{logout}}'>logout</paper-button>
+          <paper-button on-tap='{{logout}}'>logout {{$.user.email}}</paper-button>
         </core-toolbar>
         <div class='content'>
           <core-pages id='pages' selected='{{$.menu.selected}}'>

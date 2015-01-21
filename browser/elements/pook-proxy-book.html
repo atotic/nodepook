@@ -61,13 +61,17 @@ Properties:
       var fb = new Firebase( CommonUtils.getFirebaseUrl('requestShareBook'));
       fb.push(request);
     },
-    stopShare: function(u) {
+    /**
+     * @method stopShare
+     * @param <String> uid user who has sharing access
+     */
+    stopShare: function(uid) {
       var fb = new Firebase( CommonUtils.getFirebaseUrl('requestShareBook'));
       var request =  {
         type: "stop",
         madeBy: document.createElement('pook-user').uid,
         bookId: this.bookId,
-        shareWith: email
+        shareWith: uid
       };
       var fb = new Firebase( CommonUtils.getFirebaseUrl('requestShareBook'));
       fb.push(request);
