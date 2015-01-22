@@ -84,6 +84,13 @@ singleton, all instances share common state
     }
   );
 
+  function initSingleton() {
+    if (Singleton.photoCache !== null)
+      return;
+    Singleton.photoCache = document.createElement('pook-photo-cache');
+    Singleton.bookCache = document.createElement('pook-book-cache');
+  };
+
   Polymer({
     publish: {
       /** if set, will redirect to anonRedirect path if user is 'anonymous' */
@@ -121,12 +128,9 @@ singleton, all instances share common state
       uid: 'userStatusChanged'
     },
     created: function() {
+      initSingleton();
       this.userInfo = Singleton.userInfo;
       this.databases = Singleton.databases;
-      if (Singleton.photoCache === null)
-        Singleton.photoCache = document.createElement('pook-photo-cache');
-      if (Singleton.bookCache === null)
-        Singleton.bookCache = document.createElement('pook-book-cache');
       this.photoCache = Singleton.photoCache;
       this.bookCache = Singleton.bookCache;
     },

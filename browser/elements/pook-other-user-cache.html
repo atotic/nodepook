@@ -59,6 +59,9 @@ Information about another user: email/firstName/lastName
         firstName: "",
         lastName: ""
       },
+      computed: {
+        name: "firstName + ' ' + lastName"
+      },
       userIdChanged: function() {
         if (this.userId) {
           var userPath = CommonUtils.getFirebaseUrl('user', this.userId);

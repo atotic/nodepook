@@ -2,6 +2,8 @@ extends layout
 
 block content
   core-style(ref="main")
+  link(rel='import', href='/elements/pook-flash.html')
+  link(rel='import', href='/elements/pook-auth-ui.html')
   pook-flash
   h1= title
   pook-auth-ui

@@ -26,7 +26,7 @@ Usage:
 -->
 <polymer-element name="pook-share-book-dialog">
   <template>
-      <paper-action-dialog id="dialog" heading="Sharing" transition="paper-dialog-transition-bottom">
+      <paper-action-dialog id="dialog" heading="" transition="paper-dialog-transition-bottom">
 
       <style>
         pook-book-icon {
@@ -37,10 +37,10 @@ Usage:
       <template if="{{sharedWith.length > 0}}">
         <div>Shared with:</div>
         <template repeat="{{uid in sharedWith}}">
-          <div>{{otherUserCache.users[uid].email}}<paper-button on-tap="{{stopShare}}">Remove</paper-button></div>
+          <div>&lt;{{otherUserCache.users[uid].email}}&gt; {{otherUserCache.users[uid].name}} <paper-button on-tap="{{stopShare}}" raised>Remove</paper-button></div>
         </template>
       </template>
-      <div>Email of the person you'd like to share with:</div>
+      <div style="margin-top: 24px">Email of the person you'd like to share with:</div>
       <paper-input id="email" label="email" value="{{email}}" raised></paper-input>
       <paper-button on-tap="{{addShare}}" raised>Add</paper-button>
 

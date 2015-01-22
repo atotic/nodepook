@@ -17,6 +17,14 @@ p {
 	font-size: smaller;
 }
 
-* /deep/ paper-button {
+* /deep/ paper-button, * paper-button {
   text-transform: none;
+}
+
+ * paper-button {
+  text-transform: none;
+}
+
+* {
+  -webkit-tap-highlight-color: rgba(0,0,0,0);
 }

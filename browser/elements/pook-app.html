@@ -18,9 +18,10 @@
 <link rel="import" href="pook-page-book-editor.html">
 <link rel="import" href="pook-body-file-drop.html">
 <!--
-Main pook.io application
+User home page, main pook.io application
 
-Responsible for routing
+Hash routing, lhs navigation
+
 @element pook-app
 @group ui
 -->
@@ -69,7 +70,7 @@ Responsible for routing
     <pook-body-file-drop on-file-dropped='{{fileDropped}}'></pook-body-file-drop>
     <core-drawer-panel id='drawerPanel' drawerWidth="8em">
       <core-header-panel drawer>
-        <core-toolbar></core-toolbar>
+        <core-toolbar><span flex>pook.io</span></core-toolbar>
         <core-menu id='menu' on-core-select="{{selectPane}}" selected="3" selectedAttribute="coreActive">
           <paper-item><core-icon icon="account-box"></core-icon>account</paper-item>
           <paper-item><core-icon icon="https"></core-icon>security</paper-item>
@@ -89,7 +90,7 @@ Responsible for routing
               <core-icon icon="close" on-tap="{{closeTab}}"></core-icon>
             </template>
           </span>
-          <span flex>pook.io</span>
+          
           <paper-button on-tap='{{logout}}'>logout {{$.user.email}}</paper-button>
         </core-toolbar>
         <div class='content'>
@@ -171,6 +172,10 @@ Responsible for routing
             return i;
       return -1;
     },
+    /**
+     * @method editBook
+     * @param {string} bookdId book to edit
+     */
     editBook: function(bookId) {
       var hashbang = this.bookIdToHashbang(bookId);
       var tabIndex = this.findTabById(hashbang);

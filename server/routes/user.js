@@ -11,7 +11,7 @@ var router = express.Router();
 
 router.get('/', function(req, res) {
 	if (!req.user)
-		res.render('user/account');
+		res.render('user/account', { title: 'pook.io:home'});
 	else {
 		async.waterfall([
 				function getPhotos(cb) {
