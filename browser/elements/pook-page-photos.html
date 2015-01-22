@@ -76,10 +76,7 @@
     },
     created: function() {
       this.user = document.createElement('pook-user');
-      var THIS = this;
-      this.user.requestDatabase('myPhotos').then( function(database) {
-        database.addEventListener('data-change', THIS.userPhotosChanged.bind(THIS));
-      });
+      this.user.myPhotosDb.addEventListener('data-change', this.userPhotosChanged.bind(this));
     },
     ready: function() {
       this.$.addPhotoInput.addEventListener('change', this.handleAddPhotoInput.bind(this));

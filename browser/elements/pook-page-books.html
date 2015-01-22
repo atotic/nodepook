@@ -117,14 +117,9 @@
       };
 
       this.user = document.createElement('pook-user');
-      this.user.requestDatabase('myBooks').then( function(db) {
-          db.addEventListener('data-change', 
-            this.booksChanged.bind(this));
-        }.bind(this));
-      this.user.requestDatabase('booksSharedWithMe').then( function(db) {
-        db.addEventListener('data-change', 
-          this.booksSharedWithMeChanged.bind(this));
-      }.bind(this));
+      this.user.myBooksDb.addEventListener('data-change', this.booksChanged.bind(this));
+
+      this.user.booksSharedWithMeDb.addEventListener('data-change', this.booksSharedWithMeChanged.bind(this));
     },
     setSelection: function(item) {
       if (this.bookSelection)

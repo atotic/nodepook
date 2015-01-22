@@ -90,10 +90,7 @@
       },
       created: function() {
         this.user = document.createElement('pook-user');
-        this.user.requestDatabase('notifications').then( 
-          function(db) {
-            db.addEventListener('data-change', this.notificationsChanged.bind(this))
-          }.bind(this));
+        this.user.notificationsDb.addEventListener('data-change', this.notificationsChanged.bind(this));
       },
       notificationsChanged: function() {
         this.notificationIds = CommonUtils.objectKeys(this.user.notifications);

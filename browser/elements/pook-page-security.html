@@ -54,13 +54,12 @@ This is definitely high on our list of features to implement for Simple Login. A
     },
     created: function() {
       this.user = document.createElement('pook-user');
-      this.user.requestDatabase('account');
     },
     get flash() {
       return document.querySelector('pook-flash');
     },
     changePassword: function() {
-      var ref = this.user.databases['account'].ref;
+      var ref = this.user.accountDb.ref;
       var auth = ref.getAuth();
       ref.changePassword( {
           email: auth.password.email,

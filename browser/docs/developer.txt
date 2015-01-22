@@ -17,6 +17,10 @@ Phase 1: Photobook organizer with sharing
 Done:
 - book creation, sharing
 
+Bugs:
+- account email update does not update login email
+  need email confirmation click before we change your login email
+
 Phase 2: Photobook editor
 
 ## Firebase

@@ -4,14 +4,15 @@
 <link rel="import" href="pook-photo-cache.html">
 
 <!--
-current user entry point
+Current user model, singleton (all instances share state)
 
-singleton, all instances share common state
+Holds `firebase-element` references to user databases.
+
+Users are authenticated asynchronously. Databases get data after authentication.
+If you are using bindings, you do not need to worry about this, otherwise:
 
     user = document.createElement('pook-user');
-    user.requestDatabase(account).then( function(db) {
-    });
-
+    
 @element pook-user
 @group model
 
@@ -66,14 +67,6 @@ singleton, all instances share common state
       notifications: false,
       booksSharedWithMe: false
     },
-    databasePromises : {
-      account: new PookPromise(),
-      user: new PookPromise(),
-      myPhotos: new PookPromise(),
-      myBooks: new PookPromise(),
-      notifications: new PookPromise(),
-      booksSharedWithMe: new PookPromise()
-    },
     photoCache: null, // document.createElement('pook-photo-cache'),
     bookCache: null //document.createElement('pook-book-cache')
   };
@@ -89,6 +82,9 @@ singleton, all instances share common state
       return;
     Singleton.photoCache = document.createElement('pook-photo-cache');
     Singleton.bookCache = document.createElement('pook-book-cache');
+    Object.keys( Singleton.databases ).forEach(function(k) {
+      Singleton.databases[k] = document.createElement('firebase-element');
+    });
   };
 
   Polymer({
@@ -118,11 +114,22 @@ singleton, all instances share common state
        * must use this instead of userData.account.street1 because bindings only broadcast changes 1 deep
        */
       account: "databases['account'].data",
+      /** 
+       * @property userData
+       * Firebase( /users/$userId )
+       */ 
       userData: "databases['user'].data",
       myPhotos: "databases['myPhotos'].data",
       myBooks: "databases['myBooks'].data",
       notifications: "databases['notifications'].data",
-      booksSharedWithMe: "databases['booksSharedWithMe'].data"
+      booksSharedWithMe: "databases['booksSharedWithMe'].data",
+
+      accountDb: "databases['account']",
+      userDb: "databases['user']",
+      myPhotosDb: "databases['myPhotos']",
+      myBooksDb: "databases['myBooks']",
+      notificationsDb: "databases['notifications']",
+      booksSharedWithMeDb: "databases['booksSharedWithMe']",
     },
     observe: {
       uid: 'userStatusChanged'
@@ -162,26 +169,11 @@ singleton, all instances share common state
       if (this.uid === 'anonymous' || this.uid === '') {
         // no user, remove active databases
         for (var k in this.databases)
-          if ((typeof this.databases[k]) === 'object')
-            this.databases[k] = true;
+          this.databases[k].location = "";
       }
       else {
         for (var k in this.databases)
-          if (this.databases[k] === true) {
-            this.databases[k] = document.createElement('firebase-element');
-            this.databases[k].location = CommonUtils.getFirebaseUrl(k, this.uid);
-            Singleton.databasePromises[k].resolve(this.databases[k]);
-            // this.databases[k].log = true;
-            // if (k == 'account') {
-            //   var obs = new PathObserver(this.databases[k], 'data.email');
-            //   obs.open( function(newValue, oldValue) {
-            //     console.log('email changed');
-            //     if (oldValue && newValue)
-            //       console.log('email really changed');
-            //   });
-
-            // }
-          }
+          this.databases[k].location = CommonUtils.getFirebaseUrl(k, this.uid);
       }
     },
     /**
@@ -200,30 +192,29 @@ singleton, all instances share common state
       Singleton.photoCache.createPhotoFromFile(file, this.uid, function(err, photoRef) {
         if (err)
           return callback(err);
-        this.requestDatabase('myPhotos').then( function(db) {
-          db.ref.child(photoRef.key()).set(true, function(err) {
+        this.myPhotosDb.ref.child(photoRef.key()).set(true, function(err) {
             if (err) debugger;
             callback(err, photoRef);
           });
-        })
-      }.bind(this)
-      );
+      });
     },
     /**
      * @method createBook
-     * 
+     * @param {string} title title
+     * @param {object} size size
+     * @param {number} size.width inches
+     * @param {number} size.height inches
+     * @param {function} callback fn(err, bookRef)
      */
     createBook: function(title, size, callback) {
       callback = callback || CommonUtils.noope;
       this.bookCache.createBook(this.uid, title, size, function(err, ref) {
         if (err) 
           return callback(err);
-        this.requestDatabase('myBooks').then( function(db) {
-          db.ref.child(ref.key()).set(true, function(err) {
+        this.myBooksDb.ref.child(ref.key()).set(true, function(err) {
             if (err) debugger;
             callback(err, ref);
-          })
-        }.bind(this));
+          });
       }.bind(this));
     },
 
