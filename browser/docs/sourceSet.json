@@ -10,7 +10,6 @@
   ],
   "Elements": [
     "/elements/async.html",
-    "/elements/bugreport.html",
     "/elements/native-promise-only.html",
     "/elements/pook-app.html",
     "/elements/pook-auth-ui.html",
@@ -21,6 +20,7 @@
     "/elements/pook-book-proxy.html",
     "/elements/pook-flash.html",
     "/elements/pook-new-book-dialog.html",
+    "/elements/pook-other-user-cache.html",
     "/elements/pook-page-account.html",
     "/elements/pook-page-book-editor.html",
     "/elements/pook-page-books.html",
@@ -33,8 +33,7 @@
     "/elements/pook-styles.html",
     "/elements/pook-user.html",
     "/elements/pook-utils.html",
-    "/elements/rectangle.html",
-    "/elements/test.html"
+    "/elements/rectangle.html"
   ],
   "Tests": [
     "/test/index.html"

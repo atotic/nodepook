@@ -110,6 +110,9 @@
       booksSharedWithMeIds: [],
       bookSelection: null
     },
+    computed: {
+      booksSharedWithMeIds: "computeSharedWithMeIds( user.booksSharedWithMeDb.keys)"
+    },
     created: function() {
       this.delta = {
         add: {}, // # key => true
@@ -118,8 +121,11 @@
 
       this.user = document.createElement('pook-user');
       this.user.myBooksDb.addEventListener('data-change', this.booksChanged.bind(this));
-
-      this.user.booksSharedWithMeDb.addEventListener('data-change', this.booksSharedWithMeChanged.bind(this));
+    },
+    computeSharedWithMeIds: function( ids) {
+      if (!ids) return [];
+      ids.forEach( this.user.bookCache.getBook.bind(this.user.bookCache) );
+      return ids;
     },
     setSelection: function(item) {
       if (this.bookSelection)
@@ -158,12 +164,6 @@
     },
     editBook: function() {
       document.querySelector('pook-app').editBook( this.bookSelection.bookId );
-    },
-    booksSharedWithMeChanged: function() {
-      this.booksSharedWithMeIds = CommonUtils.objectKeys(this.user.booksSharedWithMe);
-      this.booksSharedWithMeIds.forEach( 
-        this.user.bookCache.getBook.bind(this.user.bookCache) 
-      ); 
     },
     findTemplateInstanceByKey: function(k) {
       var instances = this.$.bookSelector.querySelectorAll('.book-tile');

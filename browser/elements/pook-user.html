@@ -113,17 +113,38 @@ If you are using bindings, you do not need to worry about this, otherwise:
        * convenience access to /users/$userId/account
        * must use this instead of userData.account.street1 because bindings only broadcast changes 1 deep
        */
-      account: "databases['account'].data",
       /** 
        * @property userData
        * Firebase( /users/$userId )
        */ 
+      /** 
+       * @property myPhotos
+       * Firebase( /users/$userId/myPhotos )
+       */ 
+      /** 
+       * @property myBooks
+       * Firebase( /users/$userId/myBooks )
+       */ 
+      /** 
+       * @property notifications
+       * Firebase( /users/$userId/notifications )
+       */       
+      /** 
+       * @property booksSharedWithMe
+       * Firebase( /users/$userId/booksSharedWithMe )
+       */ 
+      account: "databases['account'].data",
       userData: "databases['user'].data",
       myPhotos: "databases['myPhotos'].data",
       myBooks: "databases['myBooks'].data",
       notifications: "databases['notifications'].data",
       booksSharedWithMe: "databases['booksSharedWithMe'].data",
 
+      /**
+       * @property accountDb|userDb|myPhotosDb|myBooksDb|notificationsDb|booksSharedWithMeDb
+       * @type `firebase-element`
+       * Access to `firebase-element` of the db
+       */
       accountDb: "databases['account']",
       userDb: "databases['user']",
       myPhotosDb: "databases['myPhotos']",
@@ -185,6 +206,7 @@ If you are using bindings, you do not need to worry about this, otherwise:
     /**
      * @method createPhoto
      * @param {File} file local file
+     * @param {function} callback fb(err, photoRef)
      * creates photo record in db, and uploads file to server
      */
     createPhoto: function(file, callback) {
@@ -196,7 +218,7 @@ If you are using bindings, you do not need to worry about this, otherwise:
             if (err) debugger;
             callback(err, photoRef);
           });
-      });
+      }.bind(this));
     },
     /**
      * @method createBook

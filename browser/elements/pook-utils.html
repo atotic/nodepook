@@ -6,39 +6,11 @@
 <script>
 
 (function() {
-/**
-  * PookPromise exposes resolve/reject methods
-  * @class PookPromise
-  * @group utilities
-  */
-  function PookPromise() {
-    this.promise = new Promise(this.init.bind(this));
-  }
-
-  PookPromise.prototype = {
-    init: function( resolveCb, rejectCb) {
-      this.resolveCb = resolveCb;
-      this.rejectCb = rejectCb;
-    },
-    resolve: function(val) {
-      if (!this.resolveCb)
-        console.error("Resolved too early");
-      this.resolveCb(val);
-    },
-    reject: function(err) {
-      if (!this.rejectCb)
-        console.error("Rejected too early");
-      this.rejectCb(err);
-    },
-    then: function(success,failure) {
-      this.promise.then(success, failure);
-    }
-  };
 
 /**
  * Utility functions, globals
  * @class PookUtils
- * @group utilities
+ * @group infrastructure
  */
   PookUtils = {
   
@@ -91,7 +63,6 @@
     }
   }
 
-  window.PookPromise = PookPromise;
   window.PookUtils = PookUtils;
 
 })();

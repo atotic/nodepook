@@ -74,22 +74,19 @@
       iconHeight: 196,
       photoIds: []
     },
+    computed: {
+      photoIds: "computePhotoIds(user.myPhotosDb.keys)"
+    },
     created: function() {
       this.user = document.createElement('pook-user');
-      this.user.myPhotosDb.addEventListener('data-change', this.userPhotosChanged.bind(this));
+    },
+    computePhotoIds: function(ids) {
+      if (ids == null) return [];
+      ids.forEach(this.user.photoCache.getPhoto.bind(this.user.photoCache));
+      return ids.reverse();
     },
     ready: function() {
       this.$.addPhotoInput.addEventListener('change', this.handleAddPhotoInput.bind(this));
-    },
-    userPhotosChanged: function() {
-      if (this.user.myPhotos) {
-        this.photoIds = Object.keys(this.user.myPhotos).reverse();
-        this.photoIds.forEach( this.user.photoCache.getPhoto.bind(this.user.photoCache)); // clever or obtuse?
-      }
-      else
-        this.photoIds = [];
-      // TODO scroll added photos into view
-      // PookUtils.scrollIntoView(target, this);
     },
     clickAddPhoto: function() {
       this.$.addPhotoInput.click();
