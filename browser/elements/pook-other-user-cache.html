@@ -47,19 +47,41 @@ Cache of other users. `pook-other-user-proxy`
 <!--
 @element pook-other-user-proxy
 @group model
-Information about another user: email/firstName/lastName
+Brief information about another user: email, firstName, lastName
 -->
 
 <polymer-element name="pook-other-user-proxy" attribute="userId">
   <template></template>
   <script>
     Polymer({
+       /**
+        * @property userId
+        * @type string
+        * user id
+        */
       publish: {
+       /**
+        * @property email
+        * @type string
+        */
         email: "",
+       /**
+        * @property firstName
+        * @type string
+        */
         firstName: "",
+       /**
+        * @property lastName
+        * @type string
+        */
         lastName: ""
       },
       computed: {
+       /**
+        * @property name
+        * @type string
+        * firstName + lastName
+        */
         name: "firstName + ' ' + lastName"
       },
       userIdChanged: function() {

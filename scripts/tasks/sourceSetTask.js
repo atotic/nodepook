@@ -1,7 +1,7 @@
 #! /usr/bin/env node
 
 /**
- 
+ * creates sourceSet.json 
  */
 var fs = require('fs');
 
@@ -9,27 +9,38 @@ var sourceSet = {
   Documents: [],
   Elements: [],
   Tests: ["/test/index.html"],
-  Bower: [],
+  Bower: ["/vendor/firebase-elements/firebase-element.html"],
   References: [
     "http://blog.keithcirkel.co.uk/how-to-use-npm-as-a-build-tool/",
     "http://iamralpht.github.io/physics/",
     "http://aws.amazon.com/ses/"
   ]
 }
+
+var ignores = [];
+
+function ignoreName(name) {
+  return ignores.some(function(p) { name.match(p) });
+}
+
 var docFolder = "browser/docs";
 var elementsFolder = "browser/elements";
 var bowerFolder = "browser/vendor";
 
 var docRoot = "/docs";
 var docFiles = fs.readdirSync(docFolder);
+ignores = ["index.html"];
+
 docFiles.forEach(function(name) {
+  if (ignoreName(name)) return;
   sourceSet.Documents.push(docRoot + "/" + name);
 });
 
 var elementRoot = "/elements";
 var elementFiles = fs.readdirSync(elementsFolder);
 elementFiles.forEach( function(name) {
-  if (name.match(/\.html$/i))
+  if (ignoreName(name)) return;
+  if (name.match(/\.html$/i) || name.match(/\.js$/i))
     sourceSet.Elements.push( elementRoot + "/" + name);
 });
 

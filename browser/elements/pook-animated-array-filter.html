@@ -13,14 +13,15 @@ Problem: animating insertion/removal of arrays bound to a template.
 When item is removed, it just disappears from the list.
 When item is added, need to figure out what was added, add class for animation, etc
 
-See demo in pook-animated-array.test.html
+See live demo in pook-animated-array.test.html
 
 Simplest example:
 
     <polymer-element>
     <template>
-      <pook-animated-array-filter id="filter" source="{{source}}" output="{{animated}}"></pook-animated-array-filter>
-      <template repeat="{{k in animated}}"
+      <pook-animated-array-filter id="filter" 
+        source="{{source}}"></pook-animated-array-filter>
+      <template repeat="{{k in $.filter.animated}}"
         <div class="tile {{$.filter.animationClass[k]}}"
           on-animationend="{{handleTileAnimationEnd}}" 
           on-webkitAnimationEnd="{{handleTileAnimationEnd}}"  
@@ -87,8 +88,14 @@ Simplest example:
       output: []
     },
 
-    sourceChanged: function() {
+    firstChange: true,
 
+    sourceChanged: function() {
+      if (this.firstChange) { 
+        this.firstChange = false;
+        this.output = this.source;
+        return;
+      }
       // compute and store the differences
       var diff = this.arrayDiff(this.output, this.source);
       for (var k in diff.added) // also keep added values from before
@@ -144,7 +151,7 @@ Simplest example:
 
     /**
      * @method animationComplete
-     * @param <String> item item whose animation has completed
+     * @param {String} item item whose animation has completed
      * call this when addition/removal animations complete
      */
     animationComplete: function(item) {

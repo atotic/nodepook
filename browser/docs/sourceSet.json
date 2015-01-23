@@ -10,7 +10,10 @@
   ],
   "Elements": [
     "/elements/async.html",
+    "/elements/commonUtils.js",
+    "/elements/exif-worker.js",
     "/elements/native-promise-only.html",
+    "/elements/pook-animated-array-filter.html",
     "/elements/pook-app.html",
     "/elements/pook-auth-ui.html",
     "/elements/pook-auth.html",
@@ -39,6 +42,7 @@
     "/test/index.html"
   ],
   "Bower": [
+    "/vendor/firebase-elements/firebase-element.html",
     "/vendor/context-free-parser/context-free-parser.html",
     "/vendor/core-a11y-keys/core-a11y-keys.html",
     "/vendor/core-ajax/core-ajax.html",

@@ -1,6 +1,6 @@
 /**
  * @class CommonUtils
- * @group utilities
+ * @group infrastructure
  *
  * Utilities common to browser and server
  */

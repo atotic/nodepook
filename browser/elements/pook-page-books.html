@@ -31,6 +31,7 @@
       }
       .book-tile {
         cursor: pointer;
+        position:relative;
       }
       .book-tile.animate-add {
         z-index: 999;
@@ -122,7 +123,15 @@
     },
     computeSharedWithMeIds: function( ids) {
       if (!ids) return [];
-      ids.forEach( this.user.bookCache.getBook.bind(this.user.bookCache) );
+      ids.forEach( function(id) {
+        // remove books shared with me that have been deleted
+        (new Firebase( CommonUtils.getFirebaseUrl('oneBook', id)))
+          .once('value', 
+            function success(){},
+            function fail() {
+              this.user.booksSharedWithMeDb.ref.child(id).remove();              
+            }.bind(this));
+      }.bind(this));
       return ids;
     },
     setSelection: function(item) {

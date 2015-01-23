@@ -1,21 +1,21 @@
 <link href='../vendor/core-style/core-style.html' rel="import">
 <!--
- Simple animations
- @element pook-style#pook-animations
- @group ui
+Simple animations
+@element pook-style#pook-animations
+@group ui
+
+    .animate-add {
+            position: relative;
+            z-index: 999;
+            background-color: white;
+    -webkit-animation-duration:0.5s;
+            animation-duration:0.5s;
+    -webkit-animation-name:slide-up;
+            animation-name:slide-up;
+    }
 -->
 <core-style id="pook-animations">
 
-/* animations. Use as
- .tile.animate-add {
-          z-index: 999;
-          background-color: white;
-  -webkit-animation-duration:0.5s;
-          animation-duration:0.5s;
-  -webkit-animation-name:slide-up;
-          animation-name:slide-up;
-  }
-*/
 @-webkit-keyframes slide-up {
   from { top: 80vh; width:0px; margin: 0; padding: 0}
   to { top: 0px;}

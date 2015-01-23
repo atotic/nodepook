@@ -1,5 +1,6 @@
 /**
- * @class exif-worker
+ * @element exif-worker
+ * @group infrastructure
  * Parses exif data from a file
  * Sends parsed event when complete
  */
