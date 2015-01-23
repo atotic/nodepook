@@ -9,6 +9,9 @@
 <link rel="import" href="pook-share-book-dialog.html">
 <link rel="import" href="pook-book-icon.html">
 <link rel="import" href="pook-utils.html">
+<link rel="import" href="pook-animated-array-filter.html">
+<link rel="import" href="pook-styles.html">
+
 <!--
 /**
   * Book listing and actions
@@ -19,7 +22,6 @@
 -->
 <polymer-element name='pook-page-books'>
   <template>
-    <core-style ref='pook-animations'></core-style>
     <style>
       :host {
         display: flex;
@@ -65,14 +67,17 @@
         overflow:hidden;
       }
     </style>
+    <core-style ref='pook-animations'></core-style>
     <div id='selectorContainer' on-tap='{{clearSelection}}'>
       <section id="myBooks" class="book-list">
         <div style="padding:0 8px 0 4px; width: 100px; height: 100px; position:relative">
           <paper-button on-tap="{{showNewBookDialog}}" raised style="position:absolute; bottom:10px;">Start a new book...</paper-button>
         </div>
-        <template id="bookList" repeat="{{k in bookIds}}">
+        <pook-animated-array-filter id="myBooksFilter"
+          source="{{myBooksIds}}"></pook-animated-array-filter>
+        <template id="bookList" repeat="{{k in $.myBooksFilter.output}}">
           <pook-book-icon bookId="{{k}}"
-            class="book-tile {{ k | computeTileClass }}"
+            class="book-tile {{ $.myBooksFilter.animationClass[k] }}"
             on-tap="{{bookTapHandler}}"
             on-animationend="{{handleTileAnimationEnd}}" 
             on-webkitAnimationEnd="{{handleTileAnimationEnd}}"  
@@ -106,20 +111,14 @@
 
   Polymer( {
     publish: {
-      bookIds: [],
       bookSelection: null
     },
     computed: {
-      booksSharedWithMeIds: "computeSharedWithMeIds( user.booksSharedWithMeDb.keys)"
+      booksSharedWithMeIds: "computeSharedWithMeIds( user.booksSharedWithMeDb.keys)",
+      myBooksIds: "user.myBooksDb.keys"
     },
     created: function() {
-      this.delta = {
-        add: {}, // # key => true
-        remove: {} // # key => index in old array
-      };
-
       this.user = document.createElement('pook-user');
-      this.user.myBooksDb.addEventListener('data-change', this.booksChanged.bind(this));
     },
     computeSharedWithMeIds: function( ids) {
       if (!ids) return [];
@@ -155,7 +154,7 @@
     },
     deleteBook: function() {
       var bookId = this.bookSelection.bookId;
-      if ( this.bookIds.indexOf( bookId) >= 0)   // my book, delete
+      if ( this.myBooksIds.indexOf( bookId) >= 0)   // my book, delete
         this.user.deleteBook( this.bookSelection.bookId );
       else
         this.bookSelection.getBook().stopShare(this.user.uid);
@@ -164,85 +163,8 @@
     editBook: function() {
       document.querySelector('pook-app').editBook( this.bookSelection.bookId );
     },
-    findTemplateInstanceByKey: function(k) {
-      var instances = this.$.bookSelector.querySelectorAll('.book-tile');
-      for (var i=0; i<instances.length; i++)
-        if (instances.item(i).templateInstance.model.k === k)
-          return instances.item(i);
-    },
-    computeBookIds: function() {
-      if (!this.user.myBooks)
-        return [];
-      else {
-        var ids = Object.keys( this.user.myBooks ).reverse();
-        ids.forEach( this.user.bookCache.getBook.bind(this.user.bookCache));
-        return ids;
-      }
-    },
-    computeDelta: function(newKeys, oldKeys) {
-      var newHash = PookUtils.arrayToHash( newKeys );
-      var oldHash = PookUtils.arrayToHash( oldKeys );
-      var delta = {
-        add: this.delta.add,
-        remove: {}
-      };
-      if (oldKeys.length == 0)  // initial animation
-        return delta;
-      for (var k in newHash) {
-        if ( k in oldHash )
-          delete oldHash[k];
-        else
-          delta.add[k] = true;
-      }
-      // keys deleted from newHash are still in oldHash
-      for (var k in oldHash)
-        delta.remove[k] = oldHash[k];
-      return delta;
-    },
-    computeTileClass: function(k) {
-      if (k in this.delta.remove)
-        return 'animate-remove';
-      if (k in this.delta.add)
-        return 'animate-add';
-      return '';
-    },
-    booksChanged: function() {
-      var newIds = this.computeBookIds();
-      this.delta = this.computeDelta(newIds, this.bookIds);
-      // reinsert deleted keys for animation, keeping the position
-      var removes = [];
-      for (var k in this.delta.remove)
-        removes.push({ id: k, index: this.delta.remove[k]});
-      removes.sort( function(a,b) { return a.index - b.index });
-      removes.forEach( function(r) { newIds.splice( r.index, 0, r.id)});
-      // kick off remove animation
-      for (var i=0; i<removes.length; i++) {
-        var el = this.findTemplateInstanceByKey( removes[i].id);
-        if (!el)
-          console.error('could not find deleted element');
-        el.classList.add('animate-remove');
-      }
-      // finally, assign new keys
-      this.bookIds = newIds; 
-    },
     handleTileAnimationEnd: function(ev) {
-      var target = ev.currentTarget;
-      var key = target.templateInstance.model.k;
-      var classTag = target.classList.contains('animate-remove') ? 'animate-remove' :
-                      target.classList.contains('animate-add') ? 'animate-add' : "";
-      // remove class tag
-      ev.currentTarget.classList.remove(classTag);
-      // remove from delta list
-      delete this.delta[ classTag.replace('animate-', '')][key];
-      switch (classTag) {
-        // removed 
-        case 'animate-remove':
-          // remove item from the the list of actives
-          this.bookIds.splice(this.bookIds.indexOf(key), 1);
-          break;
-        default:
-          break;
-      }
+      this.$.myBooksFilter.animationComplete(ev.currentTarget.templateInstance.model.k);
     }
   });
   </script>

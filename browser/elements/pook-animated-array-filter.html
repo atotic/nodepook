@@ -8,11 +8,32 @@
 
 An array whose additions/removals is to be animated.
 
-Animation of addition/removal can be problematic. 
+Problem: animating insertion/removal of arrays bound to a template.
 
-Implementation:
+When item is removed, it just disappears from the list.
+When item is added, need to figure out what was added, add class for animation, etc
 
-- 
+See demo in pook-animated-array.test.html
+
+Simplest example:
+
+    <polymer-element>
+    <template>
+      <pook-animated-array-filter id="filter" source="{{source}}" output="{{animated}}"></pook-animated-array-filter>
+      <template repeat="{{k in animated}}"
+        <div class="tile {{$.filter.animationClass[k]}}"
+          on-animationend="{{handleTileAnimationEnd}}" 
+          on-webkitAnimationEnd="{{handleTileAnimationEnd}}"  
+          on-mozAnimationEnd="{{handleTileAnimationEnd}}"></div>
+    </template>
+    <script>
+    Polymer ({
+      source: [],
+      animated: [],
+      handleTileAnimationEnd: function(ev) {
+        this.$.filter.animationComplete( ev.currentTarget.templateInstance.model.k);
+      }
+    })
 -->
 <polymer-element name="pook-animated-array-filter" attributes="source">
   <template><!--
