@@ -1,0 +1,145 @@
+<link rel="import" href="../vendor/polymer/polymer.html">
+
+<link rel="import" href="pook-utils.html">
+
+<!--
+@element pook-animated-array-filter
+@group infrastructure
+
+An array whose additions/removals is to be animated.
+
+Animation of addition/removal can be problematic. 
+
+Implementation:
+
+- 
+-->
+<polymer-element name="pook-animated-array-filter" attributes="source">
+  <template><!--
+    <style>
+      :host {
+        display:block;
+        background-color: #DDD;
+      }
+      div {
+        display:inline-block;
+        border: 1px solid black;
+      }
+    </style>
+    <p>source</p>
+    <template repeat="{{k in source}}">
+      <div>{{k}}</div>
+    </template>
+    <p>output</p>
+    <template repeat="{{k in output}}">
+      <div>
+      {{k}} {{animationClass[k]}} 
+      </div>
+    </template>
+  --></template>
+  <script>
+  "use strict";
+  Polymer({
+    /**
+     * @property source
+     * @type array[string]
+     * Source array to be observed. Items must be array keys
+     */
+    source: [],
+
+    addedValues: {},
+    removedValues: {},
+
+    /**
+     * @property animationClass
+     * @type Map($item -> 'animate-add'|'animate-remove'|''
+     * Mapping of output items to animation state
+     */
+    animationClass: {},
+
+    publish: {
+    /**
+      * @property output
+      * @type array
+      * Output array, to be displayed
+      */
+      output: []
+    },
+
+    sourceChanged: function() {
+
+      // compute and store the differences
+      var diff = this.arrayDiff(this.output, this.source);
+      for (var k in diff.added) // also keep added values from before
+        this.addedValues[k] = diff.added[k];
+      this.removedValues = diff.removed; // replace all the removes
+
+      var out = this.source.slice(0);
+
+      // insert deleted items back in
+      // insert from lowest index up to make sure they end up in same place
+      var insertions = [];
+      for (var k in diff.removed)
+        insertions.push({ id: k, index: diff.removed[k]});
+      insertions
+        .sort( function(a,b) { return a.index - b.index })
+        .forEach( function(el) {
+          out.splice( el.index, 0, el.id);
+        });
+
+      // initialize animation classes
+      for (var i=0; i<out.length; i++) {
+        var c = "";
+        if (out[i] in this.removedValues)
+          c = "animate-remove";
+        else if (out[i] in this.addedValues)
+          c = "animate-add";
+        this.animationClass[ out[i]] = c;
+      }
+      // store the differences between source and output
+      this.output = out;
+    },
+
+    arrayDiff: function(oldArray, newArray) {
+      var oldHash = PookUtils.arrayToHash(oldArray);
+      var newHash = PookUtils.arrayToHash(newArray);
+      var diff = {
+        added: {},
+        removed: {}
+      };
+
+      for (var k in newHash) {
+        if (k in oldHash) // remove from oldHash values that are in both
+          delete oldHash[k];
+        else
+          diff.added[k] = true; // value is only in new hash
+      }
+      // now oldHash has values that have been removed
+      for (var k in oldHash)
+        diff.removed[k] = oldArray.indexOf(k);
+
+      return diff;
+    },
+
+    /**
+     * @method animationComplete
+     * @param <String> item item whose animation has completed
+     * call this when addition/removal animations complete
+     */
+    animationComplete: function(item) {
+      if (item in this.removedValues) {
+        delete this.removedValues[item];
+        this.output.splice( this.output.indexOf( item),1);
+        this.animationClass[item] = "";
+      } 
+      else if (item in this.addedValues) {
+        delete this.addedValues[item];
+        this.animationClass[ item ] = "";
+      }
+      else 
+        console.warn("animationComplete for item we know nothing about");
+    }
+    
+  });
+  </script>
+</polymer-element>

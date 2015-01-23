@@ -169,23 +169,6 @@ If you are using bindings, you do not need to worry about this, otherwise:
       if (this.uid === 'anonymous' && this.anonRedirect != '')
         window.location.replace(window.location.origin + this.anonRedirect);
     },
-    /**
-     * @method requestDatabase
-     * @return Promise
-     * Returns a promise to a database.
-     *
-     * Databases not ready until user is logged in
-     *
-     */
-    requestDatabase: function(type) {
-      if (!(type in this.databases))
-        throw new Error("bad database request " + type);
-      // console.log('requestDatabase:', type);
-      if (this.databases[type] === false)
-        this.databases[type] = true;
-      this.connectActiveDatabases();
-      return Singleton.databasePromises[type];
-    },
     connectActiveDatabases: function() {
       if (this.uid === 'anonymous' || this.uid === '') {
         // no user, remove active databases
@@ -210,7 +193,10 @@ If you are using bindings, you do not need to worry about this, otherwise:
      * creates photo record in db, and uploads file to server
      */
     createPhoto: function(file, callback) {
+      if (!this.uid)
+        throw new Error("cant create photo before logging in");
       callback = callback || CommonUtils.noope;
+      
       Singleton.photoCache.createPhotoFromFile(file, this.uid, function(err, photoRef) {
         if (err)
           return callback(err);
@@ -229,7 +215,10 @@ If you are using bindings, you do not need to worry about this, otherwise:
      * @param {function} callback fn(err, bookRef)
      */
     createBook: function(title, size, callback) {
+      if (!this.myBooksDb.ref)
+        throw new Error("cant create book before logging in");
       callback = callback || CommonUtils.noope;
+
       this.bookCache.createBook(this.uid, title, size, function(err, ref) {
         if (err) 
           return callback(err);

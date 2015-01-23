@@ -1,0 +1,140 @@
+<!doctype html>
+<html>
+<head>
+  <!-- Test harness -->
+  <script src="../vendor/webcomponentsjs/webcomponents.min.js"></script>
+  <script src="../vendor/web-component-tester/browser.js"></script>
+  <link rel="import" href="testUtils.html">
+  <!-- Imports -->
+  <link rel="import" href="../elements/pook-animated-array-filter.html">
+  <link rel="import" href="../vendor/paper-button/paper-button.html">
+  <link rel="import" href="../elements/pook-styles.html">
+</head>
+<body>
+  <!-- Fixtures -->
+  <style>
+    .tile {
+      width: 50px;
+      display: inline-block;
+      position:relative;
+      border: 1px solid black;
+    }
+    .tile {
+      z-index: 999;
+      background-color: white;
+    }
+
+    .tile.animate-add {
+      -webkit-animation-duration:0.5s;
+              animation-duration:0.5s;
+      -webkit-animation-name:slide-up;
+              animation-name:slide-up;
+    }
+    .tile.animate-remove {
+      -webkit-animation-duration:0.5s;
+              animation-duration:0.5s;
+      -webkit-animation-name:fade-out;
+              animation-name:fade-out;
+    }
+    @-webkit-keyframes slide-up {
+      from { top: 80vh; width:0px; margin: 0; padding: 0}
+      to { top: 0px;}
+    }
+    @keyframes slide-up {
+      from { top: 80vh; width:0px; margin: 0; padding: 0 }
+      to { top: 0px;}
+    }
+
+    @-webkit-keyframes fade-out {
+      from { opacity: 1.0; }
+      to { opacity: 0; width: 0; margin: 0; padding: 0}
+    }
+    @keyframes fade-out {
+      from { opacity: 1.0; }
+      to { opacity: 0; width: 0; margin: 0; padding: 0 }
+    }
+
+  </style>
+  <p>pook-animated-array test</p>
+  <template id="autobinder" is="auto-binding">
+    <pook-animated-array-filter id="filter" source="{{source}}" output="{{animated}}"></pook-animated-array-filter>
+    <core-style ref="pook-animations"></core-style>
+    <p><paper-button on-tap="{{addElement}}" raised>Add</paper-button></p>
+    <template repeat="{{k in animated}}">
+      <div class="tile {{$.filter.animationClass[k]}}" 
+          on-tap="{{removeTile}}"
+          on-animationend="{{handleTileAnimationEnd}}" 
+          on-webkitAnimationEnd="{{handleTileAnimationEnd}}"  
+          on-mozAnimationEnd="{{handleTileAnimationEnd}}"
+      >
+        <p>{{k}}{{$.filter.animationClass[k]}}</p>
+      </div>
+    </template>
+  </template>
+
+  <script>
+    "use strict";
+
+    var source = [ "tap to remove" ];
+    var addThese = [];
+    for (var i=0; i<200; i++) // "b", "c", "d", "e", "f", "g", "h", "i","j","k"];
+      addThese.push(String.fromCharCode(i+65));
+
+    // template
+    var template = document.querySelector('#autobinder');
+    template.source = source;
+    template.animated = [];
+    template.addElement = function(el) {
+      el = el || addThese.shift();
+      template.source.push( el );
+    }
+    template.removeTile = function(ev) {
+      source.splice(source.indexOf(ev.currentTarget.templateInstance.model.k), 1);
+    };
+    template.handleTileAnimationEnd = function(ev) {
+      template.$.filter.animationComplete( ev.currentTarget.templateInstance.model.k);
+    }
+
+    suite('<pook-photo-cache>', function() {
+
+      test('addElement', function(done) {
+        template.addElement("A");
+        template.addElement("B");
+        template.addElement("C");
+        window.setTimeout(function() {
+          var list = document.querySelectorAll(".animate-add");
+          if (list.length == 0)
+            done(new Error("no .animate-add elements found after being added"));
+          else
+            window.setTimeout(function() {
+              var list = document.querySelectorAll(".animate-add");
+              if (list.length > 0)
+                done(new Error(".animate-add elements should have finished animating"));
+              else
+                done();
+            }, 500);
+        }, 100);
+      });
+
+      test('removeElement', function(done) {
+        template.source = [];
+        window.setTimeout( function() {
+          var list = document.querySelectorAll(".animate-remove");
+          if (list.length == 0)
+            done(new Error("no .animate-remove elements found after removal"));
+          else
+            window.setTimeout(function() {
+              var list = document.querySelectorAll(".tile");
+              if (list.length > 0)
+                done(new Error("deleted list still has tiles"));
+              else
+                done();
+            }, 500);
+        }, 100);
+      });
+
+    });
+  </script>
+
+</body>
+</html>

@@ -49,6 +49,9 @@
   Polymer( {
     created: function() {
       this.user = document.createElement('pook-user');
+      // Workaround for "null data does not get saved" firebase-element bug
+      // must set null data to {}
+      // See https://github.com/Polymer/firebase-element
       var changeListener = function() {
         this.user.accountDb.removeEventListener('data-change', changeListener);
         if (!this.user.accountDb.ref)
@@ -59,10 +62,7 @@
         }.bind(this));
       }.bind(this);
       this.user.accountDb.addEventListener('data-change', changeListener);
-      // this.user.requestDatabase('user');
       // this.user.requestDatabase('account').then(function(db) {
-      //   // Workaround for "null data does not get saved" firebase-element bug
-      //   // See https://github.com/Polymer/firebase-element
       //   db.ref.once('value', function(snapshot) {
       //     if (db.data === null)
       //       db.data = {};
