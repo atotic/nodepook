@@ -38,6 +38,7 @@
      */
     exports.getFirebaseUrl = function(type, id, id2) {
       switch(type) {
+      // User related
         case 'user':
           return this.firebaseLoc + "users/" + id;
         case 'account':
@@ -50,10 +51,14 @@
           return this.firebaseLoc + "users/" + id + "/booksSharedWithMe";
         case 'notifications':
           return this.firebaseLoc + "users/" + id + "/notifications";
+
+      // Book hierarchy
         case 'onePhoto': // id is photoId
           return this.firebaseLoc + "photos/" + id;
         case 'oneBook': // id is bookId
           return this.firebaseLoc + "books/" + id;
+        case 'onePage':
+          return this.firebaseLoc + "pages/" + id;
         case 'oneNotification': // id is userId, id2 is notiicationId
           return this.firebaseLoc + "users/" + id + "/notifications/" + id2;
         case 'allBooks':
@@ -62,6 +67,9 @@
           return this.firebaseLoc + "photos";
         case 'allUsers':
           return this.firebaseLoc + "users";
+        case 'allPages':
+          return this.firebaseLoc + "pages";
+      // Misc
         case 'requestShareBook':
           return this.firebaseLoc + "requestShareBook";
         default:

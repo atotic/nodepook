@@ -16,7 +16,11 @@ Gets deleted from DOM on close.
 -->
 <polymer-element name='pook-new-book-dialog'>
   <template>
-      <paper-action-dialog id='dialog' heading="Lets make a book" transition="paper-dialog-transition-bottom">
+      <paper-action-dialog 
+        id='dialog' 
+        heading="Lets make a book" 
+        transition="paper-dialog-transition-bottom"
+      >
 
        <style>
          polyfill-unscoped-rule {
@@ -91,6 +95,9 @@ Gets deleted from DOM on close.
         this.parentNode.removeChild(this);
       }.bind(this));  // remove from dom on close
       this.$.dialog.open();
+      this.job('focusInput', function() {
+        this.$.newBookDialogTitle.shadowRoot.querySelector('input').focus();
+      }, 300);
     },
     createNewBook: function() {
       document.createElement('pook-user').createBook(

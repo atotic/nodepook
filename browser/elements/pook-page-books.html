@@ -135,8 +135,9 @@
       return ids;
     },
     setSelection: function(item) {
-      if (this.bookSelection)
-        this.bookSelection.classList.remove('core-selected');
+      var current = this.$.selectorContainer.querySelectorAll('.core-selected');
+      for (var i=0; i<current.length; i++)
+        current.item(i).classList.remove('core-selected');
       this.bookSelection = item;
       if (item)
         item.classList.add('core-selected');

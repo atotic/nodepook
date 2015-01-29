@@ -39,8 +39,9 @@
           function(err, ref) {
             if (err)
               done(err);
-            else
-              ref.remove(done);
+            else {
+              cache.getBook(ref.key()).remove(done);
+            }
         });
       });
 

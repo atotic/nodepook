@@ -8,7 +8,10 @@
     "testServer": "find server -name \"*spec.js\" | xargs mocha",
     "updateNode": "sudo npm cache clean -f;sudo npm install -g n; sudo n stable",
     "vulcanize": "vulcanize --inline -s elements/pook-all.html",
-    "sourceSet": "./scripts/tasks/sourceSetTask.js > browser/docs/sourceSet.json"
+    "sourceSet": "./scripts/tasks/sourceSetTask.js > browser/docs/sourceSet.json",
+    "build:firebase-rules": "strip-json-comments rules.json > rules.stripped.json",
+    "watch:rules.json": "onchange rules.json -- npm run build:firebase-rules",
+    "watch": "npm run watch:rules.json"
   },
   "dependencies": {
     "async": "0.9.0",
@@ -33,7 +36,9 @@
     "chai": "^1.9.1",
     "mocha": "^2.0.0",
     "nice-route53": "^0.3.4",
+    "onchange": "0.0.2",
     "requirejs": "^2.1.14",
+    "strip-json-comments": "^1.0.2",
     "supertest": "0.15.0"
   },
   "engine": "node >= 0.10.32"

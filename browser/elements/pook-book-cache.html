@@ -31,9 +31,12 @@ Cache of pook-book-proxy elements
     },
     /**
      * @method getBook
-     * Returns pook-book-proxy. After fetch, also accessible through books[id] for template use
+     * @param {String} id bookId, if null, returns null
+     * Returns pook-book-proxy. After fetch, 
+     * also accessible through books[id] for template use.
      */
     getBook: function(id) {
+      if (!id) return null;
       if (!(id in this.books)) {
         this.books[id] = document.createElement('pook-book-proxy');
         this.books[id].bookId = id;
@@ -58,8 +61,21 @@ Cache of pook-book-proxy elements
         height: size.height
       }
       var db = new Firebase( CommonUtils.getFirebaseUrl('allBooks'));
-      var ref = db.push(json);
-      callback(null, ref);
+      var bookRef = db.push(json, function(err) {
+        if (err)
+          return callback(err);
+        var book = this.getBook(bookRef.key());
+        book.bookIdChanged(); // force loading of Firebase, cant wait for observe propagation
+        book.locationChanged();
+        book.createInitialPages(function(err) {
+          if (err) {
+            book.remove();
+            callback(err);
+          }
+          else
+            callback(null, bookRef);
+        }.bind(this));       
+      }.bind(this));
     }
   });
   })();

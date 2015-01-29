@@ -78,8 +78,8 @@
         "title": { ".validate": "newData.isString()" },
         "width": { ".validate": "newData.isNumber()" },
         "height": { ".validate": "newData.isNumber()" },
-        "sides": {
-          "$sideId": {
+        "sheets": {
+          "$sheetId": {
             "left": { ".validate": "newData.isString()"},
             "right": { ".validate": "newData.isString()"}
           }
@@ -95,7 +95,11 @@
     },
     "pages": {
       "$pageId": {
+        ".read": "auth !== null",
+        ".write": "auth !== null",
         "title": {},
+        // bookId is used for bookkeeping only
+        "bookId": { ".validate": "newData.isString() && root.child('books').child(newData.val()).exists()"},
         "items": {
           "$itemId": {
             "type": { ".validate": "newData.isString() && (newData.val() === 'photo' || newData.val() == 'text')"},
@@ -105,7 +109,8 @@
             "height": { ".validate": "newData.isNumber()"},
             "rotate": { ".validate": "newData.isNumber()"}
           }
-        }
+        },
+        "$other": { ".validate": false }
       }
     },
     "requestShareBook": {

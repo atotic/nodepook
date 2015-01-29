@@ -1,7 +1,7 @@
 "use strict";
 
-if (!process.env['FIREBASE_SECRET'] || !process.env['FIREBASE_URL'])
-  throw new Error("env FIREBASE_SECRET | FIREBASE_URL not defined");
+if (!process.env['FIREBASE_SECRET'])
+  throw new Error("env FIREBASE_SECRET not defined");
 
 var debug = require('debug')('pook:firebase');
 var async = require('async');

@@ -231,7 +231,7 @@ If you are using bindings, you do not need to worry about this, otherwise:
 
     deleteBook: function(bookId) {
       this.databases['myBooks'].ref.child(bookId).remove();
-      (new Firebase( CommonUtils.getFirebaseUrl('oneBook', bookId))).remove();
+      this.bookCache.getBook(bookId).remove();
     },
     deleteNotification: function(notificationId) {
       (new Firebase( 

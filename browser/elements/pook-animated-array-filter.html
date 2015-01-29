@@ -36,7 +36,7 @@ Simplest example:
       }
     })
 -->
-<polymer-element name="pook-animated-array-filter" attributes="source">
+<polymer-element name="pook-animated-array-filter" attributes="source animateInitial">
   <template><!--
     <style>
       :host {
@@ -86,15 +86,22 @@ Simplest example:
       * Output array, to be displayed
       */
       output: []
+    /**
+      * @attribute animateInitial
+      * @type boolean
+      * @default false
+      * should initial insert be animated
+      */
     },
-
-    firstChange: true,
-
+    firstSourceChange: true,
     sourceChanged: function() {
-      if (this.firstChange) { 
-        this.firstChange = false;
-        this.output = this.source;
-        return;
+      if (this.firstSourceChange) {
+        this.firstSourceChange = false;
+        if (!this.animateInitial) {
+          this.output = this.source;
+          this.firstSourceChange = false;
+          return;
+        }
       }
       // compute and store the differences
       var diff = this.arrayDiff(this.output, this.source);

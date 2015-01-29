@@ -1,0 +1,25 @@
+<link rel="import" href="../vendor/firebase-elements/firebase-element.html">
+<link rel="import" href="pook-utils.html">
+
+<!--
+Firebase page proxy
+
+@element pook-page-proxy
+@group model
+
+-->
+
+<polymer-element name='pook-page-proxy' extends='firebase-element' attributes="pageId">
+  <template></template>
+  <script>
+  "use strict";
+  Polymer({
+    pageIdChanged: function() {
+      if (this.pageId)
+        this.location = CommonUtils.getFirebaseUrl('onePage', this.pageId);
+      else
+        this.location = null;
+    }
+  });
+  </script>
+</polymer-element>

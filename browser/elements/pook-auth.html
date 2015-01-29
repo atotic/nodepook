@@ -1,5 +1,7 @@
 <link rel="import" href="../vendor/polymer/polymer.html">
 <link rel="import" href='../vendor/firebase-elements/firebase-element.html'>
+
+<link rel="import" href="pook-book-proxy.html">
 <link rel="import" href="pook-utils.html">
 <!--
 pook-auth authorization api
@@ -74,8 +76,9 @@ All callbacks return Error with these fields:
             async.each( 
               Object.keys(userData.myBooks || {}), 
               function deleteOneBook(itemId, delCb) {
-                var fb = new Firebase( CommonUtils.getFirebaseUrl('oneBook', itemId));
-                fb.remove(delCb);
+                var book = document.createElement('pook-book-proxy');
+                book.bookId = itemId;
+                book.remove(delCb);
               },
               function(err) {
                 cb(err);

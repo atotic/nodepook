@@ -57,7 +57,11 @@
   </style>
   <p>pook-animated-array test</p>
   <template id="autobinder" is="auto-binding">
-    <pook-animated-array-filter id="filter" source="{{source}}" output="{{animated}}"></pook-animated-array-filter>
+    <pook-animated-array-filter id="filter" 
+      source="{{source}}" 
+      output="{{animated}}"
+      animateInitial>
+    </pook-animated-array-filter>
     <core-style ref="pook-animations"></core-style>
     <p><paper-button on-tap="{{addElement}}" raised>Add</paper-button></p>
     <template repeat="{{k in animated}}">
@@ -103,6 +107,7 @@
         template.addElement("C");
         window.setTimeout(function() {
           var list = document.querySelectorAll(".animate-add");
+          debugger;
           if (list.length == 0)
             done(new Error("no .animate-add elements found after being added"));
           else

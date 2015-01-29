@@ -1,5 +1,8 @@
-<link href="../vendor/firebase-elements/firebase-element.html" rel="import">
-<link href="pook-utils.html">
+<link rel="import" href="../vendor/firebase-elements/firebase-element.html">
+<link rel="import" href="pook-utils.html">
+<link rel="import" href="pook-page-proxy.html">
+<link rel="import" href="async.html">
+
 <!--
 Firebase book manipulation
 
@@ -32,6 +35,14 @@ Properties:
   <script>
   "use strict";
   Polymer({
+    /*
+     * Book page add/remove setup: printer dependent
+     */ 
+    minPageCount: 8,
+    maxPageCount: 128,
+    pageCountIncrement: 8,
+    initialPageCount: 16,
+
     publish: {
       /**
        * @property bookId
@@ -39,12 +50,26 @@ Properties:
        * firebase book path `books/$bookId`
        */
       bookId: null, 
+      /**
+       * @property pages
+       * @type map
+       * $pageId -> pook-page-proxy map, populate with `loadPages`
+       */
+      pages: {}
+    },
+
+    computed: {
+      sheetIds: "computeSheetIds( data.sheets)",
+      sheets: "data.sheets"
     },
     bookIdChanged: function() {
       if (this.bookId)
         this.location = CommonUtils.getFirebaseUrl('oneBook', this.bookId);
       else
         this.location = null;
+    },
+    computeSheetIds: function(sheets) {
+      return Object.keys( sheets || {});
     },
     /**
      * @method addShare
@@ -76,6 +101,112 @@ Properties:
       };
       var fb = new Firebase( CommonUtils.getFirebaseUrl('requestShareBook'));
       fb.push(request);
+    },
+    /** 
+     * @method remove
+     * @param {Function} callback callback(err)
+     * removes book, and all dependent pages
+     */
+    remove: function(callback) {
+      var fb = new Firebase( CommonUtils.getFirebaseUrl('oneBook', this.bookId));
+      fb.once('value', function(snapshot) {
+        var val = snapshot.val();
+        var pageIds = [];
+        // collect all pageIds
+        for (var k in val.sheets) { 
+          if (val.sheets[k].left)
+            pageIds.push( val.sheets[k].left);
+          if (val.sheets[k].right)
+            pageIds.push( val.sheets[k].right);
+        }
+        // remove all pages
+        async.each( pageIds,
+          function removePage(pageId, cb) {
+            (new Firebase( CommonUtils.getFirebaseUrl('onePage', pageId))).remove(cb);
+          },
+          function end(err) {
+            if (err)
+              console.error("Error removing pages from ", val, err);
+        // remove the book
+            fb.remove(callback); 
+          }
+        );
+      });
+    },
+
+    loadPage: function(pageId) {
+      if (pageId && !(pageId in this.pages))
+        this.pages[pageId] = document.createElement('pook-page-proxy');
+    },
+    /**
+     * @method loadAllPages
+     * populates `this.pages` page cache
+     */
+    loadAllPages: function() {
+      if (!(this.data && this.data.sheets))
+        return;
+      for (var k in this.data.sheets) {
+        this.loadPage( this.data.sheets[k].left);
+        this.loadPage( this.data.sheets[k].right);
+      }
+    },
+    /*
+     * @param {cover|back|} type page type. cover makes {left:null}, back makes {right:null} otherwise make both left and right 
+     * @param {Function} callback function(err, sheetRef)
+     * Creates sheet with pages.
+     */
+    createSheet: function(type, callback) {
+      var fbSheets = this.ref.child('sheets');
+      var fbAllPages = new Firebase( CommonUtils.getFirebaseUrl('allPages'));
+      var leftRef, rightRef, sheetRef;
+      var pageProto = { bookId: this.bookId };
+
+      async.series([
+          function leftPage(callback) {
+            if ( type != 'cover')
+              leftRef = fbAllPages.push(pageProto, callback);
+            else
+              callback(null);
+          },
+          function rightPage(callback) {
+            if (type != 'back')
+              rightRef = fbAllPages.push(pageProto, callback);
+            else
+              callback(null);
+          },
+          function sheet(callback) {
+            fbSheets.push( {
+                left: leftRef ? leftRef.key() : null,
+                right: rightRef ? rightRef.key() : null
+              },
+              callback);
+          }
+        ],
+        function end(err) {
+          callback(err, sheetRef);
+        }
+      );
+    },
+    /**
+     * @method createInitialPages
+     * @param {Function} callback function(err)
+     * creates initial set of pages
+     */
+    createInitialPages: function(callback) {
+      var makeStandardSheet = function(cb) { this.createSheet("", cb) }.bind(this);
+      var actions = [] ;
+      var sheetCount = (this.initialPageCount - 2) / 2;
+      actions.push( function(cb) { this.createSheet('cover', cb)}.bind(this));
+      for (var i=0; i<sheetCount; i++)
+        actions.push(makeStandardSheet);
+      actions.push( function(cb) { this.createSheet('back', cb)}.bind(this));
+      async.series( actions, function end(err) {
+        callback(err);
+      });
+    },
+    addPages: function(callback) {
+    },
+    removePages: function(callback) {
     }
   });
   </script>

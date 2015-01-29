@@ -1,5 +1,6 @@
-<link href="../vendor/polymer/polymer.html" rel="import">
+<link rel="import" href="../vendor/polymer/polymer.html">
 
+<link rel="import" href="pook-book-cache.html">
 <!--
 /**
   * Book editor 
@@ -10,16 +11,67 @@
 -->
 <polymer-element name='pook-page-book-editor'>
   <template>
-    <paper-button on-tap="{{addPage}}" raised>Add page</paper-button>
+    <template repeat="{{s in book.sheetIds}}">
+      <pook-page-simple direction="left" page="book.pages[ book.sheets[s].left]"></pook-page-simple>
+      <pook-page-simple direction="right" page="book.pages[ book.sheets[s].right]"></pook-page-simple>
+
+    </template>
+    <paper-button on-tap="{{addPage}}" raised>More pages</paper-button>
+  </template>
+  <script>
+  (function() {
+    var Singleton = {
+      get bookCache() {
+        if (!('_bookCache' in this))
+          this._bookCache = document.createElement('pook-book-cache');
+        return this._bookCache;
+      }
+    };
+
+    Polymer({
+      publish: {
+        /**
+         * @property bookId
+         * @type string
+         * id of the edited book
+         */
+        bookId: null
+      },
+      computed: {
+        sheets: "computeSheets( book.sheetIds)"
+      },
+      book: null,
+      bookIdChanged: function() {
+        this.book = Singleton.bookCache.getBook(this.bookId);
+      },
+      computeSheets: function(ids) {
+        if (this.book)
+          this.book.loadAllPages();
+        return ids;
+      }
+    });
+  })();
+  </script>
+</polymer-element>
+
+<polymer-element name="pook-page-simple" attributes="direction page">
+  <template>
+    <style>
+      :host {
+        position: block;
+      }
+      #frame {
+        border: 1px solid black;
+        width: 50px;
+        height: 50px;
+      }
+    </style>
+    <div id="frame">
+      {{direction}}
+    </div>
   </template>
   <script>
     Polymer({
-      publish: {
-        bookId: null
-      },
-      bookIdChanged: function(oldVal, newVal) {
-        
-      }
     });
   </script>
 </polymer-element>
