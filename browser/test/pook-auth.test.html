@@ -19,16 +19,23 @@
   <p>pook-auth tests</p>
   <pook-flash></pook-flash>
   <pook-auth-ui loginRedirect=""></pook-auth-ui>
-  <script>
-    var pookAuth = document.createElement('pook-auth');
-    var pookAuthUi = document.querySelector('pook-auth-ui');
 
-    var credentials = {
-      email: CommonUtils.randomString(6) + "@test.com",
-      password: '12345678'
-    }
+  <script>
+    "use strict";
+
+    var pookAuth, pookAuthUi, credentials; 
 
     suite('<pook-auth>', function() {
+
+      before(function() {
+        credentials = {
+          email: CommonUtils.randomString(6) + "@test.com",
+          password: '12345678'
+        };
+        pookAuth = document.createElement('pook-auth');
+        pookAuthUi = document.querySelector('pook-auth-ui');
+      });
+
       test('pook-auth.createAccount', function(done) {
         pookAuth.createPookUser(credentials, done);
       });

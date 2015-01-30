@@ -20,16 +20,15 @@
   <input  id="addPhotoInput" type="file" multiple="true" accept="image/*" capture="filesystem">
   <script>
     "use strict";
-    var photoInput = document.getElementById('addPhotoInput');
-    var photoCache = document.createElement('pook-photo-cache');
-
-    var firebase = new Firebase(CommonUtils.firebaseLoc);
-
+    var photoInput, photoCache, firebase;
     console.log("%cPick a file", "color:orange; background:blue; font-size: 16pt");
 
     suite('<pook-photo-cache>', function() {
 
       before( function(done) {
+        photoInput = document.getElementById('addPhotoInput');
+        photoCache = document.createElement('pook-photo-cache');
+        firebase = new Firebase(CommonUtils.firebaseLoc);
         TestUtils.createDefaultTestUser(done);
       });
 

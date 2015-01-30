@@ -5,6 +5,17 @@ body {
 	margin: 8px 8px 8px 8px;
 }
 
+html {
+  box-sizing: border-box;
+}
+*, *:before, *:after {
+  box-sizing: inherit;
+}
+
+* /deep/ * {
+  box-sizing: inherit;
+}
+
 [drop-active] {
   background-color: #F0ECD7;
 }

@@ -20,13 +20,13 @@
   <pook-user></pook-user>
   <script>
     "use strict";
-    var cache = document.createElement('pook-book-cache');
-
-    var firebase = new Firebase(CommonUtils.firebaseLoc);
+    var cache, firebase;
 
     suite('<pook-book-cache>', function() {
 
       before( function(done) {
+        cache = document.createElement('pook-book-cache');
+        firebase = new Firebase(CommonUtils.firebaseLoc);
         TestUtils.createDefaultTestUser(done);
       });
       after( function(done) {

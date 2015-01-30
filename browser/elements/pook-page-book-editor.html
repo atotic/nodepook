@@ -11,15 +11,51 @@
 -->
 <polymer-element name='pook-page-book-editor'>
   <template>
-    <template repeat="{{s in book.sheetIds}}">
-      <pook-page-simple direction="left" page="book.pages[ book.sheets[s].left]"></pook-page-simple>
-      <pook-page-simple direction="right" page="book.pages[ book.sheets[s].right]"></pook-page-simple>
+    <style>
+      :host {
+        background-color: #dddddd;
+        background-image: url('/img/back.png');
+      }
+      #pages {
+        display: flex;
+        display: -webkit-flex;
+                flex-flow: wrap;
+        -webkit-flex-flow: wrap;
+        margin: 16px 16px 0 16px;
+      }
+      pook-page-icon {
+        margin-top: 16px;
+        margin-bottom: 8px;
+      }
+      pook-page-icon[pageSide="left"] {
+        margin-left: 6px;
+      }
+      pook-page-icon[pageSide="right"] {
+        margin-right: 6px;
+      }
+      .hidden {
+        visibility: hidden;
+      }
 
-    </template>
+    </style>
+    <section id="pages">
+      <template repeat="{{s in book.sheetIds}}">
+        <pook-page-icon orientation="left" 
+          page="{{book.pages[ book.sheets[s].left]}}"
+          style="{{simplePageStyle | styleObject}}"
+          ></pook-page-icon>
+        <pook-page-icon orientation="right" 
+          page="{{book.pages[ book.sheets[s].right]}}"
+          style="{{simplePageStyle | styleObject}}"
+          ></pook-page-icon>
+      </template>
+    </section>
     <paper-button on-tap="{{addPage}}" raised>More pages</paper-button>
   </template>
   <script>
   (function() {
+    "use strict";
+
     var Singleton = {
       get bookCache() {
         if (!('_bookCache' in this))
@@ -35,43 +71,129 @@
          * @type string
          * id of the edited book
          */
-        bookId: null
+        bookId: null,
+        // how wide should pook-page-icon be
+        desiredPageWidth: 0,
       },
       computed: {
-        sheets: "computeSheets( book.sheetIds)"
+        sheets: "computeSheets( book.sheetIds)",
+        simplePageStyle: "computeSimplePageStyle(desiredPageWidth, book.data.width, book.data.height)"
       },
+
       book: null,
+
+      attached: function() {
+        this.calcPageDimensions();
+        this._boundResizer = function() {
+          this.job('resizer', this.calcPageDimensions, 100);
+        }.bind(this);
+        window.addEventListener('resize', this._boundResizer);
+      },
+      detached: function() {
+        if (this._boundResizer)
+          window.removeEventListener('resize', this._boundResizer);
+      },
+
       bookIdChanged: function() {
         this.book = Singleton.bookCache.getBook(this.bookId);
       },
+
       computeSheets: function(ids) {
         if (this.book)
           this.book.loadAllPages();
         return ids;
+      },
+
+      computeSimplePageStyle: function(pageWidth, bookWidth, bookHeight) {
+        // console.log("computeSimplePageStyle", pageWidth);
+        if (pageWidth && bookWidth && bookHeight)
+          return {
+            width: pageWidth + "px",
+            height: (pageWidth * bookHeight / bookWidth) + "px"
+          }
+        else
+          return {
+            width: "100px",
+            height: "100px"
+          }
+      },
+
+      calcPageDimensions: function() {
+        function computePageWidth(sheets) {
+          var space = pageListWidth;
+          space -= (sheets) * 2 * 6;  // pook-page-icon.margin-left + pook-page-icon.margin-right
+          return Math.trunc(space / sheets / 2);
+        }
+
+        var myStyle = window.getComputedStyle(this);
+        var s = window.getComputedStyle(this.$.pages);
+
+        var pageListWidth = parseInt(s.getPropertyValue('width'));
+        var myHeight = parseInt(myStyle.getPropertyValue('height'));
+
+        var pageWidths = [];
+        // find page widths for different number of sheets
+        for (var i=1; i<12; i++)
+          pageWidths[i] = computePageWidth(i);
+
+        var pick = 3;
+        var minDesired = 128;
+        var maxDesired = 265;
+        // if page is too small, fit fewer
+        while(pick > 1 && pageWidths[pick] < minDesired)
+          pick = pick -1;
+        // if page is too big, fit more
+        while(pick < 11 && pageWidths[pick] > maxDesired)
+          pick = pick + 1;
+        this.desiredPageWidth = pageWidths[pick];
       }
     });
   })();
   </script>
 </polymer-element>
 
-<polymer-element name="pook-page-simple" attributes="direction page">
+<polymer-element name="pook-page-icon">
   <template>
     <style>
       :host {
-        position: block;
+        display: inline-block;
+        border: 1px solid black;
+        background-color: white;
+        overflow: hidden;
+      }
+      :host([pageSide="left"]) {
+        border: 2px solid #ffffff;
+        border-right: 1px solid #dddddd;
+        box-shadow: -2px 0px 4px #b3b3b3;      
+      }
+      :host([pageSide="right"]) {
+        border: 2px solid #ffffff;
+        border-left: 1px solid #dddddd;
+        box-shadow: 2px 0px 4px #B3B3B3;
       }
       #frame {
-        border: 1px solid black;
-        width: 50px;
-        height: 50px;
       }
     </style>
-    <div id="frame">
-      {{direction}}
-    </div>
+      <div id="frame">
+        {{pageSide}}
+      </div>
   </template>
   <script>
     Polymer({
+      publish: {
+        orientation: "",
+        page: null
+      },
+      ready: function() {
+        this.setAttribute('pageSide', this.orientation);
+        this.pageChanged();
+      },
+      pageChanged: function() {
+        if (!this.page) // hide non-existent pages
+          this.classList.add('hidden');
+        else
+          this.classList.remove('hidden');
+      }
     });
   </script>
 </polymer-element>

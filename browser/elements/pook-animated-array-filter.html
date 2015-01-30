@@ -36,7 +36,7 @@ Simplest example:
       }
     })
 -->
-<polymer-element name="pook-animated-array-filter" attributes="source animateInitial">
+<polymer-element name="pook-animated-array-filter">
   <template><!--
     <style>
       :host {
@@ -62,12 +62,6 @@ Simplest example:
   <script>
   "use strict";
   Polymer({
-    /**
-     * @property source
-     * @type array[string]
-     * Source array to be observed. Items must be array keys
-     */
-    source: [],
 
     addedValues: {},
     removedValues: {},
@@ -85,13 +79,20 @@ Simplest example:
       * @type array
       * Output array, to be displayed
       */
-      output: []
+      output: [],
     /**
       * @attribute animateInitial
       * @type boolean
       * @default false
       * should initial insert be animated
       */
+      animateInitial: false,
+      /**
+       * @property source
+       * @type array[string]
+       * Source array to be observed. Items must be array keys
+       */
+      source: []
     },
     firstSourceChange: true,
     sourceChanged: function() {
