@@ -102,7 +102,12 @@ Gets deleted from DOM on close.
     createNewBook: function() {
       document.createElement('pook-user').createBook(
         this.newBookTitle, 
-        this.bookSizes[this.newBookSizeSelection]);
+        this.bookSizes[this.newBookSizeSelection], 
+        function(err) {
+          if (err) {
+            document.querySelection('pook-flash').error = "Book could not be created due to unexpected error";
+          }
+        });
     },
     validateNewBookDialog: function(title, sizeIndex) {
       return ((typeof title) === 'string') && title.length > 0 &&

@@ -2,6 +2,7 @@
 <link rel="import" href="pook-utils.html">
 <link rel="import" href="pook-page-proxy.html">
 <link rel="import" href="async.html">
+<link rel="import" href="firebaseTransaction.html">
 
 <!--
 Firebase book manipulation
@@ -60,7 +61,9 @@ Properties:
 
     computed: {
       sheetIds: "computeSheetIds( data.sheets)",
-      sheets: "data.sheets"
+      sheets: "data.sheets",
+      canRemovePages: "sheetIds.length > minPageCount",
+      canAddPages: "sheetIds.length < maxPageCount"
     },
     bookIdChanged: function() {
       if (this.bookId)
@@ -108,6 +111,7 @@ Properties:
      * removes book, and all dependent pages
      */
     remove: function(callback) {
+      callback = callback || CommonUtils.noope;
       var fb = new Firebase( CommonUtils.getFirebaseUrl('oneBook', this.bookId));
       fb.once('value', function(snapshot) {
         var val = snapshot.val();
@@ -150,63 +154,81 @@ Properties:
         this.loadPage( this.data.sheets[k].right);
       }
     },
+
+    // bare bones page creation
+    createPage: function(transaction) {
+      var pageProto = { bookId: this.bookId };
+      return transaction.push(
+        new Firebase( CommonUtils.getFirebaseUrl('allPages')),
+        pageProto);
+    },
+
     /*
-     * @param {cover|back|} type page type. cover makes {left:null}, back makes {right:null} otherwise make both left and right 
-     * @param {Function} callback function(err, sheetRef)
+     * @param {cover|back|} type page type. 
+     * @param {FirebaseTransaction}
      * Creates sheet with pages.
+     *
+     * Type cover makes {left:null}, back makes {right:null} otherwise make both left and right 
      */
-    createSheet: function(type, callback) {
-      var fbSheets = this.ref.child('sheets');
-      var fbAllPages = new Firebase( CommonUtils.getFirebaseUrl('allPages'));
-      var leftRef, rightRef, sheetRef;
+    createSheet: function(transaction, type) {
+      if (transaction == null) debugger;
       var pageProto = { bookId: this.bookId };
 
-      async.series([
-          function leftPage(callback) {
-            if ( type != 'cover')
-              leftRef = fbAllPages.push(pageProto, callback);
-            else
-              callback(null);
-          },
-          function rightPage(callback) {
-            if (type != 'back')
-              rightRef = fbAllPages.push(pageProto, callback);
-            else
-              callback(null);
-          },
-          function sheet(callback) {
-            fbSheets.push( {
-                left: leftRef ? leftRef.key() : null,
-                right: rightRef ? rightRef.key() : null
-              },
-              callback);
-          }
-        ],
-        function end(err) {
-          callback(err, sheetRef);
+      var fbAllPages = new Firebase( CommonUtils.getFirebaseUrl('allPages'));
+
+      var leftRef = type != 'cover' ? this.createPage(transaction) : null;
+      var rightRef = type != 'back' ? this.createPage(transaction) : null;
+
+      return transaction.push(
+        this.ref.child('sheets'),
+        {
+          left: leftRef ? leftRef.key() : null,
+          right: rightRef ? rightRef.key() : null
         }
       );
     },
     /**
-     * @method createInitialPages
-     * @param {Function} callback function(err)
+     * @param {FirebaseTransaction} transaction t
      * creates initial set of pages
      */
-    createInitialPages: function(callback) {
-      var makeStandardSheet = function(cb) { this.createSheet("", cb) }.bind(this);
-      var actions = [] ;
+    createInitialPages: function(transaction) {
+      this.createSheet(transaction, 'cover');
+
       var sheetCount = (this.initialPageCount - 2) / 2;
-      actions.push( function(cb) { this.createSheet('cover', cb)}.bind(this));
       for (var i=0; i<sheetCount; i++)
-        actions.push(makeStandardSheet);
-      actions.push( function(cb) { this.createSheet('back', cb)}.bind(this));
-      async.series( actions, function end(err) {
-        callback(err);
-      });
+        this.createSheet(transaction);
+
+      this.createSheet(transaction, 'back');
     },
-    addPages: function(callback) {
+
+    /**
+     * @method addPages
+     * @param {FirebaseTransaction} transaction t
+     * Adds `this.pageCountIncrement` pages
+     */
+    addPages: function(transaction) {
+      var pagesNeeded = this.pageCountIncrement;
+      // add right page to the last sheet
+      transaction.set( 
+        this.ref.child('sheets').child(this.sheetIds.length -1).child('right'), 
+        this.createPage(transaction).key());
+      pagesNeeded--;
+      // add double pages
+      while(pagesNeeded > 1) {
+        this.createSheet(transaction);
+        pagesNeeded -= 2;
+      }
+      // create back page
+      return this.createSheet(transaction, 'back');
     },
-    removePages: function(callback) {
+    /**
+     * @method removePages
+     * @param {FirebaseTransaction} transaction t
+     * Removes `this.pageCountIncrement` pages
+     */
+    removePages: function(transaction) {
+      var pagesNeeded = this.pageCountIncrement;
+      console.warn("TODO");
     }
   });
   </script>

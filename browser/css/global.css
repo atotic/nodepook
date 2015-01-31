@@ -5,6 +5,7 @@ body {
 	margin: 8px 8px 8px 8px;
 }
 
+/* border-box sizing everywhere */
 html {
   box-sizing: border-box;
 }
@@ -28,14 +29,16 @@ p {
 	font-size: smaller;
 }
 
+/* Make button not be all-caps */
+* paper-button {
+  text-transform: none;
+}
 * /deep/ paper-button, * paper-button {
   text-transform: none;
 }
 
- * paper-button {
-  text-transform: none;
-}
 
+/* stop ios highlight of clicks */
 * {
   -webkit-tap-highlight-color: rgba(0,0,0,0);
 }

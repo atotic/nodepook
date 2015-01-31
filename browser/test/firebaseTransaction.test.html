@@ -1,0 +1,75 @@
+<!doctype html>
+<html>
+<head>
+  <!-- Test harness -->
+  <script src="../vendor/webcomponentsjs/webcomponents.min.js"></script>
+  <script src="../vendor/web-component-tester/browser.js"></script>
+  <link rel="import" href="testUtils.html">
+  <!-- Imports -->
+  <link rel="import" href="../elements/firebaseTransaction.html">
+  <link rel="import" href="../elements/pook-utils.html">
+</head>
+<body>
+  <!-- Fixtures -->
+  <p>firebaseTransaction test</p>
+
+  <script>
+    "use strict";
+
+    var firebase, bookJson;
+
+    suite('FirebaseTransaction', function() {
+
+      before( function(done) {
+        TestUtils.createDefaultTestUser(function() {
+          firebase = new Firebase(CommonUtils.firebaseLoc);
+          var auth = firebase.getAuth();
+          bookJson = {
+            createdAt: Firebase.ServerValue.TIMESTAMP,
+            owner: auth.uid,
+            title: "B1",
+            width: 5,
+            height: 5
+          };
+          done();
+        });
+      });
+
+      after( function(done) {
+        TestUtils.deleteDefaultTestUser(done);
+      });
+
+      test('transaction without errors', function(done) {
+      
+        var allBooksFb = new Firebase(CommonUtils.getFirebaseUrl('allBooks'));
+
+        var transaction = new FirebaseTransaction('test');
+        var bookRef = transaction.push(allBooksFb, bookJson);
+        var bookRef2 = transaction.push(allBooksFb, bookJson);
+        transaction.set( bookRef.child('title'), "new title");
+        transaction.resolve(function(err) {
+          transaction.revert();
+          done(err);
+        });
+      });
+
+      test('transaction with errors', function(done) {
+        var allBooksFb = new Firebase(CommonUtils.getFirebaseUrl('allBooks'));
+        var transaction = new FirebaseTransaction('testError');
+        var bookRef = transaction.push(allBooksFb, bookJson);
+        var bookRef2 = transaction.push(allBooksFb, bookJson);
+        transaction.push(allBooksFb.child('makeMeFail'), bookJson);
+        transaction.resolve( function(err) {
+          if (err)
+            window.setTimeout(done, 500); // give revert time for broadcast
+            // done();
+          else
+            done(new Error("Push of non existent leaf should fail"));
+        });
+      });
+
+    });
+  </script>
+
+</body>
+</html>

@@ -13,6 +13,8 @@
   <link rel="import" href="../elements/pook-auth.html">
   <link rel="import" href="../elements/pook-utils.html">
   <link rel="import" href="../elements/pook-user.html">
+  <link rel="import" href="../elements/firebaseTransaction.html">
+
 </head>
 <body>
   <!-- Fixtures -->
@@ -33,15 +35,17 @@
         TestUtils.deleteDefaultTestUser(done);
       });
 
-      test('createBook', function(done) {
+      test('createBook, addPages', function(done) {
         var auth = firebase.getAuth();
-        cache.createBook(auth.uid, "title", { width: 12, height: 12},
-          function(err, ref) {
-            if (err)
-              done(err);
-            else {
-              cache.getBook(ref.key()).remove(done);
-            }
+        // create book
+        var transaction = new FirebaseTransaction('createBook test');
+        var bookRef = cache.createBook(auth.uid, "title", { width: 12, height: 12}, transaction);
+        var book = cache.getBook( bookRef.key());
+        book.addPages(transaction);
+        transaction.resolve( function(err) {
+          if (!err)
+            transaction.revert();
+          done(err);
         });
       });
 

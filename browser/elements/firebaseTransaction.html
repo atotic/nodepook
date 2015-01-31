@@ -1,0 +1,191 @@
+<link rel="import" href="../vendor/firebase-elements/firebase-element.html">
+<link rel="import" href="../elements/pook-utils.html">
+<!---
+  @class FirebaseTransaction
+  @group javascript
+
+  Group Firebase operations, and abort cleanly if any of them fail
+  Usage:
+
+      t = new FirebaseTransaction();
+      t.push(fire1, value);
+      t.set(fire2, value);
+
+      t.resolve(
+        function done(err) {
+          if (err)
+            console.log("Transaction failed");
+          else
+            console.log("Transaction written to server successfully");
+      });
+-->
+<script>
+(function(scope) {
+
+  function PushOperation(firebase, value ) {
+    if (firebase === null) debugger;
+    this.firebase = firebase;
+    this.value = value;
+    this.pushRef = null;
+  }
+
+  PushOperation.prototype = {
+
+    complete: false,
+    failed: false,
+    exec: function(callback) {
+      this.pushRef = this.firebase.push( this.value, function done(err) {
+        if (err)
+          this.failed = true;
+        callback(err, this);
+      }.bind(this));
+      return this.pushRef;
+    },
+
+    revert: function() {
+      if (this.failed) // nothing to revert if we failed
+        return;
+      if (this.pushRef)
+        this.pushRef.remove( function done(err) {
+          if (err)
+            console.error("Error reverting push", err, this);
+        }.bind(this));
+      this.pushRef = null;
+    }
+  }
+
+  function SetOperation(firebase, value) {
+    this.firebase = firebase;
+    this.value = value;
+    // this.oldValue
+  }
+
+  SetOperation.prototype = {
+    complete: false,
+    failed: false,
+
+    exec: function(callback) {
+      // read in old value for revert, the do the set
+      this.firebase.once('value',
+        function success(snapshot) {
+          this.oldValue = snapshot.val();
+          this.firebase.set( this.value, function(err) {
+            if (err)
+              this.failed = true;
+            callback(err, this);
+          }.bind(this));
+        }.bind(this),
+        function fail(err) {
+          debugger;
+          this.failed = true;
+          callback(err);
+        }.bind(this)
+      );
+    },
+
+    revert: function() {
+      if (this.failed)
+        return;
+      if ('oldValue' in this) {
+        if (!this.oldValue) {
+          this.firebase.remove(function(err) {
+            if (err)
+              console.error("Error reverting set", err, this);
+          }.bind(this));
+        }
+        else {
+          this.firebase.set(this.oldValue, function(err) {
+            if (err)
+              console.error("Error reverting set", err, this);
+          }.bind(this));
+        }
+      }
+    }
+  }
+
+  // FirebaseTransaction
+
+  function FirebaseTransaction(name) {
+    this.name = name || "anonymous";
+    // this.completeCb = null;
+    this.operations = [];
+    this.error = null;
+  }
+
+  FirebaseTransaction.prototype = {
+    /**
+     * @method push
+     * Firebase.push, returns ref
+     */
+    push: function(firebase, value) {
+      this.guardOperation();
+      return this.addOperation( new PushOperation(firebase, value));
+    },
+    /**
+     * @method set
+     * Firebase.set, no return value
+     */
+    set: function(firebase, value) {
+      this.guardOperation();
+      return this.addOperation( new SetOperation(firebase, value));
+    },
+    addOperation: function(op) {
+      this.operations.push(op);
+      return op.exec( this.operationComplete.bind(this));
+    },
+    operationComplete: function(err, op) {
+      // operation complete,
+      if (!op.exec) debugger; 
+      op.complete = true;
+      if (err)
+        this.enterErrorState(err);
+      this.tryResolution();
+    },
+    guardOperation: function() {
+      if ('completeCb' in this)
+        throw new Error("Adding operations after resolve() is prohibited");
+    },
+    /**
+     * @method resolve
+     * call this to resolve state
+     */
+    resolve: function(completeCb) {
+      completeCb = completeCb || CommonUtils.noope;
+      this.completeCb = completeCb;
+      this.tryResolution();
+    },
+    enterErrorState: function(err) {
+      if (this.error) {
+        console.warn("multiple errors, this one not reported", err);
+      }
+      else
+        this.error = err;
+    },
+    areOperationsComplete: function() {
+      for (var i=0; i<this.operations.length; i++)
+        if (!this.operations[i].complete)
+          return false;
+      return true;
+    },
+    /*
+     * Resolve if resolve() was called and all operatins are done
+     */
+    tryResolution: function() {
+      if (this.completeCb && this.areOperationsComplete()) {
+        if (this.error)
+          this.revert();
+        this.completeCb(this.error, this);
+      }
+    },
+    revert: function() {
+      for (var i=this.operations.length - 1; i>= 0; i--) {
+        if (! this.operations[i].complete)
+          console.warn("cant revert incomplete operation");
+        this.operations[i].revert();
+      }
+    }
+  }
+
+  window.FirebaseTransaction = FirebaseTransaction;
+})();
+</script>

@@ -2,6 +2,7 @@
 <link href="pook-utils.html" rel="import">
 <link rel="import" href="pook-book-cache.html">
 <link rel="import" href="pook-photo-cache.html">
+<link rel="import" href="firebaseTransaction.html">
 
 <!--
 Current user model, singleton (all instances share state)
@@ -219,14 +220,14 @@ If you are using bindings, you do not need to worry about this, otherwise:
         throw new Error("cant create book before logging in");
       callback = callback || CommonUtils.noope;
 
-      this.bookCache.createBook(this.uid, title, size, function(err, ref) {
-        if (err) 
-          return callback(err);
-        this.myBooksDb.ref.child(ref.key()).set(true, function(err) {
-            if (err) debugger;
-            callback(err, ref);
-          });
-      }.bind(this));
+      var transaction = new FirebaseTransaction("user.createBook");
+      var bookRef = this.bookCache.createBook(this.uid, title, size, transaction);
+      transaction.set( this.myBooksDb.ref.child( bookRef.key()), true);
+      transaction.resolve( function(err) {
+        if (err)
+          console.error("Unexpected error creating book:", err);
+        callback(err, bookRef);
+      });
     },
 
     deleteBook: function(bookId) {

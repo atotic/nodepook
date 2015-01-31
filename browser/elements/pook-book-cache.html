@@ -49,10 +49,12 @@ Cache of pook-book-proxy elements
      * @param {String} title title
      * @param {Object} size size.width, size.height in inches
      * @param {Function} callback fn(err, bookRef)
-     *
+     * @param {FireplaceTransaction} 
+     * 
+     * returns bookRef
      * creates new book inside /books/$bookId. Use user.creawteBook for complete assignment
      */
-    createBook: function(ownerId, title, size, callback) {
+    createBook: function(ownerId, title, size, transaction) {
       var json = {
         createdAt: Firebase.ServerValue.TIMESTAMP,
         owner: ownerId,
@@ -60,22 +62,15 @@ Cache of pook-book-proxy elements
         width: size.width,
         height: size.height
       }
-      var db = new Firebase( CommonUtils.getFirebaseUrl('allBooks'));
-      var bookRef = db.push(json, function(err) {
-        if (err)
-          return callback(err);
-        var book = this.getBook(bookRef.key());
-        book.bookIdChanged(); // force loading of Firebase, cant wait for observe propagation
-        book.locationChanged();
-        book.createInitialPages(function(err) {
-          if (err) {
-            book.remove();
-            callback(err);
-          }
-          else
-            callback(null, bookRef);
-        }.bind(this));       
-      }.bind(this));
+      
+      var bookRef = transaction.push(
+        new Firebase( CommonUtils.getFirebaseUrl('allBooks')),
+        json);
+      var book = this.getBook(bookRef.key());
+      book.bookIdChanged(); // force loading of Firebase, cant wait for observe propagation
+      book.locationChanged();
+      book.createInitialPages(transaction);
+      return bookRef;
     }
   });
   })();

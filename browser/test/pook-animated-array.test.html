@@ -121,7 +121,7 @@
         Platform.flush();
         window.setTimeout(function() {
           Platform.flush();
-          console.log("looking for divs");
+          // console.log("looking for divs");
           var list = document.querySelectorAll(".animate-add");
           if (list.length == 0) { //debugger;
             done(new Error("no .animate-add elements found after being added"));

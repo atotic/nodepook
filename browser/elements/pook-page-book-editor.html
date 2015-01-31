@@ -1,6 +1,7 @@
 <link rel="import" href="../vendor/polymer/polymer.html">
 
 <link rel="import" href="pook-book-cache.html">
+<link rel="import" href="firebaseTransaction.html">
 <!--
 /**
   * Book editor 
@@ -50,7 +51,14 @@
           ></pook-page-icon>
       </template>
     </section>
-    <paper-button on-tap="{{addPage}}" raised>More pages</paper-button>
+    <paper-button 
+      on-tap="{{morePages}}" 
+      disabled="{{!book.canAddPages}}"
+      raised>{{book.pageCountIncrement}} more pages</paper-button>
+    <paper-button 
+      on-tap="{{fewerPages}}" 
+      disabled="{{!book.canRemovePages}}"
+      raised>{{book.pageCountIncrement}} fewer pages</paper-button>
   </template>
   <script>
   (function() {
@@ -138,7 +146,7 @@
 
         var pick = 3;
         var minDesired = 128;
-        var maxDesired = 265;
+        var maxDesired = 256;
         // if page is too small, fit fewer
         while(pick > 1 && pageWidths[pick] < minDesired)
           pick = pick -1;
@@ -146,12 +154,44 @@
         while(pick < 11 && pageWidths[pick] > maxDesired)
           pick = pick + 1;
         this.desiredPageWidth = pageWidths[pick];
+      },
+
+      morePages: function() {
+        var transaction = new FirebaseTransaction('addPages');
+        this.book.addPages(transaction);
+        transaction.resolve( function(err) {
+          if (err) {
+            console.error("addPages", err);
+            document.querySelector('pook-flash').error("unexpected error adding pages");
+          }
+        });
+        console.warn("should scroll to end");
+      },
+
+      fewerPages: function() {
+        var transaction = new FirebaseTransaction('removePages');
+        this.book.removePages(transaction);
+        transaction.resolve( function(err) {
+          if (err) {
+            console.error("removePages", err);
+            document.querySelector('pook-flash').error("unexpected error removing pages");
+          }
+        });
       }
     });
   })();
   </script>
 </polymer-element>
 
+<!--
+@element pook-page-icon
+@group ui
+
+Displays icon for the page.
+
+Parent should set icon width & height in css
+
+-->
 <polymer-element name="pook-page-icon">
   <template>
     <style>
@@ -181,7 +221,17 @@
   <script>
     Polymer({
       publish: {
+        /**
+         * @attribute orientation
+         * @type left|right|none
+         * applies appropriate page shadows
+         */
         orientation: "",
+        /**
+         * @attribute page
+         * @type pook-page-proxy
+         * page to be shown. if null, element gets visibility:hidden
+         */
         page: null
       },
       ready: function() {

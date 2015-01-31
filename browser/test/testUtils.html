@@ -22,7 +22,7 @@
     createDefaultTestUser: function(callback) {
       function oneAndGone(auth) {
         if (auth) {
-           firebase.offAuth(oneAndGone);
+           pookAuth.firebase.offAuth(oneAndGone);
            callback(null, auth);
         }
       };
@@ -33,7 +33,7 @@
             password: '12345678'
         }
         pookAuth.createPookUser( this.defaultCredentials, CommonUtils.noope);
-        firebase.onAuth( oneAndGone);
+        pookAuth.firebase.onAuth( oneAndGone);
       } else {
         pookAuth.login(this.defaultCredentials, null, function(err, info) {
           if (err)
