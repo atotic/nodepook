@@ -18,6 +18,12 @@
           else
             console.log("Transaction written to server successfully");
       });
+
+      // in testing, sometimes we want to wait for transactions to complete
+
+      t.push(fire1, value)
+      t.thenForPrevious(callback) // callback will be called only after push is complete
+
 -->
 <script>
 (function(scope) {
@@ -103,18 +109,22 @@
     }
   }
 
+
   // FirebaseTransaction
 
   function FirebaseTransaction(name) {
     this.name = name || "anonymous";
     // this.completeCb = null;
     this.operations = [];
+    this.thens = [];
     this.error = null;
   }
 
   FirebaseTransaction.prototype = {
     /**
      * @method push
+     * @param {Firebase} firebase firebase
+     * @param {any} value value
      * Firebase.push, returns ref
      */
     push: function(firebase, value) {
@@ -127,8 +137,18 @@
      */
     set: function(firebase, value) {
       this.guardOperation();
-      return this.addOperation( new SetOperation(firebase, value));
+      this.addOperation( new SetOperation(firebase, value));
     },
+
+    /**
+     * @method remove
+     * Firebase.remove, no return value
+     */
+    remove: function(firebase) {
+      this.guardOperation();
+      this.addOperation( new SetOperation(firebase, null));
+    },
+
     addOperation: function(op) {
       this.operations.push(op);
       return op.exec( this.operationComplete.bind(this));
@@ -139,20 +159,12 @@
       op.complete = true;
       if (err)
         this.enterErrorState(err);
+      this.fireThenCallback(op);
       this.tryResolution();
     },
     guardOperation: function() {
       if ('completeCb' in this)
         throw new Error("Adding operations after resolve() is prohibited");
-    },
-    /**
-     * @method resolve
-     * call this to resolve state
-     */
-    resolve: function(completeCb) {
-      completeCb = completeCb || CommonUtils.noope;
-      this.completeCb = completeCb;
-      this.tryResolution();
     },
     enterErrorState: function(err) {
       if (this.error) {
@@ -177,12 +189,52 @@
         this.completeCb(this.error, this);
       }
     },
+
+    fireThenCallback: function(op) {
+      var idx = this.operations.indexOf(op);
+      if (idx == -1) throw new Error("bad operation");
+      if (!op.complete)
+        return;
+      if (this.thens[idx]) {
+        this.thens[idx]( op.failed ? new Error("failed") : null);
+        delete this.thens[idx];
+      }
+    },
+    /**
+     * @method thenForPrevious
+     * @param {Function} callback callback(err)
+     * callback will be executed when previous operation completes
+     */
+    thenForPrevious: function(callback) {
+      var idx = this.operations.length -1;
+      if (idx == -1) throw new Error("no operations to then");
+
+      this.thens[idx] = callback;
+      this.fireThenCallback(this.operations[idx]);
+    },
+    /**
+     * @method resolve
+     * call this to resolve state
+     */
+    resolve: function(completeCb) {
+      completeCb = completeCb || CommonUtils.noope;
+      this.completeCb = completeCb;
+      this.tryResolution();
+    },
+    /**
+     * @method revert
+     * reverts all operations. Called automatically on error
+     */
     revert: function() {
+      if (this._reverted)
+        return console.warn("revert called multiple times");
       for (var i=this.operations.length - 1; i>= 0; i--) {
         if (! this.operations[i].complete)
           console.warn("cant revert incomplete operation");
-        this.operations[i].revert();
+        else
+          this.operations[i].revert();
       }
+      this._reverted = true;
     }
   }
 

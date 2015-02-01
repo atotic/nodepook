@@ -39,10 +39,10 @@ Properties:
     /*
      * Book page add/remove setup: printer dependent
      */ 
-    minPageCount: 8,
+    minPageCount: 4,
     maxPageCount: 128,
-    pageCountIncrement: 8,
-    initialPageCount: 16,
+    pageCountIncrement: 4,
+    initialPageCount: 4,
 
     publish: {
       /**
@@ -187,6 +187,26 @@ Properties:
         }
       );
     },
+
+    deletePage: function(transaction, pageId) {
+      transaction.remove( new Firebase( 
+            CommonUtils.getFirebaseUrl('onePage', pageId)));
+    },
+
+    // delete sheets, returns count of deleted pages
+    deleteSheet: function(transaction, sheetId) {
+      var deleted = 0;
+      if (this.data.sheets[sheetId].left) {
+        this.deletePage(transaction, this.data.sheets[sheetId].left);
+        deleted++;
+      }
+      if (this.data.sheets[sheetId].right) {
+        this.deletePage(transaction, this.data.sheets[sheetId].right);
+        deleted++;
+      }
+      transaction.remove(this.ref.child('sheets').child(sheetId));
+      return deleted;
+    },
     /**
      * @param {FirebaseTransaction} transaction t
      * creates initial set of pages
@@ -207,16 +227,18 @@ Properties:
      * Adds `this.pageCountIncrement` pages
      */
     addPages: function(transaction) {
-      var pagesNeeded = this.pageCountIncrement;
+      if (!this.data) throw new Error("cant add pages before data loads");
+      var pagesToAdd = this.pageCountIncrement;
       // add right page to the last sheet
       transaction.set( 
-        this.ref.child('sheets').child(this.sheetIds.length -1).child('right'), 
+        this.ref.child('sheets')
+          .child(this.sheetIds[this.sheetIds.length -1])
+          .child('right'), 
         this.createPage(transaction).key());
-      pagesNeeded--;
-      // add double pages
-      while(pagesNeeded > 1) {
+      pagesToAdd -= 1;
+      while(pagesToAdd > 1) {
         this.createSheet(transaction);
-        pagesNeeded -= 2;
+        pagesToAdd -= 2;
       }
       // create back page
       return this.createSheet(transaction, 'back');
@@ -227,8 +249,17 @@ Properties:
      * Removes `this.pageCountIncrement` pages
      */
     removePages: function(transaction) {
-      var pagesNeeded = this.pageCountIncrement;
-      console.warn("TODO");
+      if (!this.data) throw new Error("cant remove pages before data loads");
+      var sheetIds = this.sheetIds.slice();
+      var pagesToRemove = this.pageCountIncrement;
+      while (pagesToRemove > 1)
+        pagesToRemove -= this.deleteSheet( transaction, sheetIds.pop());
+      // one page left, remove right from last sheet
+      this.deletePage(transaction, this.sheets[ sheetIds[ sheetIds.length - 1]].right);
+      transaction.remove( this.ref
+        .child('sheets')
+        .child( sheetIds[ sheetIds.length - 1])
+        .child('right'));
     }
   });
   </script>

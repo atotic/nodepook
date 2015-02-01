@@ -35,17 +35,22 @@
         TestUtils.deleteDefaultTestUser(done);
       });
 
-      test('createBook, addPages', function(done) {
+      test('createBook, addPages, removePages', function(done) {
         var auth = firebase.getAuth();
         // create book
         var transaction = new FirebaseTransaction('createBook test');
         var bookRef = cache.createBook(auth.uid, "title", { width: 12, height: 12}, transaction);
         var book = cache.getBook( bookRef.key());
-        book.addPages(transaction);
-        transaction.resolve( function(err) {
-          if (!err)
-            transaction.revert();
-          done(err);
+        transaction.thenForPrevious( function() {
+          book.addPages(transaction);
+          transaction.thenForPrevious( function() {
+            book.removePages(transaction);
+            transaction.resolve( function(err) {
+              if (!err)
+                transaction.revert();
+              done(err);
+            });
+          });  
         });
       });
 
