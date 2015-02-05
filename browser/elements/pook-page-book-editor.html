@@ -167,8 +167,22 @@
 
       handlePageAnimationEnd: function(ev) {
         var page = ev.currentTarget.page;
-        if (page && page.ref)
+        // Removed pages HACK ALERT
+        // Animating removed items is currently a giant hack
+        // When pages and sheets are removed, they are gone
+        // pook-animated-array handles this for simple arrays
+        // but sheets and pages are hierarchical data structures
+        // when sheet is removed, no way to know what pages it had
+        // Workaround is to use pook-animated-array to hang onto removed sheet ids.
+        // and make page-icon pretend removed page is still there while animating
+        this.$.sheetsAnimation.animationComplete(ev.currentTarget.templateInstance.model.s);
+        if (ev.currentTarget.classList.contains('fade-out')) {
+          ev.currentTarget.classList.add('hidden');
+          ev.currentTarget.classList.remove('fade-out');
+        };
+        if (page && page.ref) {
           this.$.pageIdAnimation.animationComplete(page.ref.key());
+        }
       },
       calcPageDimensions: function() {
         function computePageWidth(sheets) {
@@ -284,13 +298,10 @@ Parent should set icon width & height in css
         this.setAttribute('pageSide', this.orientation);
         this.pageChanged();
       },
-      detached: function() {
-        console.log('page-icon detached');
-      },
       pageChanged: function(oldValue, newValue) {
         if (!this.page) {// hide non-existent pages
-          if (oldValue)
-            console.log("not hiding, because removal");
+          if (oldValue) // Removed pages HACK
+            this.classList.add('fade-out');
           else
             this.classList.add('hidden');
         }

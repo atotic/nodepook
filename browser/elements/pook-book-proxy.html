@@ -39,10 +39,10 @@ Properties:
     /*
      * Book page add/remove setup: printer dependent
      */ 
-    minPageCount: 4,
+    minPageCount: 8,
     maxPageCount: 128,
-    pageCountIncrement: 8,
-    initialPageCount: 8,
+    pageCountIncrement: 4,
+    initialPageCount: 4,
 
     publish: {
       /**
@@ -62,8 +62,8 @@ Properties:
     computed: {
       sheetIds: "computeSheetIds( data.sheets)",
       sheets: "data.sheets",
-      canRemovePages: "sheetIds.length > minPageCount",
-      canAddPages: "sheetIds.length < maxPageCount"
+      canRemovePages: "(sheetIds.length - 1) *  2 > minPageCount",
+      canAddPages: "(sheetIds.length -1) * 2 < maxPageCount"
     },
     bookIdChanged: function() {
       if (this.bookId)
