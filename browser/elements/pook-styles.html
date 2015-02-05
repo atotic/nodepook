@@ -16,6 +16,7 @@ Simple animations
 -->
 <core-style id="pook-animations">
 
+<!-- SLIDE UP -->
 @-webkit-keyframes slide-up {
   from { top: 80vh; width:0px; margin: 0; padding: 0}
   to { top: 0px;}
@@ -24,7 +25,15 @@ Simple animations
   from { top: 80vh; width:0px; margin: 0; padding: 0 }
   to { top: 0px;}
 }
+.slide-up {
+  z-index: 999;
+  -webkit-animation-duration:0.5s;
+          animation-duration:0.5s;
+  -webkit-animation-name:slide-up;
+          animation-name:slide-up;
+}
 
+<!-- FADE OUT -->
 @-webkit-keyframes fade-out {
   from { opacity: 1.0; }
   to { opacity: 0; width: 0; margin: 0; padding: 0}
@@ -33,5 +42,39 @@ Simple animations
   from { opacity: 1.0; }
   to { opacity: 0; width: 0; margin: 0; padding: 0 }
 }
+.fade-out {
+  -webkit-animation-duration:10s;
+          animation-duration:10s;
+  -webkit-animation-name:fade-out;
+          animation-name:fade-out;    
+}
+
+<!-- from http://www.justinaguilar.com/animations/css/animations.css -->
+@keyframes stretch-right {
+  0%  { transform: scaleX(0.3); }
+  40% { transform: scaleX(1.02); }
+  60% { transform: scaleX(0.98); }
+  80% { transform: scaleX(1.01); }
+  100%{ transform: scaleX(0.98); }       
+  80% { transform: scaleX(1.01); }
+  100%{ transform: scaleX(1); }
+}
+
+@-webkit-keyframes stretch-right {
+  0%  {-webkit-transform: scaleX(0.3); }
+  40% {-webkit-transform: scaleX(1.02); }
+  60% {-webkit-transform: scaleX(0.98);}
+  80% {-webkit-transform: scaleX(1.01);}
+  100%{-webkit-transform: scaleX(0.98);}  
+  80% {-webkit-transform: scaleX(1.01);}
+  100%{-webkit-transform: scaleX(1);}   
+}
+.stretch-right {
+  -webkit-animation-duration:1s;
+          animation-duration:1s;
+  -webkit-animation-name:stretch-right;
+          animation-name:stretch-right;    
+}
+
 
 </core-style>

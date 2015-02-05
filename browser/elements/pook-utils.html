@@ -21,7 +21,7 @@
       return retVal;
     },
 
-    scrollIntoView: function(element, parentElement) {
+    scrollIntoView: function(element, scroller) {
     //           var player = document.timeline.play(new Animation(element, [
     //   {opacity: "0.5", transform: "scale(0.5)"}, 
     //   {opacity: "1.0", transform: "scale(1)"}
@@ -30,35 +30,37 @@
     //   direction: "alternate", duration: 500, iterations: Infinity
     // }));
     //           return;
-      if (parentElement == null)
-        parentElement = element.parentNode;
+      if (scroller == null)
+        scroller = element.parentNode;
       var target = {
         top: element.offsetTop,
         bottom: element.offsetTop + element.offsetHeight
       };
       var parent = {
-        top: parentElement.scrollTop,
-        bottom: parentElement.scrollTop + parentElement.offsetHeight
+        top: scroller.scrollTop,
+        bottom: scroller.scrollTop + scroller.offsetHeight
       };
       var dest = 0;
       if (target.top < parent.top)
         dest = target.top - 4;
       else if (target.bottom > parent.bottom)
-        dest = target.bottom - parentElement.offsetHeight + 8;
+        dest = target.bottom - scroller.offsetHeight + 8;
       if (dest != 0) {
-        var startScrollTop = parentElement.scrollTop;
+        var startScrollTop = scroller.scrollTop;
         var animation = new CoreAnimation();
         animation.duration = Math.abs(dest - startScrollTop) / 3;
-        animation.target = parentElement;
+        animation.target = scroller;
         animation.easing = "easeInOutQuart";
         animation.customEffect = function(timeFraction, target, animation) 
           {
-            target.scrollTop = startScrollTop + (dest - startScrollTop) * timeFraction;
+            // console.log(dest, target.scrollTop);
+            target.scrollTop = startScrollTop + (dest - startScrollTop) * (
+              timeFraction === null ? 1 : timeFraction);
           };
         animation.play();
       }
       else {
-        console.log('element already visible');
+        // console.log('element already visible');
       }
     }
   }

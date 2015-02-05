@@ -2,6 +2,9 @@
 
 <link rel="import" href="pook-book-cache.html">
 <link rel="import" href="firebaseTransaction.html">
+<link rel="import" href="pook-styles.html">
+<link rel="import" href="pook-animated-array-filter.html">
+
 <!--
 /**
   * Book editor 
@@ -12,10 +15,14 @@
 -->
 <polymer-element name='pook-page-book-editor'>
   <template>
+    <core-style ref='pook-animations'></core-style>
     <style>
       :host {
         background-color: #dddddd;
         background-image: url('/img/back.png');
+      }
+      .hidden {
+        visibility: hidden;
       }
       #pages {
         display: flex;
@@ -27,6 +34,8 @@
       pook-page-icon {
         margin-top: 16px;
         margin-bottom: 8px;
+        position: relative;
+        background-color: white;
       }
       pook-page-icon[pageSide="left"] {
         margin-left: 6px;
@@ -34,28 +43,43 @@
       pook-page-icon[pageSide="right"] {
         margin-right: 6px;
       }
-      .hidden {
-        visibility: hidden;
-      }
-
     </style>
     <section id="pages">
-      <template repeat="{{s in book.sheetIds}}">
+      <pook-animated-array-filter 
+        id="pageIdAnimation"
+        source="{{pageIds}}"
+        addAnimation="stretch-right"
+        removeAnimation="fade-out"
+        >
+      ></pook-animated-array-filter>
+      <pook-animated-array-filter
+        id="sheetsAnimation"
+        source="{{sheets}}"
+      ></pook-animated-array-filter>
+      <template repeat="{{s in $.sheetsAnimation.output}}">
         <pook-page-icon orientation="left" 
           page="{{book.pages[ book.sheets[s].left]}}"
           style="{{simplePageStyle | styleObject}}"
+          class="{{$.pageIdAnimation.animationClass[book.sheets[s].left]}}"
+          on-animationend="{{handlePageAnimationEnd}}" 
+          on-webkitAnimationEnd="{{handlePageAnimationEnd}}"  
+          on-mozAnimationEnd="{{handlePageAnimationEnd}}"
           ></pook-page-icon>
         <pook-page-icon orientation="right" 
           page="{{book.pages[ book.sheets[s].right]}}"
           style="{{simplePageStyle | styleObject}}"
+          class="{{$.pageIdAnimation.animationClass[book.sheets[s].right]}}"
+          on-animationend="{{handlePageAnimationEnd}}" 
+          on-webkitAnimationEnd="{{handlePageAnimationEnd}}"  
+          on-mozAnimationEnd="{{handlePageAnimationEnd}}"
           ></pook-page-icon>
       </template>
     </section>
-    <paper-button 
+    <paper-button id="morePages"
       on-tap="{{morePages}}" 
       disabled="{{!book.canAddPages}}"
       raised>{{book.pageCountIncrement}} more pages</paper-button>
-    <paper-button 
+    <paper-button id="fewerPages"
       on-tap="{{fewerPages}}" 
       disabled="{{!book.canRemovePages}}"
       raised>{{book.pageCountIncrement}} fewer pages</paper-button>
@@ -82,6 +106,9 @@
         bookId: null,
         // how wide should pook-page-icon be
         desiredPageWidth: 0,
+
+        // used for animation only
+        // pageIds: used for animation only
       },
       computed: {
         sheets: "computeSheets( book.sheetIds)",
@@ -106,10 +133,22 @@
         this.book = Singleton.bookCache.getBook(this.bookId);
       },
 
-      computeSheets: function(ids) {
-        if (this.book)
+      computeSheets: function(sheetIds) {
+        // no transformation, just called just for side-effect of loading pages
+        if (this.book)  
           this.book.loadAllPages();
-        return ids;
+        if (sheetIds && sheetIds.length) {
+          // compute available pages for animation
+          var pageIds = [];
+          for (var i=0; i<sheetIds.length; i++) {
+            if (this.book.sheets[ sheetIds[i]].left)
+              pageIds.push( this.book.sheets[ sheetIds[i]].left );
+            if (this.book.sheets[ sheetIds[i]].right)
+              pageIds.push( this.book.sheets[ sheetIds[i]].right );
+          }
+          this.pageIds = pageIds;
+        }
+        return sheetIds;
       },
 
       computeSimplePageStyle: function(pageWidth, bookWidth, bookHeight) {
@@ -126,6 +165,11 @@
           }
       },
 
+      handlePageAnimationEnd: function(ev) {
+        var page = ev.currentTarget.page;
+        if (page && page.ref)
+          this.$.pageIdAnimation.animationComplete(page.ref.key());
+      },
       calcPageDimensions: function() {
         function computePageWidth(sheets) {
           var space = pageListWidth;
@@ -146,7 +190,7 @@
 
         var pick = 3;
         var minDesired = 128;
-        var maxDesired = 256;
+        var maxDesired = 192;
         // if page is too small, fit fewer
         while(pick > 1 && pageWidths[pick] < minDesired)
           pick = pick -1;
@@ -165,7 +209,9 @@
             document.querySelector('pook-flash').error("unexpected error adding pages");
           }
         });
-        console.warn("should scroll to end");
+        this.job('showMorePages', function() {
+          PookUtils.scrollIntoView(this.$.morePages, this);
+        }.bind(this), 100);
       },
 
       fewerPages: function() {
@@ -238,9 +284,16 @@ Parent should set icon width & height in css
         this.setAttribute('pageSide', this.orientation);
         this.pageChanged();
       },
-      pageChanged: function() {
-        if (!this.page) // hide non-existent pages
-          this.classList.add('hidden');
+      detached: function() {
+        console.log('page-icon detached');
+      },
+      pageChanged: function(oldValue, newValue) {
+        if (!this.page) {// hide non-existent pages
+          if (oldValue)
+            console.log("not hiding, because removal");
+          else
+            this.classList.add('hidden');
+        }
         else
           this.classList.remove('hidden');
       }

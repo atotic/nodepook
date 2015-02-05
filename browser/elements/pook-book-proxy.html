@@ -41,8 +41,8 @@ Properties:
      */ 
     minPageCount: 4,
     maxPageCount: 128,
-    pageCountIncrement: 4,
-    initialPageCount: 4,
+    pageCountIncrement: 8,
+    initialPageCount: 8,
 
     publish: {
       /**
@@ -139,8 +139,10 @@ Properties:
     },
 
     loadPage: function(pageId) {
-      if (pageId && !(pageId in this.pages))
+      if (pageId && !(pageId in this.pages)) {
         this.pages[pageId] = document.createElement('pook-page-proxy');
+        this.pages[pageId].pageId = pageId;
+      }
     },
     /**
      * @method loadAllPages

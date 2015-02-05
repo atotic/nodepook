@@ -75,6 +75,22 @@ Simplest example:
 
     publish: {
     /**
+     * @property addAnimation
+     * @type String
+     * @default animate-add
+     * class name for add animation (slide-up, strech-right, fade-out
+     */
+     addAnimation: "animate-add",
+
+    /**
+     * @property removeAnimation
+     * @type String
+     * @default animate-add
+     * class name for remove animation (slide-up, strech-right, fade-out
+     */
+     removeAnimation: "animate-remove",
+
+    /**
       * @property output
       * @type array
       * Output array, to be displayed
@@ -127,9 +143,9 @@ Simplest example:
       for (var i=0; i<out.length; i++) {
         var c = "";
         if (out[i] in this.removedValues)
-          c = "animate-remove";
+          c = this.removeAnimation;
         else if (out[i] in this.addedValues)
-          c = "animate-add";
+          c = this.addAnimation;
         this.animationClass[ out[i]] = c;
       }
       // store the differences between source and output

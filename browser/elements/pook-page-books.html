@@ -22,6 +22,7 @@
 -->
 <polymer-element name='pook-page-books'>
   <template>
+    <core-style ref='pook-animations'></core-style>
     <style>
       :host {
         display: flex;
@@ -29,23 +30,13 @@
         flex-direction: column;
         -webkit-flex-direction: column;
       }
-      .book-tile {
+      pook-book-icon {
         cursor: pointer;
         position:relative;
-      }
-      .book-tile.animate-add {
-        z-index: 999;
         background-color: white;
-        -webkit-animation-duration:0.5s;
-                animation-duration:0.5s;
-        -webkit-animation-name:slide-up;
-                animation-name:slide-up;
       }
-      .book-tile.animate-remove {
-        -webkit-animation-duration:0.5s;
-                animation-duration:0.5s;
-        -webkit-animation-name:fade-out;
-                animation-name:fade-out;    
+      pook-book-icon.slide-up {
+        z-index: 999;
       }
       #selectorContainer {
         flex: 1;
@@ -68,17 +59,20 @@
         overflow:hidden;
       }
     </style>
-    <core-style ref='pook-animations'></core-style>
     <div id='selectorContainer' on-tap='{{clearSelection}}'>
       <section id="myBooks" class="book-list">
         <div style="padding:0 8px 0 4px; width: 100px; height: 100px; position:relative">
           <paper-button on-tap="{{showNewBookDialog}}" raised style="position:absolute; bottom:10px;">Start a new book...</paper-button>
         </div>
-        <pook-animated-array-filter id="myBooksFilter"
-          source="{{myBooksIds}}"></pook-animated-array-filter>
+        <pook-animated-array-filter 
+          id="myBooksFilter"
+          source="{{myBooksIds}}"
+          addAnimation="slide-up"
+          removeAnimation="fade-out"
+          ></pook-animated-array-filter>
         <template id="bookList" repeat="{{k in $.myBooksFilter.output}}">
           <pook-book-icon bookId="{{k}}"
-            class="book-tile {{ $.myBooksFilter.animationClass[k] }}"
+            class="{{ $.myBooksFilter.animationClass[k] }}"
             on-tap="{{bookTapHandler}}"
             on-animationend="{{handleTileAnimationEnd}}" 
             on-webkitAnimationEnd="{{handleTileAnimationEnd}}"  
@@ -93,7 +87,6 @@
             <template repeat="{{k in booksSharedWithMeIds}}">
               <pook-book-icon bookId="{{k}}"
                 sharedWithMe
-                class="book-tile"
                 on-tap="{{bookTapHandler}}"
               ></pook-book-icon>
             </template>

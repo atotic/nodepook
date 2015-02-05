@@ -1,6 +1,8 @@
-COMMANDS
-updates node to latest stable:
-
+POLYMER:
+- animations: adding/removing of list elements
+  - add a bunch of items, template repeat changes, want to scroll to bottom when done
+    need layout-complete event on template=repeat
+    
 NEXT
 
 pdf generation
