@@ -60,7 +60,7 @@
         <pook-page-icon orientation="left" 
           page="{{book.pages[ book.sheets[s].left]}}"
           style="{{simplePageStyle | styleObject}}"
-          class="{{$.pageIdAnimation.animationClass[book.sheets[s].left]}}"
+          myClass="{{$.pageIdAnimation.animationClass[book.sheets[s].left]}}"
           on-animationend="{{handlePageAnimationEnd}}" 
           on-webkitAnimationEnd="{{handlePageAnimationEnd}}"  
           on-mozAnimationEnd="{{handlePageAnimationEnd}}"
@@ -68,7 +68,7 @@
         <pook-page-icon orientation="right" 
           page="{{book.pages[ book.sheets[s].right]}}"
           style="{{simplePageStyle | styleObject}}"
-          class="{{$.pageIdAnimation.animationClass[book.sheets[s].right]}}"
+          myClass="{{$.pageIdAnimation.animationClass[book.sheets[s].right]}}"
           on-animationend="{{handlePageAnimationEnd}}" 
           on-webkitAnimationEnd="{{handlePageAnimationEnd}}"  
           on-mozAnimationEnd="{{handlePageAnimationEnd}}"
@@ -175,6 +175,7 @@
         // when sheet is removed, no way to know what pages it had
         // Workaround is to use pook-animated-array to hang onto removed sheet ids.
         // and make page-icon pretend removed page is still there while animating
+        // and, it does not work in FF and Safari, because class gets assigned after page
         this.$.sheetsAnimation.animationComplete(ev.currentTarget.templateInstance.model.s);
         if (ev.currentTarget.classList.contains('fade-out')) {
           ev.currentTarget.classList.add('hidden');
@@ -292,16 +293,28 @@ Parent should set icon width & height in css
          * @type pook-page-proxy
          * page to be shown. if null, element gets visibility:hidden
          */
-        page: null
+        page: null,
+        myClass: ""
       },
       ready: function() {
         this.setAttribute('pageSide', this.orientation);
         this.pageChanged();
       },
+      // myClass is parto of Removed Pages HACK
+      // works just like `class` attribute, except we have control over
+      // timing of the assignment
+      myClassChanged: function(oldValue, newValue) {
+        if (newValue)
+          this.classList.add(newValue);
+        else if (oldValue)
+          this.classList.remove(oldValue);
+      },
       pageChanged: function(oldValue, newValue) {
         if (!this.page) {// hide non-existent pages
-          if (oldValue) // Removed pages HACK
+          if (oldValue) {// Removed pages HACK {
+            // console.log('deletion fadeout');
             this.classList.add('fade-out');
+          }
           else
             this.classList.add('hidden');
         }
