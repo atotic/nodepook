@@ -84,7 +84,7 @@
             "right": { ".validate": "newData.isString()"}
           }
         },
-        "photos": {
+        "photos": { // Photos not in any page
           "$photoId": { ".validate": "newData.isBoolean()"}
         },
         "sharedWith": {
@@ -98,7 +98,6 @@
         ".read": "auth !== null",
         ".write": "auth !== null",
         "title": {},
-        // bookId is used for bookkeeping only
         "bookId": { ".validate": "newData.isString() && root.child('books').child(newData.val()).exists()"},
         "items": {
           "$itemId": {
@@ -107,7 +106,9 @@
             "left": { ".validate": "newData.isNumber()"},
             "width": { ".validate": "newData.isNumber()"},
             "height": { ".validate": "newData.isNumber()"},
-            "rotate": { ".validate": "newData.isNumber()"}
+            "rotate": { ".validate": "newData.isNumber()"},
+            // type-specific properties
+            "photoId": { ".validate": "root.child('photos').child(newData.val()).exists()"}
           }
         },
         "$other": { ".validate": false }

@@ -2,11 +2,26 @@
 <link rel="import" href="pook-utils.html">
 
 <!--
-Firebase page proxy
-
 @element pook-page-proxy
 @group model
 
+Firebase page proxy
+
+    "title": {},
+    "bookId": { ".validate": "newData.isString() && root.child('books').child(newData.val()).exists()"},
+    "items": {
+      "$itemId": {
+        "type": { ".validate": "newData.isString() && (newData.val() === 'photo' || newData.val() == 'text')"},
+        "top": { ".validate": "newData.isNumber()"},
+        "left": { ".validate": "newData.isNumber()"},
+        "width": { ".validate": "newData.isNumber()"},
+        "height": { ".validate": "newData.isNumber()"},
+        "rotate": { ".validate": "newData.isNumber()"},
+         // type-specific properties
+        "photoId": { ".validate": "root.child('photos').child(newData.val()).exists()"}
+
+      }
+    },
 -->
 
 <polymer-element name='pook-page-proxy' extends='firebase-element' attributes="pageId">
@@ -19,6 +34,31 @@ Firebase page proxy
         this.location = CommonUtils.getFirebaseUrl('onePage', this.pageId);
       else
         this.location = null;
+    },
+    /**
+     * @method addPhoto
+     * @param {string} photoId photoId
+     * @param {FirebaseTransaction} transaction t
+     * adds photo the page. Returns itemRef
+     */
+    addPhoto: function(photoId, transaction) {
+      var photoItem = {
+        type: "photo",
+        photoId: photoId
+      }
+      return transaction.push( this.ref.child('items'), photoItem);
+    },
+    /**
+     * @method removePhoto
+     * @param {string} photoId photoId
+     * @param {FirebaseTransaction} transaction t
+     */
+    removePhoto: function(photoId, transaction) {
+      if (!photoId) throw new Error("missing photoId");
+      for (var k in this.data.items) {
+        if (this.data.items[k].photoId === photoId)
+          transaction.remove( this.ref.child('items').child(k));
+      }
     }
   });
   </script>

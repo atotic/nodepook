@@ -272,6 +272,9 @@ Parent should set icon width & height in css
         border-left: 1px solid #dddddd;
         box-shadow: 2px 0px 4px #B3B3B3;
       }
+      :host(.pook-droppable) {
+        border-color: yellow;
+      }
       #frame {
       }
     </style>
@@ -298,6 +301,7 @@ Parent should set icon width & height in css
       },
       ready: function() {
         this.setAttribute('pageSide', this.orientation);
+        this.setAttribute('pook-droppable', "file,image,page");
         this.pageChanged();
       },
       // myClass is parto of Removed Pages HACK
@@ -320,6 +324,26 @@ Parent should set icon width & height in css
         }
         else
           this.classList.remove('hidden');
+      },
+      handleDrop: function(flavor, dropData) {
+        switch(flavor) {
+          case "file":
+            console.log("dropping files");
+            var user = document.createElement('pook-user');
+            for (var i=0; i<dropData.length; i++) {
+              var transaction = new FirebaseTransaction('photo drop on page');
+
+              var photoRef = user.createPhoto( dropData[i], transaction);
+              this.page.addPhoto(photoRef.key(), transaction);
+              transaction.resolve(function(err) {
+                if (err)
+                  document.querySelector('pook-flash').error = "Upload of photo " + dropData[i].name + "failed. Try again? "; 
+              });
+            }
+            break;
+          default:
+            console.log("TODO");
+        }
       }
     });
   </script>

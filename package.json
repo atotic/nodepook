@@ -12,7 +12,7 @@
     "sourceSet": "./scripts/tasks/sourceSetTask.js > browser/docs/sourceSet.json",
 
     "build:firebase-rules": "strip-json-comments rules.json > rules.stripped.json",
-    "upload:firebase-rules": "curl --upload-file rules.stripped.json ${FIREBASE_URL}.settings/rules.json?auth=${FIREBASE_SECRET}",
+    "upload:firebase-rules": "curl --upload-file rules.stripped.json ${FIREBASE_URL}.settings/rules.json?auth=${FIREBASE_SECRET} && rm rules.stripped.json",
 
     "watch:rules.json": "onchange rules.json -- npm run build:firebase-rules",
     "watch": "npm run watch:rules.json"

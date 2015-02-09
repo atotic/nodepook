@@ -22,12 +22,13 @@ Cache of pook-book-proxy elements
       /**
        * @property books
        * @type Map
-       * "$bookId" -> `<pook-book-proxy>`
+       * "$bookId" -> `<pook-book-proxy>`.
+       * Exposed for data binding
        */
-      books: null
+      // books: null
     },
     created: function() {
-      this.books = Singleton.books;
+      // this.books = Singleton.books;
     },
     /**
      * @method getBook
@@ -37,11 +38,18 @@ Cache of pook-book-proxy elements
      */
     getBook: function(id) {
       if (!id) return null;
-      if (!(id in this.books)) {
-        this.books[id] = document.createElement('pook-book-proxy');
-        this.books[id].bookId = id;
+      if (!(id in Singleton.books)) {
+        Singleton.books[id] = document.createElement('pook-book-proxy');
+        Singleton.books[id].bookId = id;
       }
-      return this.books[id];
+      return Singleton.books[id];
+    },
+    /**
+     * @method getAllBooks
+     * returns array of all books in the cache
+     */
+    getAllBooks: function() {
+      return Object.keys(Singleton.books);
     },
     /**
      * @method createBook

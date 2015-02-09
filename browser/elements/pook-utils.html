@@ -62,6 +62,22 @@
       else {
         // console.log('element already visible');
       }
+    },
+    /**
+     * @method getPageLocation
+     * @param {Event} ev mouse or touch event
+     * returns { x:, y } in page coordinates of the event
+     */
+    getPageLocation: function(ev) {
+      var retVal;
+      if ('changedTouches' in ev)
+        retVal = { x: ev.changedTouches[0].pageX,
+          y: ev.changedTouches[0].pageY};
+      else
+        retVal = { x: ev.pageX, y: ev.pageY };
+      if (retVal.x == undefined)
+        console.error("bad getPageLocation", $ev);
+      return retVal;
     }
   }
 

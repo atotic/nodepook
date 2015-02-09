@@ -1,0 +1,249 @@
+<link rel="import" href="../vendor/polymer/polymer.html">
+<link rel="import" href="pook-utils.html">
+<!--
+sources: file, image on page, page, image on strip
+targets: body, page, trash, image strip
+
+@element pook-drag-and-drop
+@group infrastructure
+drag-and-drop:
+  - tracks drag (find target, visual target feedback, drag icon moving)
+  - drop handling
+    * register drop handlers
+
+drag source: {
+  - flavor
+  - dragData() (or provide as argument to pook-drag-and-drop.drop)
+  - dragComplete (when drag is done)
+  - 
+}
+drag target: {
+  - pook-drappable attribute has accepted flavors
+  - handleDrop(flavor, flavorSpecificData)
+}
+
+flavors | data
+file      FileList
+
+-->
+
+<polymer-element name="pook-drag-and-drop">
+  <script>
+  (function() {
+    "use strict";
+
+    var FLAVORS = ["file", "image", "page"];
+
+    var Singleton = {
+      _lastPos: { x:0, y:0},
+
+
+
+      // element we are dropping
+      dropTarget: null,
+
+      init: function() {
+        if (!('_mousemove' in this)) {
+          this._mousemove = this.handleMove.bind(this);
+          this._touchmove = this.handleMove.bind(this);
+          this._mouseup = this.endDrag.bind(this);
+          this._touchend = this.endDrag.bind(this);
+        }
+      },
+      listen: function() {
+        ["_mousemove", "_mouseup", "_touchmove", "_touchend"].forEach( function(key) {
+          document.addEventListener(key.slice(1), this[key]);
+        }.bind(this));
+      },
+      stopListening: function() {
+        ["_mousemove", "_mouseup", "_touchmove", "_touchend"].forEach( function(key) {
+          document.removeEventListener(key.slice(1), this[key]);
+        }.bind(this));
+      },
+      acceptsDrop: function(el) {
+        var droppable = el && el.getAttribute('pook-droppable');
+        if (droppable && droppable.match(this.source.flavor))
+          return true;
+        return false;
+      },
+      findTarget: function(pos) {
+        var el = document.elementFromPoint( pos.x, pos.y);
+        var dropTarget = null;
+        if (this.acceptsDrop(el))
+          dropTarget = el;
+
+        // traverse /deep/
+        while (el && el.shadowRoot) {
+          el = el.shadowRoot.elementFromPoint(pos.x, pos.y);
+          if (this.acceptsDrop(el))
+            dropTarget = el;
+          // console.log('traversing', el);
+        }
+        // console.log('target is', dropTarget);
+        return dropTarget;
+      },
+      setDropTarget: function(target) {
+        if (this.target == target)
+          return;
+        if (this.target)
+          this.target.classList.remove('pook-droppable');
+        this.target = target;
+        if (this.target) {
+          // console.log("new target");
+          this.target.classList.add('pook-droppable');
+        }
+      },
+      startDrag: function(source) {
+        this.source = source;
+        if (!("flavor" in source))
+          throw new Error("source must have flavor");
+        this.listen();
+      },
+      handleMove: function(ev) {
+        var pos = PookUtils.getPageLocation(ev);
+        if (this._lastPos && this._lastPos.x == pos.x && this._lastPos.y == pos.y)
+          return;
+        else
+          this._lastPos = pos;
+        this.setDropTarget( this.findTarget(pos));
+      },
+      handleDrop: function(data) {
+        console.log("drop");
+        data = data || this.source.getDragData(source.flavor);
+        try {
+          this.target.handleDrop(this.source.flavor, data);
+        }catch(ex) {
+          console.error("unexpected error on handleDrop");
+        }
+        this.endDrag(true)
+      },
+      endDrag: function(didDrop) {
+        if (this.source && this.source.dragComplete)
+          this.source.dragComplete(didDrop);
+        this.setDropTarget(null);
+        this.stopListening();
+      }
+
+    };
+
+    Singleton.init();
+
+    Polymer({
+      start: function(source) {
+        Singleton.startDrag(source);
+      },
+      move: function(ev) {
+        Singleton.handleMove(ev);
+      },
+      drop: function(data) {
+        Singleton.handleDrop(data);
+      },
+      end: function() {
+        Singleton.endDrag();
+      },
+      registerTransferHandler: function(sourceType, destType, handler) {
+        TransferRegistry.addHandler(sourceType, destType, handler);
+      }
+    });
+  })();
+  </script>
+</polymer-element>
+
+
+<!--
+@element pook-body-file-drop
+@group ui
+
+Broadcasts file drops on body.
+
+-->
+
+<polymer-element name='pook-body-file-drop' fileTypeRegex="image/(png|jpeg|gif)">
+  <template></template>
+  <script>
+  Polymer({
+    /** 
+     * filter acceptable file types, default to images 
+     * @attribute fileTypeRegex
+     * @type string
+     * @default "image/(png|jpeg|gif)"
+     */
+    ready: function(){
+      var listen = function(evName) {
+        document.addEventListener(evName, this[evName].bind(this));
+      }.bind(this);
+      listen('dragenter');
+      // listen('dragleave');
+      listen('dragover');
+      listen('drop');
+      listen('dragleave');
+      this.dnd = document.createElement('pook-drag-and-drop');
+    },
+    dragenter: function(ev) {
+      this.isDragging = this.getFiles(ev);
+      if (this.isDragging)
+        this.dnd.start({ flavor: "file"});
+      ev.preventDefault();
+    },
+    dragover: function(ev) {
+      if (this.isDragging) {
+        this.dnd.move(ev);
+        ev.preventDefault();
+      }
+    },
+    dragleave: function(ev) {
+      if (this.isDragging) {
+        this.dnd.end();
+      }
+    },
+   /**
+     * Fires when it happens
+     *
+     * @event file-dropped
+     * @param {File} file HTML file dropped
+     */
+    drop: function(ev) {
+      ev.preventDefault();
+      ev.stopPropagation();
+      // console.log('drop');
+
+      var files = this.applyFileTypeFilter( this.getFiles(ev) );
+      if (!files) {
+        document.querySelector('pook-flash').warn = 'Files not uploaded. Files must be images (jpg/gif/png';
+        this.dnd.end();
+      }
+      else {
+        this.dnd.drop(files);
+      }
+    },
+    // returns array of files, or null
+    getFiles: function(ev) {
+      var dataTransfer = ev.dataTransfer;
+      if (dataTransfer.files && dataTransfer.files.length > 0) {
+        // console.log('got files');
+        return dataTransfer.files;
+      }
+      else if (dataTransfer.types) {
+        // console.log('got file type');
+        if ('contains' in dataTransfer.types) // Firefox
+          return dataTransfer.types.contains("Files");
+        else // Chrome
+          return dataTransfer.types.indexOf("Files") != -1;
+      }
+      return null;
+    },
+    // filters
+    applyFileTypeFilter: function(files) {
+      if (!files)
+        return null;
+      var retVal = [];
+      for (var i=0; i<files.length; i++) {
+        var f = files.item(i);
+        if (f.type.match( this.fileTypeRegex ))
+          retVal.push(f);
+      }
+      return retVal;
+    }
+  });
+  </script>
+</polymer-element> 

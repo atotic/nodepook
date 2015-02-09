@@ -262,7 +262,21 @@ Properties:
         .child('sheets')
         .child( sheetIds[ sheetIds.length - 1])
         .child('right'));
-    }
+    },
+    /**
+     * @method removePhoto
+     * @param {string} photoId photoId
+     * removes photo from the book, and all pages
+     */
+    removePhoto: function(photoId) {
+      this.ref.child('photos').child(photoId).remove();
+      // remove photo from any pages
+      for (var p in this.pages) {
+        var transaction = new FirebaseTransaction('removePhoto');
+        transaction.resolve(CommonUtils.noop);
+        this.pages[p].removePhoto(photoId, transaction);
+      }
+     }
   });
   </script>
 </polymer-element>

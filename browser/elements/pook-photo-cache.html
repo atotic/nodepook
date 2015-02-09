@@ -83,8 +83,8 @@ Create raw new photo, and upload it. Does not update user's record.
       task.failCount = ('failCount' in task) ? ( task.failCount + 1 ) : 1;
       if (task.failCount < 5)
         PhotoUploadQueue.unshift(task);
-      else if (Singleton.photos[task.photoId])
-        Singleton.photos[task.photoId].uploadFailed();
+      else
+        Singleton.user.photoUploadFailed( task.photoId, task.file);
     }
 
     function start() {
@@ -136,6 +136,11 @@ Create raw new photo, and upload it. Does not update user's record.
         this._exifWorker.addEventListener('message', this.processExifWorkerMessage.bind(this));
       }
       return this._exifWorker;
+    },
+    get user() {
+      if (!('_user' in this))
+        this._user = document.createElement("pook-user");
+      return this._user;
     },
     processExifWorkerMessage: function(ev) {
       switch(ev.data.action) {
@@ -203,27 +208,31 @@ Create raw new photo, and upload it. Does not update user's record.
      * @method createPhotoFromFile
      * @param {File} file file to be uploaded
      * @param {String} ownerId photo's owner
-     * @param {Function} callback fn(err, photoRef)
+     * @param {FirebaseTransaction} transaction transaction
+     *
+     * Returns photoRef
      *
      * Creates photo in /photo/$photoRef, and uploads it to s3
-     *
-     * Sets photo metadata in Firebase from server response
+     * 
+     * Sets photo metadata in Firebase from server response'
+
      */
-    createPhotoFromFile: function(file, ownerId, callback) {
+    createPhotoFromFile: function(file, ownerId, transaction) {
       if (!ownerId)
         throw new Error("ownerId cant be null");
 
-      var db = new Firebase( CommonUtils.getFirebaseUrl('allPhotos'));
       // create the photo
       var json = {
         createdAt: Firebase.ServerValue.TIMESTAMP,
         displayName: file.name,
         owner: ownerId
       }
-      var ref = db.push(json);
-        // uploads the file
+      var ref = transaction.push( 
+        new Firebase( CommonUtils.getFirebaseUrl('allPhotos')),
+        json);
+      // queue the file upload
       this.uploadFile(file, ref.key());
-      callback(null, ref);
+      return ref;
     }
 
   });

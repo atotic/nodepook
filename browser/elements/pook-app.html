@@ -16,7 +16,7 @@
 <link rel="import" href="pook-page-security.html">
 <link rel="import" href="pook-page-photos.html" >
 <link rel="import" href="pook-page-book-editor.html">
-<link rel="import" href="pook-body-file-drop.html">
+<link rel="import" href="pook-drag-drop.html">
 <!--
 User home page, main pook.io application
 
@@ -27,7 +27,15 @@ Hash routing, lhs navigation
 -->
 <polymer-element name='pook-app'>
   <template>
-   <style>    
+   <style>
+      :host {
+        display:block;
+        width: 100vw;
+        height: 100vh;
+      }
+      :host(.pook-droppable)::shadow paper-item:nth-child(3) {
+        background-color:yellow;
+      }
       core-toolbar, core-toolbar::shadow .toolbar-tools {
         height: 36px;
       }
@@ -67,7 +75,7 @@ Hash routing, lhs navigation
     </style>
 
     <pook-user id='user' anonRedirect='/'></pook-user>
-    <pook-body-file-drop on-file-dropped='{{fileDropped}}'></pook-body-file-drop>
+    <pook-body-file-drop></pook-body-file-drop>
     <core-drawer-panel id='drawerPanel' drawerWidth="8em">
       <core-header-panel drawer>
         <core-toolbar><span flex>pook.io</span></core-toolbar>
@@ -116,6 +124,7 @@ Hash routing, lhs navigation
     },
     ready: function() {
       window.addEventListener('hashchange', this.parseLocationHash.bind(this));
+      this.setAttribute('pook-droppable', "file");
       this.parseLocationHash();
     },
     parseLocationHash: function() {
@@ -157,8 +166,15 @@ Hash routing, lhs navigation
     toggleDrawer: function() {
       this.$.drawerPanel.togglePanel();
     },
-    fileDropped: function(ev) {
-      this.$.user.createPhoto(ev.detail);
+    handleDrop: function(flavor, data) {
+      switch(flavor) {
+        case "file":
+          for (var i=0; i<data.length; i++)
+            this.$.user.createPhoto(data[i]);
+          break;
+        default:
+          console.warn("unknown drop flavor");
+      }
     },
     bookIdToHashbang: function(bookId) {
       return 'book:' + bookId;

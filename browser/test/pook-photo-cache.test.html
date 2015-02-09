@@ -11,6 +11,7 @@
   <link rel="import" href="../elements/pook-auth.html">
   <link rel="import" href="../elements/pook-utils.html">
   <link rel="import" href="../elements/pook-user.html">
+  <link rel="import" href="../elements/firebaseTransaction.html">
 </head>
 <body>
   <!-- Fixtures -->
@@ -41,12 +42,13 @@
           if (!photoInput.files.length > 0)
             return done( new Error('no file'));
           var auth = firebase.getAuth();
-          photoCache.createPhotoFromFile( photoInput.files.item(0), auth.uid, 
-            function(err, photoRef) {
-              if (err)
-                done(err);
-              else
-                photoRef.remove(done);
+          var transaction = new FirebaseTransaction("photoFromFile");
+          var photoRef = photoCache.createPhotoFromFile( photoInput.files.item(0), auth.uid, transaction);
+          transaction.resolve( function(err) {
+            if (err)
+              done(err);
+            else
+              photoRef.remove(done);
           });
         });
       });
@@ -55,7 +57,9 @@
         if (!photoInput.files.length > 0)
           return done( new Error('no file'));
         var pookUser = document.createElement('pook-user');
-        pookUser.createPhoto( photoInput.files.item(0), done);
+        var transaction = new FirebaseTransaction();
+        pookUser.createPhoto( photoInput.files.item(0), transaction);
+        transaction.resolve(done);
       });
     });
   </script>

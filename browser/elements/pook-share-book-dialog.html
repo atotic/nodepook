@@ -60,7 +60,7 @@ Usage:
       email: null
     },
     computed: {
-      book: "bookCache.books[bookId]",
+      book: "computeBook( bookId )",
       sharedWith: "computeSharedWith(book.data.sharedWith)"
     },
     created: function() {
@@ -78,6 +78,9 @@ Usage:
       var ids = CommonUtils.objectKeys( sharedIds);
       ids.forEach( this.otherUserCache.getUser.bind( this.otherUserCache));
       return ids;
+    },
+    computeBook: function(bookId) {
+      return this.bookCache.getBook(bookId);
     },
     addShare: function() {
       this.book.addShare(this.email);

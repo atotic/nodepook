@@ -190,23 +190,41 @@ If you are using bindings, you do not need to worry about this, otherwise:
     /**
      * @method createPhoto
      * @param {File} file local file
-     * @param {function} callback fb(err, photoRef)
+     * @param {FirebaseTransaction} transaction 
+     * returns photoRef
      * creates photo record in db, and uploads file to server
      */
-    createPhoto: function(file, callback) {
+    createPhoto: function(file, transaction) {
       if (!this.uid)
         throw new Error("cant create photo before logging in");
-      callback = callback || CommonUtils.noope;
       
-      Singleton.photoCache.createPhotoFromFile(file, this.uid, function(err, photoRef) {
-        if (err)
-          return callback(err);
-        this.myPhotosDb.ref.child(photoRef.key()).set(true, function(err) {
-            if (err) debugger;
-            callback(err, photoRef);
-          });
+      var photoRef = Singleton.photoCache.createPhotoFromFile(file, this.uid, transaction);
+
+      // add photo to the user.myPhotos
+      transaction.set( this.myPhotosDb.ref.child(photoRef.key()), true);
+
+      return photoRef;
+    },
+    /*
+     * if upload fails, notify, and clean up
+     */
+    photoUploadFailed: function(photoId, file) {
+      var errMsg = "Photo upload of " + file.name + " failed. Try again?";
+      var flash = document.querySelector('pook-flash');
+      if (flash)
+        flash.error = errMsg;
+      else
+        console.error(errMsg);
+      // remove photo from list of myPhotos
+      this.myPhotosDb.ref.child(photoId).remove();
+      // remove photo from db
+      (new Firebase( CommonUtils.getFirebaseUrl('onePhoto', photoId))).remove();
+      // remove photo from all currently open books
+      this.bookCache.getAllBooks().forEach( function(bookId) {
+        this.bookCache.getBook( bookId ).removePhoto( photoId );
       }.bind(this));
     },
+
     /**
      * @method createBook
      * @param {string} title title
