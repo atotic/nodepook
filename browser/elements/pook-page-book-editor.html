@@ -59,6 +59,7 @@
       <template repeat="{{s in $.sheetsAnimation.output}}">
         <pook-page-icon orientation="left" 
           page="{{book.pages[ book.sheets[s].left]}}"
+          pageTitle="{{ pageTitles[book.sheets[s].left] }}"
           style="{{simplePageStyle | styleObject}}"
           myClass="{{$.pageIdAnimation.animationClass[book.sheets[s].left]}}"
           on-animationend="{{handlePageAnimationEnd}}" 
@@ -67,6 +68,7 @@
           ></pook-page-icon>
         <pook-page-icon orientation="right" 
           page="{{book.pages[ book.sheets[s].right]}}"
+          pageTitle="{{ pageTitles[book.sheets[s].right] }}"
           style="{{simplePageStyle | styleObject}}"
           myClass="{{$.pageIdAnimation.animationClass[book.sheets[s].right]}}"
           on-animationend="{{handlePageAnimationEnd}}" 
@@ -133,6 +135,17 @@
         this.book = Singleton.bookCache.getBook(this.bookId);
       },
 
+      computePageTitles: function() {
+        var titles = {};
+        if (this.pageIds.length > 0) {
+          titles[ this.pageIds[0]] = 'cover';
+          titles[ this.pageIds[ this.pageIds.length - 1]] = 'back';
+          for (var i=1; i< this.pageIds.length-1; i++)
+            titles[ this.pageIds[i]] = i;
+        }
+        this.pageTitles = titles;
+      },
+
       computeSheets: function(sheetIds) {
         // no transformation, just called just for side-effect of loading pages
         if (this.book)  
@@ -147,6 +160,7 @@
               pageIds.push( this.book.sheets[ sheetIds[i]].right );
           }
           this.pageIds = pageIds;
+          this.computePageTitles();
         }
         return sheetIds;
       },
@@ -277,9 +291,24 @@ Parent should set icon width & height in css
       }
       #frame {
       }
+      #title {
+        position: absolute;
+        font-size: x-small;
+        color: #CCC;
+        bottom: 0;
+      }
+      :host([pageSide="left"]) #title {
+        right: 8px;
+      }
+      :host([pageSide="right"]) #title {
+        left: 8px;
+      }
+
     </style>
       <div id="frame">
-        {{pageSide}}
+        <template if="{{pageTitle}}">
+          <div id="title">{{pageTitle}}</div>
+        </template>
       </div>
   </template>
   <script>
@@ -297,7 +326,13 @@ Parent should set icon width & height in css
          * page to be shown. if null, element gets visibility:hidden
          */
         page: null,
-        myClass: ""
+        myClass: "",
+        /**
+         * @attribute title
+         * @type string
+         * page title
+         */
+        pageTitle: ""
       },
       ready: function() {
         this.setAttribute('pageSide', this.orientation);
