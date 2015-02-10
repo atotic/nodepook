@@ -119,6 +119,9 @@
 
       book: null,
 
+      minDesiredSize: 156,
+      maxDesiredSize: 256,
+
       attached: function() {
         this.calcPageDimensions();
         this._boundResizer = function() {
@@ -218,13 +221,11 @@
           pageWidths[i] = computePageWidth(i);
 
         var pick = 3;
-        var minDesired = 128;
-        var maxDesired = 192;
         // if page is too small, fit fewer
-        while(pick > 1 && pageWidths[pick] < minDesired)
+        while(pick > 1 && pageWidths[pick] < this.minDesiredSize)
           pick = pick -1;
         // if page is too big, fit more
-        while(pick < 11 && pageWidths[pick] > maxDesired)
+        while(pick < 11 && pageWidths[pick] > this.maxDesiredSize)
           pick = pick + 1;
         this.desiredPageWidth = pageWidths[pick];
       },
@@ -290,6 +291,12 @@ Parent should set icon width & height in css
         border-color: yellow;
       }
       #frame {
+        width: 100%;
+        height: 100%;
+      }
+      #items {
+        width: 100%;
+        height: calc(100% - 14px);
       }
       #title {
         position: absolute;
@@ -303,13 +310,19 @@ Parent should set icon width & height in css
       :host([pageSide="right"]) #title {
         left: 8px;
       }
-
     </style>
-      <div id="frame">
-        <template if="{{pageTitle}}">
-          <div id="title">{{pageTitle}}</div>
+    <div id="frame">
+      <section id="items" layout wrap horizontal>
+        <template repeat='{{photoId in photoIds}}'>
+          <pook-photo-icon 
+            photoId='{{photoId}}'
+            style='{{photoIconStyle | styleObject}}'></pook-photo-icon>
         </template>
-      </div>
+      </section>
+      <template if="{{pageTitle}}">
+        <div id="title">{{pageTitle}}</div>
+      </template>
+    </div>
   </template>
   <script>
     Polymer({
@@ -332,12 +345,45 @@ Parent should set icon width & height in css
          * @type string
          * page title
          */
-        pageTitle: ""
+        pageTitle: "",
+
+        //photoIconStyle
+      },
+      computed: {
+        itemIds: 'computeItemIds(page.data.items)',// array
+        photoIds: 'computePhotoIds(itemIds)',
+        photoIconStyle: 'computePhotoIconStyle(photoIds, style)'
       },
       ready: function() {
         this.setAttribute('pageSide', this.orientation);
         this.setAttribute('pook-droppable', "file,image,page");
         this.pageChanged();
+      },
+      computeItemIds: function(items) {
+        return Object.keys(items || {});
+      },
+      computePhotoIds: function(itemIds) {
+        if (itemIds.length > 0)
+          console.log('got something');
+        var photoIds = [];
+        if (this.page && this.page.data && this.page.data.items) {
+          for (var i=0; i<itemIds.length; i++)
+            if (this.page.data.items[itemIds[i]].type === 'photo')
+              photoIds.push( this.page.data.items[itemIds[i]].photoId );
+        }
+        return photoIds;
+      },
+      computePhotoIconStyle: function(photoIds) {
+        if (!photoIds.length)
+          return {};
+        var totalWidth = this.$.items.clientWidth;
+        var totalHeight = this.clientHeight - 14;
+        // suboptimal, just slice. Ideally, look for best fit for square-like tiles
+        var rows = Math.ceil( Math.sqrt( photoIds.length));
+        return {
+          width: 100 / rows + "%",
+          height: 100 / rows + "%"
+        }
       },
       // myClass is parto of Removed Pages HACK
       // works just like `class` attribute, except we have control over
@@ -382,4 +428,56 @@ Parent should set icon width & height in css
       }
     });
   </script>
+</polymer-element>
+
+<!--
+@element pook-photo-icon
+@group ui
+
+Displays photo
+
+Parent should set icon width & height in css
+
+-->
+
+<polymer-element name="pook-photo-icon" attributes="photoId">
+  <template>
+    <style>
+      :host {
+        display: inline-block;
+      }
+      #image {
+        margin: auto;
+        height: auto;
+        max-height: 100%;
+        width: auto;
+        max-width: 100%;
+      }
+    </style>
+    <img id='image' src='{{photoUrl}}'>
+  </template>
+  <script>
+    (function() {
+    "use strict";
+    var Singleton = {
+      get photoCache() {
+        if (!('_photoCache' in this))
+          this._photoCache = document.createElement('pook-photo-cache');
+        return this._photoCache;
+      }
+    };
+
+    Polymer({
+      computed: {
+        photoUrl: 'photo.iconInfo.src'
+      },
+      photoIdChanged: function() {
+        if (this.photoId)
+          this.photo = Singleton.photoCache.getPhoto(this.photoId);
+      }
+    });
+
+    })();
+  </script>
+
 </polymer-element>
