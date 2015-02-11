@@ -5,7 +5,7 @@ sources: file, image on page, page, image on strip
 targets: body, page, trash, image strip
 
 @element pook-drag-and-drop
-@group infrastructure
+@group dragdrop
 drag-and-drop:
   - tracks drag (find target, visual target feedback, drag icon moving)
   - drop handling
@@ -13,6 +13,8 @@ drag-and-drop:
 
 drag source: {
   - flavor
+  - icon (optional dom to show during drag)
+  - iconOffset
   - dragData() (or provide as argument to pook-drag-and-drop.drop)
   - dragComplete (when drag is done)
   - 
@@ -37,8 +39,6 @@ file      FileList
     var Singleton = {
       _lastPos: { x:0, y:0},
 
-
-
       // element we are dropping
       dropTarget: null,
 
@@ -46,8 +46,8 @@ file      FileList
         if (!('_mousemove' in this)) {
           this._mousemove = this.handleMove.bind(this);
           this._touchmove = this.handleMove.bind(this);
-          this._mouseup = this.endDrag.bind(this);
-          this._touchend = this.endDrag.bind(this);
+          this._mouseup = this.handleTrackEnd.bind(this);
+          this._touchend = this.handleTrackEnd.bind(this);
         }
       },
       listen: function() {
@@ -67,6 +67,8 @@ file      FileList
         return false;
       },
       findTarget: function(pos) {
+        if (this.dragIcon)
+          this.dragIcon.style.visibility = 'hidden';
         var el = document.elementFromPoint( pos.x, pos.y);
         var dropTarget = null;
         if (this.acceptsDrop(el))
@@ -80,6 +82,8 @@ file      FileList
           // console.log('traversing', el);
         }
         // console.log('target is', dropTarget);
+        if (this.dragIcon)
+          this.dragIcon.style.visibility = '';
         return dropTarget;
       },
       setDropTarget: function(target) {
@@ -93,11 +97,36 @@ file      FileList
           this.target.classList.add('pook-droppable');
         }
       },
-      startDrag: function(source) {
+      createDragIcon: function(iconDom) {
+        this.dragIcon = document.createElement('div');
+        this.dragIcon.classList.add('dragDiv');
+        this.dragIcon.classList.add('expand-open');
+        this.dragIcon.appendChild(iconDom);
+        document.body.appendChild(this.dragIcon);
+      },
+      deleteDragIcon: function() {
+        if (this.dragIcon)
+          this.dragIcon.remove();
+        this.dragIcon = null; 
+      },
+      moveDragIcon: function(top, left) {
+        if (this.dragIcon) {
+          if (this.source.iconOffset) {
+            top += this.source.iconOffset.top;
+            left += this.source.iconOffset.left;
+          }
+          this.dragIcon.style.top = top + "px";
+          this.dragIcon.style.left = left + "px";
+        }
+      },
+      startDrag: function(ev,source) {
         this.source = source;
         if (!("flavor" in source))
           throw new Error("source must have flavor");
+        if (this.source.icon)
+          this.createDragIcon(this.source.icon);
         this.listen();
+        this.handleMove(ev);
       },
       handleMove: function(ev) {
         var pos = PookUtils.getPageLocation(ev);
@@ -106,22 +135,31 @@ file      FileList
         else
           this._lastPos = pos;
         this.setDropTarget( this.findTarget(pos));
+        this.moveDragIcon(pos.y, pos.x);
       },
       handleDrop: function(data) {
         console.log("drop");
-        data = data || this.source.getDragData(source.flavor);
+        data = data || this.source.getDragData(this.source.flavor);
         try {
           this.target.handleDrop(this.source.flavor, data);
         }catch(ex) {
-          console.error("unexpected error on handleDrop");
+          console.error("unexpected error on handleDrop", ex);
         }
         this.endDrag(true)
+      },
+      handleTrackEnd: function(ev) {
+        if (this.target)
+          this.handleDrop(this.source.getDragData(this.source.flavor));
+        else
+          this.endDrag(false);
       },
       endDrag: function(didDrop) {
         if (this.source && this.source.dragComplete)
           this.source.dragComplete(didDrop);
         this.setDropTarget(null);
+        this.deleteDragIcon();
         this.stopListening();
+        delete this._lastPos;
       }
 
     };
@@ -129,8 +167,8 @@ file      FileList
     Singleton.init();
 
     Polymer({
-      start: function(source) {
-        Singleton.startDrag(source);
+      start: function(ev,source) {
+        Singleton.startDrag(ev, source);
       },
       move: function(ev) {
         Singleton.handleMove(ev);
@@ -149,10 +187,47 @@ file      FileList
   </script>
 </polymer-element>
 
+<!---
+  @element pook-drag-icon
+  @group dragdrop
+
+  Shows icon to be dragged
+-->
+<polymer-element name='pook-drag-icon' >
+  <template>
+    <style>
+      :host {
+        position: absolute;
+        opacity: 0.9;
+      }
+      .expandOpen {
+                     animation-name: expandOpen;
+             -webkit-animation-name: expandOpen; 
+                 animation-duration: 4s; 
+         -webkit-animation-duration: 4s;
+          animation-timing-function: ease-out;  
+  -webkit-animation-timing-function: ease-out;  
+      }
+
+      @keyframes expandOpen {
+        0% { transform: scale(0.3); }
+        100% { transform: scale(1.0); }
+      }
+      ::content .expandOpen {
+  border: 1px solid purple;
+  }
+    </style>
+    <content class="expandOpen"></content>
+  </template>
+  <script>
+    Polymer({
+    });
+  </script>
+</polymer-element>
 
 <!--
 @element pook-body-file-drop
-@group ui
+@group dragdrop
 
 Broadcasts file drops on body.
 
@@ -182,7 +257,7 @@ Broadcasts file drops on body.
     dragenter: function(ev) {
       this.isDragging = this.getFiles(ev);
       if (this.isDragging)
-        this.dnd.start({ flavor: "file"});
+        this.dnd.start(ev,{ flavor: "file"});
       ev.preventDefault();
     },
     dragover: function(ev) {

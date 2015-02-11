@@ -316,6 +316,7 @@ Parent should set icon width & height in css
         <template repeat='{{photoId in photoIds}}'>
           <pook-photo-icon 
             photoId='{{photoId}}'
+            page='{{page}}'
             style='{{photoIconStyle | styleObject}}'></pook-photo-icon>
         </template>
       </section>
@@ -356,15 +357,13 @@ Parent should set icon width & height in css
       },
       ready: function() {
         this.setAttribute('pageSide', this.orientation);
-        this.setAttribute('pook-droppable', "file,image,page");
+        this.setAttribute('pook-droppable', "file,image,image-in-page,page");
         this.pageChanged();
       },
       computeItemIds: function(items) {
         return Object.keys(items || {});
       },
       computePhotoIds: function(itemIds) {
-        if (itemIds.length > 0)
-          console.log('got something');
         var photoIds = [];
         if (this.page && this.page.data && this.page.data.items) {
           for (var i=0; i<itemIds.length; i++)
@@ -422,6 +421,17 @@ Parent should set icon width & height in css
               });
             }
             break;
+          case 'image-in-page':
+            // remove image from old page
+            // put it in new page
+            if (this.page == dropData.page)
+              break;
+            else {
+              var t = new FirebaseTransaction('movePhoto');
+              this.page.addPhoto( dropData.photoId, t);
+              dropData.page.removePhoto(dropData.photoId, t);
+            }
+            break;
           default:
             console.log("TODO");
         }
@@ -440,21 +450,31 @@ Parent should set icon width & height in css
 
 -->
 
-<polymer-element name="pook-photo-icon" attributes="photoId">
+<polymer-element name="pook-photo-icon" layout horizontal center-justified attributes="photoId page">
   <template>
     <style>
       :host {
         display: inline-block;
+        border: 1px solid black;
       }
       #image {
-        margin: auto;
-        height: auto;
         max-height: 100%;
-        width: auto;
         max-width: 100%;
-      }
+        width: auto;
+        height: auto;
+        /*
+          width: 100%;
+          height: 100%;
+          object-fit: contain; 
+        no worky on ie*/
+/*        margin: auto;
+        height: auto;
+        width: auto;
+*/      }
     </style>
-    <img id='image' src='{{photoUrl}}'>
+    <img id='image' 
+      src='{{photoUrl}}'
+      on-down='{{handleDragstart}}'>
   </template>
   <script>
     (function() {
@@ -464,6 +484,11 @@ Parent should set icon width & height in css
         if (!('_photoCache' in this))
           this._photoCache = document.createElement('pook-photo-cache');
         return this._photoCache;
+      },
+      get dragdrop() {
+        if (!('_dragdrop' in this))
+          this._dragdrop = document.createElement('pook-drag-and-drop');
+        return this._dragdrop;
       }
     };
 
@@ -474,6 +499,44 @@ Parent should set icon width & height in css
       photoIdChanged: function() {
         if (this.photoId)
           this.photo = Singleton.photoCache.getPhoto(this.photoId);
+      },
+      handleDragstart: function(ev) {
+        ev.preventDefault();
+        ev.stopPropagation();
+
+        // create the drag icon
+        var boundRect = this.$.image.getBoundingClientRect();
+        var scale = 3.0;
+        var iconProps = {
+          width: this.$.image.offsetWidth * scale + "px",
+          height: this.$.image.offsetHeight * scale + "px",
+          position: 'relative'
+        };
+        var icon = this.$.image.cloneNode();
+        for (var k in iconProps)
+          icon.style[k] = iconProps[k];
+
+        // hide this
+        this.style.visibility = 'hidden';
+
+        Singleton.dragdrop.start(ev, {
+          flavor: "image-in-page",
+          icon: icon,
+          iconOffset: {
+            top:  (boundRect.top - ev.pageY)* scale,
+            left: (boundRect.left - ev.pageX)  * scale
+          },
+          getDragData: function(flavor) {
+            return {
+              page: this.page,
+              photoId: this.photoId
+            }
+          }.bind(this),
+          dragComplete: function(didDrop) {
+
+            this.style.visibility = '';
+          }.bind(this)
+        });
       }
     });
 
