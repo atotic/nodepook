@@ -9,11 +9,11 @@
 /**
   * Book editor 
   *
-  * @element pook-page-book-editor
+  * @element pook-section-book-editor
   * @group ui
   */
 -->
-<polymer-element name='pook-page-book-editor'>
+<polymer-element name='pook-section-book-editor'>
   <template>
     <core-style ref='pook-animations'></core-style>
     <style>
@@ -462,6 +462,7 @@ Parent should set icon width & height in css
         max-width: 100%;
         width: auto;
         height: auto;
+        cursor: move;
         /*
           width: 100%;
           height: 100%;
@@ -523,9 +524,13 @@ Parent should set icon width & height in css
           flavor: "image-in-page",
           icon: icon,
           iconOffset: {
-            top:  (boundRect.top - ev.pageY)* scale,
-            left: (boundRect.left - ev.pageX)  * scale
+            top: (boundRect.top - boundRect.bottom) / 2 * scale,
+            left: (boundRect.left - boundRect.right) / 2 * scale,
           },
+          // iconOffset: {
+          //   top:  (boundRect.top - ev.pageY)* scale,
+          //   left: (boundRect.left - ev.pageX)  * scale
+          // },
           getDragData: function(flavor) {
             return {
               page: this.page,

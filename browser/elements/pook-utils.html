@@ -1,5 +1,5 @@
-<link href="native-promise-only.html" rel="import">
-<link href="../vendor/core-animation/core-animation.html" rel="import">
+<link rel="import" href="native-promise-only.html">
+<link rel="import" href="../vendor/core-animation/core-animation.html">
 
 <script src="commonUtils.js"></script>
 
@@ -66,17 +66,17 @@
     /**
      * @method getPageLocation
      * @param {Event} ev mouse or touch event
-     * returns { x:, y } in page coordinates of the event
+     * returns { top:, left: } in page coordinates of the event
      */
     getPageLocation: function(ev) {
       var retVal;
       if ('changedTouches' in ev)
-        retVal = { x: ev.changedTouches[0].pageX,
-          y: ev.changedTouches[0].pageY};
+        retVal = { left: ev.changedTouches[0].pageX,
+          top: ev.changedTouches[0].pageY};
       else
-        retVal = { x: ev.pageX, y: ev.pageY };
-      if (retVal.x == undefined)
-        console.error("bad getPageLocation", $ev);
+        retVal = { left: ev.pageX, top: ev.pageY };
+      if (retVal.left == undefined)
+        console.error("bad getPageLocation", ev);
       return retVal;
     }
   }

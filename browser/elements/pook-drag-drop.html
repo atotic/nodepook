@@ -1,5 +1,8 @@
 <link rel="import" href="../vendor/polymer/polymer.html">
+<link rel="import" href="../vendor/core-animation/core-animation.html" >
+
 <link rel="import" href="pook-utils.html">
+
 <!--
 sources: file, image on page, page, image on strip
 targets: body, page, trash, image strip
@@ -37,7 +40,7 @@ file      FileList
     var FLAVORS = ["file", "image", "page"];
 
     var Singleton = {
-      _lastPos: { x:0, y:0},
+      _lastPos: { top:0, left:0},
 
       // element we are dropping
       dropTarget: null,
@@ -50,6 +53,7 @@ file      FileList
           this._touchend = this.handleTrackEnd.bind(this);
         }
       },
+
       listen: function() {
         ["_mousemove", "_mouseup", "_touchmove", "_touchend"].forEach( function(key) {
           document.addEventListener(key.slice(1), this[key]);
@@ -60,6 +64,8 @@ file      FileList
           document.removeEventListener(key.slice(1), this[key]);
         }.bind(this));
       },
+
+  // Targeting
       acceptsDrop: function(el) {
         var droppable = el && el.getAttribute('pook-droppable');
         if (droppable && droppable.match(this.source.flavor))
@@ -69,14 +75,14 @@ file      FileList
       findTarget: function(pos) {
         if (this.dragIcon)
           this.dragIcon.style.visibility = 'hidden';
-        var el = document.elementFromPoint( pos.x, pos.y);
+        var el = document.elementFromPoint( pos.left, pos.top);
         var dropTarget = null;
         if (this.acceptsDrop(el))
           dropTarget = el;
 
         // traverse /deep/
         while (el && el.shadowRoot) {
-          el = el.shadowRoot.elementFromPoint(pos.x, pos.y);
+          el = el.shadowRoot.elementFromPoint(pos.left, pos.top);
           if (this.acceptsDrop(el))
             dropTarget = el;
           // console.log('traversing', el);
@@ -97,48 +103,85 @@ file      FileList
           this.target.classList.add('pook-droppable');
         }
       },
-      createDragIcon: function(iconDom) {
+
+  // Drag icon
+      applyIconOffset: function(pos) {
+        if (this.source.iconOffset) 
+          return {
+            top: pos.top + this.source.iconOffset.top,
+            left: pos.left + this.source.iconOffset.left
+          }
+        else
+          return pos;
+      },
+      createDragIcon: function(iconDom, ev) {
         this.dragIcon = document.createElement('div');
-        this.dragIcon.classList.add('dragDiv');
+        this.dragIcon.classList.add('drag-div');
         this.dragIcon.classList.add('expand-open');
         this.dragIcon.appendChild(iconDom);
         document.body.appendChild(this.dragIcon);
+        this._startDragPos = PookUtils.getPageLocation(ev);
       },
-      deleteDragIcon: function() {
-        if (this.dragIcon)
+      deleteDragIcon: function(didDrop, callback) {
+        var cleanup = function() {
           this.dragIcon.remove();
-        this.dragIcon = null; 
-      },
-      moveDragIcon: function(top, left) {
-        if (this.dragIcon) {
-          if (this.source.iconOffset) {
-            top += this.source.iconOffset.top;
-            left += this.source.iconOffset.left;
-          }
-          this.dragIcon.style.top = top + "px";
-          this.dragIcon.style.left = left + "px";
+          this.dragIcon = null;
+          callback();
+        }.bind(this);
+
+        if (!this.dragIcon)
+          return callback();
+
+        if (didDrop)
+          cleanup();
+        else {
+          var boundsRect = this.dragIcon.getBoundingClientRect();
+          var startPos = { 
+            top: boundsRect.top + "px", 
+            left: boundsRect.left + "px",
+            transform: "scale(1.0)"
+          };
+          var endPos = this.applyIconOffset( this._startDragPos);
+          endPos.left += "px";
+          endPos.top  += "px";
+          endPos.transform = "scale(0.3)";
+          var player = this.dragIcon.animate(
+            [ startPos, endPos ],
+            { duration: 100 }
+          );
+          player.onfinish = cleanup;
         }
       },
+      moveDragIcon: function(pos) {
+        if (this.dragIcon) {
+          pos = this.applyIconOffset(pos);
+          this.dragIcon.style.top = pos.top + "px";
+          this.dragIcon.style.left = pos.left + "px";
+        }
+      },
+
+  // Dnd API
+
       startDrag: function(ev,source) {
         this.source = source;
         if (!("flavor" in source))
           throw new Error("source must have flavor");
         if (this.source.icon)
-          this.createDragIcon(this.source.icon);
+          this.createDragIcon(this.source.icon, ev);
         this.listen();
         this.handleMove(ev);
       },
       handleMove: function(ev) {
         var pos = PookUtils.getPageLocation(ev);
-        if (this._lastPos && this._lastPos.x == pos.x && this._lastPos.y == pos.y)
+        if (this._lastPos && this._lastPos.left == pos.left && this._lastPos.top == pos.top)
           return;
         else
           this._lastPos = pos;
         this.setDropTarget( this.findTarget(pos));
-        this.moveDragIcon(pos.y, pos.x);
+        this.moveDragIcon(pos);
       },
       handleDrop: function(data) {
-        console.log("drop");
+        // console.log("drop");
         data = data || this.source.getDragData(this.source.flavor);
         try {
           this.target.handleDrop(this.source.flavor, data);
@@ -154,10 +197,11 @@ file      FileList
           this.endDrag(false);
       },
       endDrag: function(didDrop) {
-        if (this.source && this.source.dragComplete)
-          this.source.dragComplete(didDrop);
         this.setDropTarget(null);
-        this.deleteDragIcon();
+        this.deleteDragIcon(didDrop, function() {
+          if (this.source && this.source.dragComplete)
+            this.source.dragComplete(didDrop);
+        }.bind(this));
         this.stopListening();
         delete this._lastPos;
       }
@@ -178,9 +222,6 @@ file      FileList
       },
       end: function() {
         Singleton.endDrag();
-      },
-      registerTransferHandler: function(sourceType, destType, handler) {
-        TransferRegistry.addHandler(sourceType, destType, handler);
       }
     });
   })();

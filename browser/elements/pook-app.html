@@ -11,11 +11,11 @@
 <link rel="import" href="../vendor/core-icons/editor-icons.html">
 
 <link rel="import" href="pook-user.html">
-<link rel="import" href="pook-page-account.html">
-<link rel="import" href="pook-page-books.html">
-<link rel="import" href="pook-page-security.html">
-<link rel="import" href="pook-page-photos.html" >
-<link rel="import" href="pook-page-book-editor.html">
+<link rel="import" href="pook-section-account.html">
+<link rel="import" href="pook-section-books.html">
+<link rel="import" href="pook-section-security.html">
+<link rel="import" href="pook-section-photos.html" >
+<link rel="import" href="pook-section-book-editor.html">
 <link rel="import" href="pook-drag-drop.html">
 <!--
 User home page, main pook.io application
@@ -103,10 +103,10 @@ Hash routing, lhs navigation
         </core-toolbar>
         <div class='content'>
           <core-pages id='pages' selected='{{$.menu.selected}}'>
-            <pook-page-account hashbang='account'></pook-page-account>
-            <pook-page-security hashbang='security'></pook-page-security>
-            <pook-page-photos hashbang='photos'></pook-page-photos>
-            <pook-page-books hashbang='books'></pook-page-books>
+            <pook-section-account hashbang='account'></pook-section-account>
+            <pook-section-security hashbang='security'></pook-section-security>
+            <pook-section-photos hashbang='photos'></pook-section-photos>
+            <pook-section-books hashbang='books'></pook-section-books>
           </core-pages>
         </div>
       </core-header-panel>
@@ -206,7 +206,7 @@ Hash routing, lhs navigation
       paperItem.setAttribute('hashbang', hashbang);
       paperItem.canCloseTab = true;
       paperItem.appendChild(coreIcon);
-      var bookEditorPage = document.createElement('pook-page-book-editor');
+      var bookEditorPage = document.createElement('pook-section-book-editor');
       bookEditorPage.setAttribute('hashbang', hashbang);
       bookEditorPage.bookId = bookId;
       // insert elements
