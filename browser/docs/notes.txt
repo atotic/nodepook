@@ -2,7 +2,8 @@ POLYMER:
 - animations: adding/removing of list elements
   - add a bunch of items, template repeat changes, want to scroll to bottom when done
     need layout-complete event on template=repeat
-    
+  - a callback when repeat template adds/removes would make life lots easier
+
 NEXT
 
 pdf generation

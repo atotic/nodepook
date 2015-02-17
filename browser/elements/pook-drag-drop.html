@@ -114,13 +114,35 @@ file      FileList
         else
           return pos;
       },
-      createDragIcon: function(iconDom, ev) {
+      createDragIcon: function(ev) {
+        if (!('icon' in this.source))
+          return;
+
+        // create
         this.dragIcon = document.createElement('div');
         this.dragIcon.classList.add('drag-div');
-        this.dragIcon.classList.add('expand-open');
-        this.dragIcon.appendChild(iconDom);
+        // this.dragIcon.classList.add('expand-open');
+        this.dragIcon.appendChild(this.source.icon);
         document.body.appendChild(this.dragIcon);
         this._startDragPos = PookUtils.getPageLocation(ev);
+        this.handleMove(ev);
+        // animate icon, if source available
+        if ('iconAnimationStart' in this.source) {
+          // source, destination
+          var destRect = this.dragIcon.getBoundingClientRect();
+          var scale = this.source.iconAnimationStart.width/destRect.width;
+          var animation = new Animation(this.dragIcon,
+            [
+              { transform: 'scale(' + scale + ')' },
+              { transform: 'scale(1)' }
+            ],
+            {
+              duration: 200,
+              easing: 'ease-in', //'cubic-bezier(0,0,0.32,1)',
+              fill: 'forwards'
+            });
+          var player = document.timeline.play(animation);
+        }
       },
       deleteDragIcon: function(didDrop, callback) {
         var cleanup = function() {
@@ -135,20 +157,41 @@ file      FileList
         if (didDrop)
           cleanup();
         else {
-          var boundsRect = this.dragIcon.getBoundingClientRect();
-          var startPos = { 
-            top: boundsRect.top + "px", 
-            left: boundsRect.left + "px",
-            transform: "scale(1.0)"
-          };
-          var endPos = this.applyIconOffset( this._startDragPos);
-          endPos.left += "px";
-          endPos.top  += "px";
-          endPos.transform = "scale(0.3)";
-          var player = this.dragIcon.animate(
-            [ startPos, endPos ],
-            { duration: 100 }
-          );
+          var animation;
+          if ('iconAnimationStart' in this.source) {
+            var startRect = this.dragIcon.getBoundingClientRect();
+            var destRect = this.source.iconAnimationStart;
+            var scale = destRect.width / startRect.width;
+            var deltay = destRect.top - startRect.top - (startRect.height - destRect.height) / 2;
+            var deltax = destRect.left - startRect.left - (startRect.width - destRect.width) / 2;
+            var animation = new Animation(this.dragIcon,
+              [
+                { transform: 'translate(0px, 0px) scale(1)'},
+                { transform: 'translate(' + deltax + 'px, ' + deltay + 'px)' + 'scale(' + scale + ')'
+                }
+              ],              {
+                duration: 150
+              }
+            );
+          }
+          else {
+            var boundsRect = this.dragIcon.getBoundingClientRect();
+            var endPos = this.applyIconOffset( this._startDragPos);
+            animation = new Animation( this.dragIcon,
+              [
+               {
+                top: boundsRect.top + "px", 
+                left: boundsRect.left + "px"
+               },
+               {
+                top: endPos.top + "px",
+                left: endPos.left + "px"
+               }
+              ],
+              { duration: 150 }
+            );
+          }
+          var player = document.timeline.play(animation);
           player.onfinish = cleanup;
         }
       },
@@ -166,10 +209,8 @@ file      FileList
         this.source = source;
         if (!("flavor" in source))
           throw new Error("source must have flavor");
-        if (this.source.icon)
-          this.createDragIcon(this.source.icon, ev);
+        this.createDragIcon(ev);
         this.listen();
-        this.handleMove(ev);
       },
       handleMove: function(ev) {
         var pos = PookUtils.getPageLocation(ev);
@@ -197,11 +238,16 @@ file      FileList
           this.endDrag(false);
       },
       endDrag: function(didDrop) {
-        this.setDropTarget(null);
-        this.deleteDragIcon(didDrop, function() {
-          if (this.source && this.source.dragComplete)
-            this.source.dragComplete(didDrop);
-        }.bind(this));
+        try {
+          this.setDropTarget(null);
+          this.deleteDragIcon(didDrop, function() {
+            if (this.source && this.source.dragComplete)
+              this.source.dragComplete(didDrop);
+          }.bind(this));
+        }
+        catch(ex) {
+          console.error("unexpected error in endDrag", ex);
+        }
         this.stopListening();
         delete this._lastPos;
       }

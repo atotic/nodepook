@@ -13,7 +13,10 @@ var sourceSet = {
   References: [
     "http://blog.keithcirkel.co.uk/how-to-use-npm-as-a-build-tool/",
     "http://iamralpht.github.io/physics/",
-    "http://aws.amazon.com/ses/"
+    "http://aws.amazon.com/ses/",
+    "http://aerotwist.com/blog/flip-your-animations/",
+    "http://www.minimamente.com/example/magic_animations/",
+    "http://www.justinaguilar.com/animations/"
   ]
 }
 

@@ -4,6 +4,7 @@
 <link rel="import" href="firebaseTransaction.html">
 <link rel="import" href="pook-styles.html">
 <link rel="import" href="pook-animated-array-filter.html">
+<link rel='import' href='rectangle.html'>
 
 <!--
 /**
@@ -125,7 +126,7 @@
       attached: function() {
         this.calcPageDimensions();
         this._boundResizer = function() {
-          this.job('resizer', this.calcPageDimensions, 100);
+          this.job('resizer', this.calcPageDimensions, 0);
         }.bind(this);
         window.addEventListener('resize', this._boundResizer);
       },
@@ -352,8 +353,8 @@ Parent should set icon width & height in css
       },
       computed: {
         itemIds: 'computeItemIds(page.data.items)',// array
-        photoIds: 'computePhotoIds(itemIds)',
-        photoIconStyle: 'computePhotoIconStyle(photoIds, style)'
+        photoIds: 'computePhotoIds(itemIds, page.data.items)',
+        photoIconStyle: 'computePhotoIconStyle(photoIds, $.items, style)'
       },
       ready: function() {
         this.setAttribute('pageSide', this.orientation);
@@ -363,25 +364,35 @@ Parent should set icon width & height in css
       computeItemIds: function(items) {
         return Object.keys(items || {});
       },
-      computePhotoIds: function(itemIds) {
+      computePhotoIds: function(itemIds, items) {
         var photoIds = [];
-        if (this.page && this.page.data && this.page.data.items) {
+        if (items) {
           for (var i=0; i<itemIds.length; i++)
-            if (this.page.data.items[itemIds[i]].type === 'photo')
-              photoIds.push( this.page.data.items[itemIds[i]].photoId );
+            if (items[itemIds[i]].type === 'photo')
+              photoIds.push( items[itemIds[i]].photoId );
         }
         return photoIds;
       },
-      computePhotoIconStyle: function(photoIds) {
-        if (!photoIds.length)
+      computePhotoIconStyle: function(photoIds, container) {
+        if (!photoIds.length || !container)
           return {};
-        var totalWidth = this.$.items.clientWidth;
+        var totalWidth = container.clientWidth;
         var totalHeight = this.clientHeight - 14;
         // suboptimal, just slice. Ideally, look for best fit for square-like tiles
         var rows = Math.ceil( Math.sqrt( photoIds.length));
+        var rows,cols = 1;
+        switch(photoIds.length) {
+          case 1: rows = 1; cols = 1; break;
+          case 2: rows = 1; cols = 2; break;
+          case 3:
+          case 4:  rows = 2; cols = 2; break;
+          case 5: 
+          case 6: rows = 2; cols = 3; break;
+          default: rows = cols = Math.ceil( Math.sqrt( photoIds.length)); break;
+        }
         return {
-          width: 100 / rows + "%",
-          height: 100 / rows + "%"
+          width: 100 / cols + "%",
+          height: 100 / rows + "%"          
         }
       },
       // myClass is parto of Removed Pages HACK
@@ -450,32 +461,30 @@ Parent should set icon width & height in css
 
 -->
 
-<polymer-element name="pook-photo-icon" layout horizontal center-justified attributes="photoId page">
+<polymer-element name="pook-photo-icon"  attributes="photoId page">
   <template>
     <style>
       :host {
         display: inline-block;
-        border: 1px solid black;
+        overflow: hidden;
       }
       #image {
+        cursor: move;
         max-height: 100%;
         max-width: 100%;
         width: auto;
         height: auto;
-        cursor: move;
-        /*
+/*     
           width: 100%;
           height: 100%;
           object-fit: contain; 
-        no worky on ie*/
-/*        margin: auto;
-        height: auto;
-        width: auto;
-*/      }
+/*        no worky on ie*/
+      }
     </style>
     <img id='image' 
       src='{{photoUrl}}'
-      on-down='{{handleDragstart}}'>
+      on-down='{{handleDragstart}}'
+    >
   </template>
   <script>
     (function() {
@@ -506,31 +515,32 @@ Parent should set icon width & height in css
         ev.stopPropagation();
 
         // create the drag icon
-        var boundRect = this.$.image.getBoundingClientRect();
+        var bounds = this.$.image.getBoundingClientRect();
         var scale = 3.0;
         var iconProps = {
-          width: this.$.image.offsetWidth * scale + "px",
-          height: this.$.image.offsetHeight * scale + "px",
+          // width: this.$.image.offsetWidth * scale + "px",
+          // height: this.$.image.offsetHeight * scale + "px",
+          width: this.$.image.naturalWidth + "px",
+          height: this.$.image.naturalHeight + "px",
           position: 'relative'
         };
         var icon = this.$.image.cloneNode();
         for (var k in iconProps)
           icon.style[k] = iconProps[k];
 
-        // hide this
-        this.style.visibility = 'hidden';
 
+        var pos = PookUtils.getPageLocation(ev);
+
+        // start drag
+        var iconOffset = {
+          left: -( this.$.image.naturalWidth / 2 - ((bounds.left + bounds.width / 2) - pos.left)),
+          top: -( this.$.image.naturalHeight / 2 - ((bounds.top + bounds.height / 2) - pos.top))
+        };
         Singleton.dragdrop.start(ev, {
           flavor: "image-in-page",
           icon: icon,
-          iconOffset: {
-            top: (boundRect.top - boundRect.bottom) / 2 * scale,
-            left: (boundRect.left - boundRect.right) / 2 * scale,
-          },
-          // iconOffset: {
-          //   top:  (boundRect.top - ev.pageY)* scale,
-          //   left: (boundRect.left - ev.pageX)  * scale
-          // },
+          iconOffset: iconOffset,
+          iconAnimationStart: bounds,
           getDragData: function(flavor) {
             return {
               page: this.page,
@@ -542,7 +552,11 @@ Parent should set icon width & height in css
             this.style.visibility = '';
           }.bind(this)
         });
+    
+        // hide this
+        this.style.visibility = 'hidden';
       }
+
     });
 
     })();

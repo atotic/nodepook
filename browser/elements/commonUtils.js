@@ -105,5 +105,18 @@
       else
         return [];
     };
+
+    /**
+     * @method extend
+     * @param {Object} source
+     * @param {Object} extension
+     * returns source merged with extension
+     */
+    exports.extend = function(source, extension) {
+      var retVal = Object.create(source);
+      for (k in extension)
+        retVal[k] = extension[k];
+      return retVal;
+    };
     
 })(typeof exports === 'undefined' ? this['CommonUtils']={} : exports);

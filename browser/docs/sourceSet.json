@@ -25,14 +25,14 @@
     "/elements/pook-flash.html",
     "/elements/pook-new-book-dialog.html",
     "/elements/pook-other-user-cache.html",
-    "/elements/pook-page-account.html",
-    "/elements/pook-page-book-editor.html",
-    "/elements/pook-page-books.html",
-    "/elements/pook-page-photos.html",
     "/elements/pook-page-proxy.html",
-    "/elements/pook-page-security.html",
     "/elements/pook-photo-cache.html",
     "/elements/pook-photo-proxy.html",
+    "/elements/pook-section-account.html",
+    "/elements/pook-section-book-editor.html",
+    "/elements/pook-section-books.html",
+    "/elements/pook-section-photos.html",
+    "/elements/pook-section-security.html",
     "/elements/pook-share-book-dialog.html",
     "/elements/pook-state-dropdown.html",
     "/elements/pook-styles.html",
@@ -127,6 +127,9 @@
   "References": [
     "http://blog.keithcirkel.co.uk/how-to-use-npm-as-a-build-tool/",
     "http://iamralpht.github.io/physics/",
-    "http://aws.amazon.com/ses/"
+    "http://aws.amazon.com/ses/",
+    "http://aerotwist.com/blog/flip-your-animations/",
+    "http://www.minimamente.com/example/magic_animations/",
+    "http://www.justinaguilar.com/animations/"
   ]
 }
