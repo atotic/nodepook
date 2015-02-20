@@ -16,14 +16,15 @@ var sourceSet = {
     "http://aws.amazon.com/ses/",
     "http://aerotwist.com/blog/flip-your-animations/",
     "http://www.minimamente.com/example/magic_animations/",
-    "http://www.justinaguilar.com/animations/"
+    "http://www.justinaguilar.com/animations/",
+    "http://www.the-art-of-web.com/css/timing-function/"
   ]
 }
 
 var ignores = [];
 
 function ignoreName(name) {
-  return ignores.some(function(p) { name.match(p) });
+  return ignores.some(function(p) { return name.match(p) });
 }
 
 var docFolder = "browser/docs";
@@ -32,7 +33,7 @@ var bowerFolder = "browser/vendor";
 
 var docRoot = "/docs";
 var docFiles = fs.readdirSync(docFolder);
-ignores = ["index.html"];
+ignores = ["index.html", "sourceSet.json"];
 
 docFiles.forEach(function(name) {
   if (ignoreName(name)) return;

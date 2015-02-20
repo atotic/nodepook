@@ -3,10 +3,8 @@
     "/docs/developer.txt",
     "/docs/devops.txt",
     "/docs/firebase.txt",
-    "/docs/index.html",
     "/docs/json.txt",
-    "/docs/notes.txt",
-    "/docs/sourceSet.json"
+    "/docs/notes.txt"
   ],
   "Elements": [
     "/elements/async.html",
@@ -132,6 +130,7 @@
     "http://aws.amazon.com/ses/",
     "http://aerotwist.com/blog/flip-your-animations/",
     "http://www.minimamente.com/example/magic_animations/",
-    "http://www.justinaguilar.com/animations/"
+    "http://www.justinaguilar.com/animations/",
+    "http://www.the-art-of-web.com/css/timing-function/"
   ]
 }

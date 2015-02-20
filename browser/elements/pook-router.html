@@ -6,6 +6,7 @@ pook-route-master
 
 - minimal routing api
 - register hash or file paths, callback on match
+- all matches will be triggerred, not just the first one
 - hash paths begin with '#', file paths begin with '/'
 
       router.register("/user/account", function() { ....});
@@ -222,15 +223,37 @@ usage:
     window.addEventListener('polymer-ready', Singleton.tryDefaultRoute.bind(Singleton));
 
     Polymer({
+      /**
+       * @attribute rootPath
+       * @type string
+       * @default '/'
+       * Root for path routes
+       */
+      /**
+       * @attribute defaultRoute
+       * @type string
+       * @default ''
+       * Routes loaded on polymer-ready if no routes have been matched
+       */
       ready: function() {
         //console.log("Default route is", this.defaultRoute);
       },
       /**
+       * @method register
+       * @param {string} route route. must start with `/` (path), or `#` (hash). Can use named wildcard parameters ex `#user/:id`
+       * @param {function} callback callback(params). Params will be populated with wildcards ex: `{ id: 123}`
        *
+       * registers route. callback called when route matches
        */
       register: function(route, callback) {
         Singleton.registerRoute(route, callback);
       },
+      /**
+       * @method unregister
+       * @param {string} route route
+       * @param {function} callback callback
+       * reverse `register`
+       */
       unregister: function(route, callback) {
         Singleton.unregisterRoute(route, callback);
       },
@@ -246,8 +269,14 @@ usage:
           Singleton.rootPath = newRoot;
         }
       },
-      setRoute: function(route, skipHistory) {
-        Singleton.setRoute(route, skipHistory);
+      /**
+       * @method setRoute
+       * @param {string} route new route
+       * @param {bool} addToHistory add route to browser history?
+       * sets the new window.location
+       */
+      setRoute: function(route, addToHistory) {
+        Singleton.setRoute(route, addToHistory);
       }
     });
   })();

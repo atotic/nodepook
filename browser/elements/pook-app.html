@@ -147,12 +147,9 @@ Hash routing, lhs navigation
       // book editors use hashbang
       if (!detail.isSelected)
         return;
-      this.updateRoute();
-      this.$.drawerPanel.closeDrawer();
-    },
-    updateRoute: function() {
       this.$.router.setRoute( '#' +
         this.$.pages.children[ this.$.menu.selected].getAttribute('hashbang'));
+      this.$.drawerPanel.closeDrawer();
     },
     closeTab: function(ev) {
       var index = this.$.menu.selected;
@@ -223,7 +220,7 @@ Hash routing, lhs navigation
       var removeBook = function () {
         paperItem.remove();
         bookEditorPage.remove();
-        this.$.menu.selected = this.findTabById('books');
+        this.$.router.setRoute('#books');
         document.querySelector('pook-flash').error = "book could not be loaded: " + bookId;
       }.bind(this);
 
