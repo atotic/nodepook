@@ -155,10 +155,10 @@ Hash routing, lhs navigation
         this.$.pages.children[ this.$.menu.selected].getAttribute('hashbang'));
     },
     closeTab: function(ev) {
-      var index = this.$.menu.selectedIndex;
+      var index = this.$.menu.selected;
       this.$.menu.children.item(index).remove();
       this.$.pages.children.item(index).remove();
-      this.$.menu.selected = 3;
+      this.$.router.setRoute('#books');
     },
     logout: function() {
       this.$.user.logout();

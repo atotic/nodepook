@@ -1,11 +1,60 @@
 <!--
+@element pook-route-master
+@group infrastructure
+
 pook-route-master
 
-- simplest api, equivalent to core-xhr
+- minimal routing api
+- register hash or file paths, callback on match
+- hash paths begin with '#', file paths begin with '/'
 
-- used it to redo routing in my photobook editor
+      router.register("/user/account", function() { ....});
+      router.register("#user/account", function() { ....});
 
-master = 
+- use wildcards in your paths
+
+      router.register("/user/:id/photos/:photoId", 
+        function(args) {
+          console.log(args.id, args.photoId);
+        });
+
+- default route will be loaded on polymer-ready, if no registered routes matched
+
+- uses history api when needed
+
+usage:
+
+    <pook-route-master id='router' defaultRoute="#start"></pook-route-master>
+    <template if="selected == 'account'">
+      <div>Account pane</div>
+    </template>    
+    <template if="selected == 'pictures'">
+      <div>Account pane</div>
+    </template>
+    <script>
+
+       this.$.master.register('#account', function() {
+        this.selected = "account";
+       });
+       this.$.master.register('#pictures', function() {
+        this.selected = "account";
+       });
+       handleClick: function() {
+        this.$.router.setPath("#account");
+       }
+
+      // If you prefer file paths
+
+      this.$.router.register("/user/account", function() { .... });
+
+      // Wildcards work with hashes or paths
+
+      this.$.router.register("/user/:id", function(args) {
+        console.log("Id is", args.id);
+      });
+
+    </script>
+
 -->
 <polymer-element name="pook-route-master" attributes="rootPath, defaultRoute">
   <template></template>
@@ -176,6 +225,9 @@ master =
       ready: function() {
         //console.log("Default route is", this.defaultRoute);
       },
+      /**
+       *
+       */
       register: function(route, callback) {
         Singleton.registerRoute(route, callback);
       },

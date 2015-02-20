@@ -28,6 +28,8 @@
     "/elements/pook-page-proxy.html",
     "/elements/pook-photo-cache.html",
     "/elements/pook-photo-proxy.html",
+    "/elements/pook-photo-strip.html",
+    "/elements/pook-router.html",
     "/elements/pook-section-account.html",
     "/elements/pook-section-book-editor.html",
     "/elements/pook-section-books.html",
