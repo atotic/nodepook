@@ -1,0 +1,29 @@
+<link rel="import" href="../vendor/polymer/polymer.html">
+
+<polymer-element name="pook-photo-strip">
+  <template>
+    <style>
+      :host {
+        position: fixed;
+        right: 0px;
+        bottom: 0px;
+        width: 48px;
+        height: 72px;
+        background-color: yellow;
+        z-index: 1;
+        border-width: 1px 0px 1px 1px;
+        border-style: solid;
+        border-color: #AAA;
+        border-radius: 16px 0 0 16px;
+        opacity: 0.5;
+      }
+    </style>
+  </template>
+  <script>
+    Polymer({
+      publish: {
+        book: null
+      }
+    });
+  </script>
+</polymer-element>

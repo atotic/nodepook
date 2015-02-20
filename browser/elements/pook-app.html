@@ -10,13 +10,15 @@
 <link rel="import" href="../vendor/core-icons/image-icons.html">
 <link rel="import" href="../vendor/core-icons/editor-icons.html">
 
-<link rel="import" href="pook-user.html">
-<link rel="import" href="pook-section-account.html">
-<link rel="import" href="pook-section-books.html">
-<link rel="import" href="pook-section-security.html">
-<link rel="import" href="pook-section-photos.html" >
-<link rel="import" href="pook-section-book-editor.html">
-<link rel="import" href="pook-drag-drop.html">
+<link rel='import' href='pook-user.html'>
+<link rel='import' href='pook-section-account.html'>
+<link rel='import' href='pook-section-books.html'>
+<link rel='import' href='pook-section-security.html'>
+<link rel='import' href='pook-section-photos.html'>
+<link rel='import' href='pook-section-book-editor.html'>
+<link rel='import' href='pook-drag-drop.html'>
+<link rel='import' href='pook-router.html'>
+<link rel='import' href='pook-book-cache.html'>
 <!--
 User home page, main pook.io application
 
@@ -25,7 +27,7 @@ Hash routing, lhs navigation
 @element pook-app
 @group ui
 -->
-<polymer-element name='pook-app'>
+<polymer-element name='pook-app' pook-droppable='file'>
   <template>
    <style>
       :host {
@@ -76,10 +78,11 @@ Hash routing, lhs navigation
 
     <pook-user id='user' anonRedirect='/'></pook-user>
     <pook-body-file-drop></pook-body-file-drop>
+    <pook-route-master id="router" defaultRoute="#books" rootPath="/user"></pook-route-master>
     <core-drawer-panel id='drawerPanel' drawerWidth="8em">
       <core-header-panel drawer>
         <core-toolbar><span flex>pook.io</span></core-toolbar>
-        <core-menu id='menu' on-core-select="{{selectPane}}" selected="3" selectedAttribute="coreActive">
+        <core-menu id='menu' on-core-select="{{selectPane}}" selectedAttribute="coreActive">
           <paper-item><core-icon icon="account-box"></core-icon>account</paper-item>
           <paper-item><core-icon icon="https"></core-icon>security</paper-item>
           <paper-item><core-icon icon="image:photo-library"></core-icon>photos</paper-item>
@@ -102,11 +105,12 @@ Hash routing, lhs navigation
           <paper-button on-tap='{{logout}}'>logout {{$.user.email}}</paper-button>
         </core-toolbar>
         <div class='content'>
-          <core-pages id='pages' selected='{{$.menu.selected}}'>
-            <pook-section-account hashbang='account'></pook-section-account>
-            <pook-section-security hashbang='security'></pook-section-security>
-            <pook-section-photos hashbang='photos'></pook-section-photos>
-            <pook-section-books hashbang='books'></pook-section-books>
+          <core-pages id='pages'>
+            <pook-section-account hashbang="account"></pook-section-account>
+            <pook-section-security hashbang="security"></pook-section-security>
+            <pook-section-photos hashbang="photos"></pook-section-photos>
+            <pook-section-books hashbang="books"></pook-section-books>
+            <!-- pook-section-book-editor  dynamically-->
           </core-pages>
         </div>
       </core-header-panel>
@@ -116,43 +120,39 @@ Hash routing, lhs navigation
   Polymer({
 
     publish: {
-      titleJigger: 0,
-      canCloseTab: false
-    },
-    computed: {
-      tabTitle: "computeTabTitle($.menu.selected, titleJigger)"
+      //canCloseTab: false,
+      tabTitle: ""
     },
     ready: function() {
-      window.addEventListener('hashchange', this.parseLocationHash.bind(this));
-      this.setAttribute('pook-droppable', "file");
-      this.parseLocationHash();
-    },
-    parseLocationHash: function() {
-      if (window.location.hash)
-        this.route = window.location.hash.slice(1);
-      else
-        this.route = '';
-    },
-    routeChanged: function() {
-      var bookMatch = this.route.match(/^book:(.*)/);
-      if (bookMatch)
-        this.editBook(bookMatch[1]);
-      else if (this.route != '') {
-        var tabId = this.findTabById( this.route );
-        if (tabId != -1)
-          this.$.menu.selected = tabId;
+      // register static routes
+      var getSelector = function(i, page) {
+        return function() {
+          this.$.menu.selected = i;
+          this.tabTitle = page.getAttribute('hashbang');
+          this.canCloseTab = false;
+          this.$.pages.selected = this.$.menu.selected;
+        }.bind(this);
+      }.bind(this)
+      ;
+      for (var i=0; i< this.$.pages.children.length; i++) {
+        var page = this.$.pages.children[i];
+        this.$.router.register('#' + page.getAttribute('hashbang'),
+          getSelector(i, page));
       }
-    },
-    computeTabTitle: function(tabId) {
-      if (tabId === -1 || tabId === undefined )
-        return "";
-      return this.$.menu.children.item(tabId).textContent;
+      this.$.router.register('#book/:id', function(props) {
+        this.editBook(props.id);
+      }.bind(this));
     },
     selectPane: function(ev, detail) {
       // book editors use hashbang
-      window.location.hash = ev.detail.item.getAttribute('hashbang') || ev.detail.item.textContent; 
+      if (!detail.isSelected)
+        return;
+      this.updateRoute();
       this.$.drawerPanel.closeDrawer();
-      this.canCloseTab = ev.detail.item.canCloseTab;
+    },
+    updateRoute: function() {
+      this.$.router.setRoute( '#' +
+        this.$.pages.children[ this.$.menu.selected].getAttribute('hashbang'));
     },
     closeTab: function(ev) {
       var index = this.$.menu.selectedIndex;
@@ -177,15 +177,14 @@ Hash routing, lhs navigation
       }
     },
     bookIdToHashbang: function(bookId) {
-      return 'book:' + bookId;
+      return '#book/' + bookId;
     },
-    // returns index, or -1
-    findTabById: function(tabId) {
-      var tab = this.$.pages.querySelector('[hashbang=\'' + tabId + '\']');
-      if (tab)
-        for (var i=0; i<this.$.pages.children.length; i++)
-          if (this.$.pages.children.item(i) === tab)
-            return i;
+    // returns selectedIndex, or -1
+    findBookTabById: function(bookId) {
+      var editors = this.$.pages.querySelectorAll('pook-section-book-editor');
+      for (var i=0; i<editors.length; i++)
+        if (editors[i].bookId == bookId)
+          return PookUtils.childIndexOf(editors[i]);
       return -1;
     },
     /**
@@ -194,16 +193,18 @@ Hash routing, lhs navigation
      */
     editBook: function(bookId) {
       var hashbang = this.bookIdToHashbang(bookId);
-      var tabIndex = this.findTabById(hashbang);
+      var tabIndex = this.findBookTabById(bookId);
       if (tabIndex != -1) {
         this.$.menu.selected = tabIndex;
+        this.$.pages.selected = tabIndex;
+        this.tabTitle = document.createElement('pook-book-cache').getBook(bookId).data.title;
+        this.canCloseTab = true;
         return;
       }
       // opens up an editor
       var coreIcon = document.createElement('core-icon');
       coreIcon.setAttribute('icon', 'editor:insert-drive-file');
       var paperItem = document.createElement('paper-item');
-      paperItem.setAttribute('hashbang', hashbang);
       paperItem.canCloseTab = true;
       paperItem.appendChild(coreIcon);
       var bookEditorPage = document.createElement('pook-section-book-editor');
@@ -213,28 +214,29 @@ Hash routing, lhs navigation
       this.$.menu.insertBefore(paperItem, null);
       this.$.pages.insertBefore(bookEditorPage, null);
       this.$.menu.selected = this.$.menu.children.length - 1;
+      this.$.pages.selected = this.$.menu.selected;
+      this.canCloseTab = true;
 
       // load the book title from firebase, remove the book on fail
       var bookRef = new Firebase(CommonUtils.getFirebaseUrl('oneBook', bookId));
-      var THIS = this;
 
-      function removeBook() {
+      var removeBook = function () {
         paperItem.remove();
         bookEditorPage.remove();
-        THIS.$.menu.selected = THIS.findTabById('books');
+        this.$.menu.selected = this.findTabById('books');
         document.querySelector('pook-flash').error = "book could not be loaded: " + bookId;
-      }
+      }.bind(this);
 
       bookRef.once('value', 
         function success(snapshot) {
           bookJs = snapshot.val();
           if (bookJs) {
             paperItem.appendChild( document.createTextNode( bookJs.title));
-            THIS.titleJigger++;
+            this.tabTitle = bookJs.title;
           } 
           else
             removeBook();
-        },
+        }.bind(this),
         function fail() {
           removeBook();
         }

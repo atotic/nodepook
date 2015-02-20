@@ -1,11 +1,3 @@
-TODO
-Polymer:
-- recompute('propertyId'): force recompute of computed properties
-- firebase-element-array: firebase-element that transforms data into array
-- requestDatabase: get rid of it, use blank Firebase instead
-Live app generators:
-- instead of polymer gui editor, create live apps that can be edited.
-- bind data
 
 Phase 1: Photobook organizer with sharing
 - pages

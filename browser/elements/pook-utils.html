@@ -78,6 +78,21 @@
       if (retVal.left == undefined)
         console.error("bad getPageLocation", ev);
       return retVal;
+    },
+    /**
+     * @method childIndexOf
+     * returns index of child inside the parent
+     */
+    childIndexOf: function(child) {
+      if (!child || !child.parentNode) {
+        console.warn("bad childIndexOf");
+        return -1;
+      }
+      var parent = child.parentNode;
+      for (var i=0; i<parent.children.length; i++)
+        if (parent.children[i] == child)
+          return i;
+      return -1;
     }
   }
 

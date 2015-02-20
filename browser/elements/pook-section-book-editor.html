@@ -5,6 +5,7 @@
 <link rel="import" href="pook-styles.html">
 <link rel="import" href="pook-animated-array-filter.html">
 <link rel='import' href='rectangle.html'>
+<link rel='import' href='pook-photo-strip.html'>
 
 <!--
 /**
@@ -34,7 +35,7 @@
       }
       pook-page-icon {
         margin-top: 16px;
-        margin-bottom: 8px;
+        margin-bottom: 24px;
         position: relative;
         background-color: white;
       }
@@ -86,6 +87,8 @@
       on-tap="{{fewerPages}}" 
       disabled="{{!book.canRemovePages}}"
       raised>{{book.pageCountIncrement}} fewer pages</paper-button>
+    <pook-photo-strip></pook-photo-strip>
+
   </template>
   <script>
   (function() {

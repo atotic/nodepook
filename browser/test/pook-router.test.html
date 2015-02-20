@@ -1,0 +1,66 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>pook-auth</title>
+
+  <!-- Test harness -->
+  <script src="../vendor/webcomponentsjs/webcomponents.min.js"></script>
+  <script src="../vendor/web-component-tester/browser.js"></script>
+  <!-- Imports -->
+  <link rel="import" href="testUtils.html">
+  <link rel='import' href='../elements/pook-router.html'>
+</head>
+<body>
+
+  <!-- Fixtures -->
+  <pook-route-master defaultRoute="#yo"></pook-route-master>
+  <script>
+    "use strict";
+
+    var master, handler;
+
+    suite('<pook-route-master>', function() {
+
+      before(function() {
+        master = document.querySelector('pook-route-master');
+      });
+
+      test('default route set', function() {
+        assert.equal(window.location.hash, master.defaultRoute);
+      });
+
+      test('register #a', function(done) {
+        master.register("#a", function(args) {
+          done();
+        });
+        master.setRoute("#a");
+      });
+
+
+      test('register #a/:id/:blah', function(done) {
+        master.register("#a/:id/:blah", function(args) {
+          if (args.id != "1234")
+            done(new Error("did not parse args"));
+          else if (args.blah != "lala")
+            done(new Error("did not parse args"));
+          else
+            done();
+        });
+        master.setRoute("#a/1234/lala");
+      });
+
+      test('register /a/:id/c', function(done) {
+        master.register('/a/:id/c', function(args) {
+          if (args.id != '1234')
+            done(new Error("did not parse arghs"));
+          else
+            done();
+        });
+        master.setRoute("/a/1234/c");
+      });
+    });
+  </script>
+
+</body>
+</html>

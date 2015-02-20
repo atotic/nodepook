@@ -1,0 +1,231 @@
+<!--
+pook-route-master
+
+- simplest api, equivalent to core-xhr
+
+- used it to redo routing in my photobook editor
+
+master = 
+-->
+<polymer-element name="pook-route-master" attributes="rootPath, defaultRoute">
+  <template></template>
+  <script>
+  (function() {
+    "use strict";
+    var Route = function(route, callback) {
+      if (!callback) new Error("Route must have a handler");
+      this.route = route;
+      this.callback = callback;
+      // this.type = '#' || '/';
+      // this.paths = [ { match: "" || /regex/, prop: prop-name}, ...]
+      this.init();
+    }
+    Route.prototype = {
+      init: function() {
+        if (this.route[0] == "#")
+          this.type = '#';
+        else if (this.route[0] == '/')
+          this.type = '/';
+        else
+          throw new Error("Route must start with '#' or '/'");
+
+        var components = this.route.split('/');
+        if (this.type == '/')
+          components.splice(0,1);
+        this.paths = [];
+        components.forEach(function(path) {
+          if (path[0] == ':') // variable
+            this.paths.push( {
+              pattern: /.*/,
+              prop: path.slice(1)
+            });
+          else
+            this.paths.push( { pattern: path});
+        }.bind(this));
+      },
+      /*
+        returns false if no match
+        returns Map { prop: val} if match
+       */
+      match: function(pathArray) {
+        if (pathArray.length != this.paths.length)
+          return;
+        var retVal = {};
+
+        for (var i=0; i<pathArray.length; i++) {
+          var match = pathArray[i].match( this.paths[i].pattern );
+          if (!match)
+            return false;
+          else if ('prop' in this.paths[i]) // :prop 
+            retVal[this.paths[i].prop] = match[0];
+        }
+        return retVal;
+      },
+      toString: function() {
+        var retVal = "";
+        for (var i=0; i<this.paths.length; i++) {
+          if (i!= 0)
+            retVal += '/';
+          if ('prop' in this.paths[i])
+            retVal += ':' + this.paths[i].prop;
+          else
+            retVal += this.paths[i].match;
+        }
+        return retVal;
+      }
+    }
+
+    var Singleton = {
+      routes: [],
+      rootPath: '/',
+      _defaultRoute: null,
+      haveActiveRoutes: false,
+
+      tryRoutes: function(pathArray) {
+        for (var i=0; i<this.routes.length; i++) {
+          var match = this.routes[i].match( pathArray );
+          if (match)
+            this.activateRoute( this.routes[i], match);
+        }
+      },
+      handleHashchange: function(ev) {
+        this.tryRoutes( this.parseHash() );
+      },
+      handleLocationChange: function() {
+        this.tryRoutes( this.parseLocationPath());
+      },
+      handlePopstate: function(ev) {
+        this.handleLocationChange();
+      },
+      // return path as array of components
+      parseLocationPath: function() {
+        if (!window.location.pathname) 
+          return [];
+        var match = window.location.pathname.match(this.rootPath + "(.*)");
+        if (!match) {
+          console.error("Root path does not match window.location");
+        }
+        // path has no leading '/'
+        var path = match ? match[1] : window.location.pathname.slice(1);
+
+        return path.split('/');
+      },
+      // return hash as array of components
+      parseHash: function() {
+        if (!window.location.hash)
+          return [];
+        return window.location.hash.split('/');
+      },
+      activateRoute: function(route, routeArgs) {
+        this.haveActiveRoutes = true;
+        route.callback(routeArgs);
+      },
+      registerRoute: function(route, callback) {
+        var route = new Route( route, callback);
+        this.routes.push( route );
+        // activate route if it matches current url
+        if (route.type == '#' && window.location.hash) {
+          var match = route.match( this.parseHash());
+          if (match)
+            this.activateRoute(route, match);
+        } else { // route.type == '/'
+          var match = route.match( this.parseLocationPath());
+          if (match)
+            this.activateRoute( route, match);
+        }
+      },
+      unregisterRoute: function(route, handler) {
+        this.routes.forEach( function(r, index) {
+          if (r.route === route && r.handler == handler)
+            this.routes.slice(index, 1);
+        }.bind(this));
+      },
+      set defaultRoute(newDefault) {
+        if (this._defaultRoute && this._defaultRoute != newDefault) {
+          console.warn( "default route set multiple times. Old:", this._defaultRoute, " new:", newDefault);
+        }
+        this._defaultRoute = newDefault;
+      },
+      // load default route if none were loaded
+      tryDefaultRoute: function() {
+        if (!this.haveActiveRoutes && this._defaultRoute)
+          this.setRoute(this._defaultRoute);
+      },
+      setRoute: function(route, skipHistory) {
+        if (route[0] == '#')
+          window.location.hash = route; // will trigger popstate
+        else if (route[0] == '/') {
+          if (skipHistory)
+            window.history.replaceState(null, "", window.location.origin + route);
+          else
+            window.history.pushState(null, "", window.location.origin + route);
+          this.handleLocationChange();
+        }
+      }
+    };
+
+    // location changes
+    window.addEventListener('hashchange', Singleton.handleHashchange.bind(Singleton));
+
+    window.addEventListener('popstate', Singleton.handlePopstate.bind(Singleton));
+
+    // load default route if needed 
+    window.addEventListener('polymer-ready', Singleton.tryDefaultRoute.bind(Singleton));
+
+    Polymer({
+      ready: function() {
+        //console.log("Default route is", this.defaultRoute);
+      },
+      register: function(route, callback) {
+        Singleton.registerRoute(route, callback);
+      },
+      unregister: function(route, callback) {
+        Singleton.unregisterRoute(route, callback);
+      },
+      defaultRouteChanged: function(oldRoute, newRoute) {
+        if (Singleton.defaultRoute && Singleton.defaultRoute != newRoute) {
+          console.log( "default route set multiple times. Old default is", Singleton.defaultRoute);
+        }
+        Singleton.defaultRoute = newRoute;
+      },
+      rootPathChanged: function(oldRoot, newRoot) {
+        if (newRoot) {
+          if (!(newRoot[0] == '/')) throw new Error("Root path must start with /");
+          Singleton.rootPath = newRoot;
+        }
+      },
+      setRoute: function(route, skipHistory) {
+        Singleton.setRoute(route, skipHistory);
+      }
+    });
+  })();
+  </script>
+</polymer-element>
+
+<!---
+What do we do regarding declarative routes? 
+Are they useful, or should routing be a core feature?
+-->
+<polymer-element name="pook-route" attributes='route, activate'>
+  <template></template>
+  <script>
+    Polymer({
+      publish: {
+        activate: false,
+        route: ""
+      },
+      routeChanged: function(oldRoute, newRoute) {
+        var routeMaster = document.createElement('pook-route-master');
+        if (!('_routeFired' in this))
+          this._routeFired = this.routeFired.bind(this);
+        if (old)
+          routeMaster.unregister(oldRoute, this._routeFired);
+        if (newRoute)
+          routeMaster.register(newRoute, this._routeFired);
+      },
+      routeFired: function() {
+        console.log("route was fired");
+      }
+    });
+  </script>
+</polymer-element>

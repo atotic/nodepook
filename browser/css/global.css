@@ -66,5 +66,9 @@ p {
 
 .drag-div {
   position: absolute;
-  opacity: 0.9;
+  opacity: 0.95;
+  box-shadow: 11px 11px 24px 0px rgba(0,0,0,0.5);
+}
+.drag-div * {
+  display: block;
 }
