@@ -1,6 +1,9 @@
 <link rel="import" href="../vendor/polymer/polymer.html">
-
-<polymer-element name="pook-photo-strip">
+<!--
+@element pook-photo-strip
+@group ui
+-->
+<polymer-element name="pook-photo-strip" pook-droppable='photo-in-page, book' >
   <template>
     <style>
       :host {
@@ -17,12 +20,25 @@
         border-radius: 16px 0 0 16px;
         opacity: 0.5;
       }
+      :host(.pook-droppable) {
+        border-width: 8px;
+      }
     </style>
   </template>
   <script>
     Polymer({
       publish: {
         book: null
+      },
+      handleDrop: function(flavor, dropData) {
+        switch(flavor) {
+          case 'file':
+          console.log("TODO");
+          break;
+          case 'photo-in-page':
+          console.log("TODO");
+          break;
+        }
       }
     });
   </script>

@@ -205,7 +205,7 @@ Hash routing, lhs navigation
       paperItem.canCloseTab = true;
       paperItem.appendChild(coreIcon);
       var bookEditorPage = document.createElement('pook-section-book-editor');
-      bookEditorPage.setAttribute('hashbang', hashbang);
+      bookEditorPage.setAttribute('hashbang', hashbang.slice(1));
       bookEditorPage.bookId = bookId;
       // insert elements
       this.$.menu.insertBefore(paperItem, null);

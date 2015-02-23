@@ -84,7 +84,7 @@
             "right": { ".validate": "newData.isString()"}
           }
         },
-        "photos": { // Photos not in any page
+        "photos": { // All photos associated with the book, might not all be in pages
           "$photoId": { ".validate": "newData.isBoolean()"}
         },
         "sharedWith": {

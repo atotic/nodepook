@@ -44,6 +44,7 @@ Properties:
     pageCountIncrement: 4,
     initialPageCount: 4,
 
+    unusedPhotos: [], // photos not used on any page
     publish: {
       /**
        * @property bookId
@@ -74,6 +75,7 @@ Properties:
     computeSheetIds: function(sheets) {
       return Object.keys( sheets || {});
     },
+
     /**
      * @method addShare
      * @param {String} email email to share with
@@ -276,7 +278,16 @@ Properties:
         transaction.resolve(CommonUtils.noop);
         this.pages[p].removePhoto(photoId, transaction);
       }
-     }
+    },
+    /**
+     * @method removePhotoFromPage
+     * @param {string} pageId
+     * @param {string} photoId
+     * removes photo from page, and puts it back to list of free photos
+     */
+    removePhotoFromPage: function(pageId, photoId) {
+
+    }
   });
   </script>
 </polymer-element>

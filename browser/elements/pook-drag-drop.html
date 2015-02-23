@@ -9,10 +9,10 @@ targets: body, page, trash, image strip
 
 @element pook-drag-and-drop
 @group dragdrop
+
 drag-and-drop:
   - tracks drag (find target, visual target feedback, drag icon moving)
   - drop handling
-    * register drop handlers
 
 drag source: {
   - flavor
@@ -23,13 +23,16 @@ drag source: {
   - 
 }
 drag target: {
-  - pook-drappable attribute has accepted flavors
+<div pook-droppable = 'file,photo'>
+  - pook-droppable attribute has accepted flavors
   - handleDrop(flavor, flavorSpecificData)
 }
 
 flavors | data
 file      FileList
-
+photo-in-page {photoId: , page: }
+page
+photo
 -->
 
 <polymer-element name="pook-drag-and-drop">

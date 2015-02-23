@@ -287,12 +287,11 @@ usage:
 What do we do regarding declarative routes? 
 Are they useful, or should routing be a core feature?
 -->
-<polymer-element name="pook-route" attributes='route, activate'>
+<polymer-element name="pook-route" attributes='route'>
   <template></template>
   <script>
     Polymer({
       publish: {
-        activate: false,
         route: ""
       },
       routeChanged: function(oldRoute, newRoute) {

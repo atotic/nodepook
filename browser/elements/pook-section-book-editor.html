@@ -40,7 +40,7 @@
         background-color: white;
       }
       pook-page-icon[pageSide="left"] {
-        margin-left: 6px;
+        margin-left: 16px;
       }
       pook-page-icon[pageSide="right"] {
         margin-right: 6px;
@@ -87,7 +87,7 @@
       on-tap="{{fewerPages}}" 
       disabled="{{!book.canRemovePages}}"
       raised>{{book.pageCountIncrement}} fewer pages</paper-button>
-    <pook-photo-strip></pook-photo-strip>
+    <pook-photo-strip book='{{book}}'></pook-photo-strip>
 
   </template>
   <script>
@@ -209,7 +209,7 @@
       calcPageDimensions: function() {
         function computePageWidth(sheets) {
           var space = pageListWidth;
-          space -= (sheets) * 2 * 6;  // pook-page-icon.margin-left + pook-page-icon.margin-right
+          space -= (sheets) * (16 + 6);  // pook-page-icon.margin-left + pook-page-icon.margin-right
           return Math.trunc(space / sheets / 2);
         }
 
@@ -361,7 +361,7 @@ Parent should set icon width & height in css
       },
       ready: function() {
         this.setAttribute('pageSide', this.orientation);
-        this.setAttribute('pook-droppable', "file,image,image-in-page,page");
+        this.setAttribute('pook-droppable', "file,photo,photo-in-page,page");
         this.pageChanged();
       },
       computeItemIds: function(items) {
@@ -435,7 +435,7 @@ Parent should set icon width & height in css
               });
             }
             break;
-          case 'image-in-page':
+          case 'photo-in-page':
             // remove image from old page
             // put it in new page
             if (this.page == dropData.page)
@@ -540,7 +540,7 @@ Parent should set icon width & height in css
           top: -( this.$.image.naturalHeight / 2 - ((bounds.top + bounds.height / 2) - pos.top))
         };
         Singleton.dragdrop.start(ev, {
-          flavor: "image-in-page",
+          flavor: "photo-in-page",
           icon: icon,
           iconOffset: iconOffset,
           iconAnimationStart: bounds,
