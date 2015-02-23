@@ -44,7 +44,7 @@ Properties:
     pageCountIncrement: 4,
     initialPageCount: 4,
 
-    unusedPhotos: [], // photos not used on any page
+
     publish: {
       /**
        * @property bookId
@@ -58,14 +58,24 @@ Properties:
        * $pageId -> pook-page-proxy map, populate with `loadPages`
        */
       pages: {}
+
+
     },
 
     computed: {
       sheetIds: "computeSheetIds( data.sheets)",
       sheets: "data.sheets",
+      photos: "data.photos",
       canRemovePages: "(sheetIds.length - 1) *  2 > minPageCount",
-      canAddPages: "(sheetIds.length -1) * 2 < maxPageCount"
+      canAddPages: "(sheetIds.length -1) * 2 < maxPageCount",
+      /**
+       * @property unusedPhotos
+       * @type array [photoId..]
+       * Array of photos not used on any page
+       */
+      unusedPhotos: "computeUnusedPhotos(refreshUnusedCounter)"
     },
+
     bookIdChanged: function() {
       if (this.bookId)
         this.location = CommonUtils.getFirebaseUrl('oneBook', this.bookId);
@@ -74,6 +84,57 @@ Properties:
     },
     computeSheetIds: function(sheets) {
       return Object.keys( sheets || {});
+    },
+
+    _refreshUnusedCounter: 0, // increment this to recompute photos
+    refreshUnused: function() {
+      this._refreshUnusedCounter++;
+    },
+
+    computeUnusedPhotos: function(ignore) {
+      if (!this.photos)
+        return [];
+      var usedPhotos = {};
+      for (var p in this.pages) { // all pages
+        if (this.pages[p].items) {
+          for (i in this.pages[p].items) { // items in page
+            if ('photoId' in this.pages[p].items[i])
+              usedPhotos[ this.pages[p].items[i].photoId] = true;
+          }
+        }
+      }
+      var allPhotos = JSON.parse(JSON.stringify(this.photos));
+      for (var p in usedPhotos)
+        if (p in allPhotos)
+          delete allPhotos[p];
+      return Object.keys(allPhotos);
+    },
+    /**
+     * @method addPhoto
+     * @param {string} photoId photoId
+     * adds photo to the book.photos list
+     */
+    addPhoto: function(photoId, transaction) {
+      if (this.photos && this.photos[photoId])
+        return;
+
+      transaction.set( this.ref.child('photos').child(photoId), true);
+      this.refreshUnused();
+    },
+    /**
+     * @method removePhoto
+     * @param {string} photoId photoId
+     * removes photo from the book, and all pages
+     */
+    removePhoto: function(photoId) {
+      this.ref.child('photos').child(photoId).remove();
+      // remove photo from any pages
+      for (var p in this.pages) {
+        var transaction = new FirebaseTransaction('removePhoto');
+        transaction.resolve(CommonUtils.noop);
+        this.pages[p].removePhoto(photoId, transaction);
+      }
+      this.refreshUnused();
     },
 
     /**
@@ -264,29 +325,6 @@ Properties:
         .child('sheets')
         .child( sheetIds[ sheetIds.length - 1])
         .child('right'));
-    },
-    /**
-     * @method removePhoto
-     * @param {string} photoId photoId
-     * removes photo from the book, and all pages
-     */
-    removePhoto: function(photoId) {
-      this.ref.child('photos').child(photoId).remove();
-      // remove photo from any pages
-      for (var p in this.pages) {
-        var transaction = new FirebaseTransaction('removePhoto');
-        transaction.resolve(CommonUtils.noop);
-        this.pages[p].removePhoto(photoId, transaction);
-      }
-    },
-    /**
-     * @method removePhotoFromPage
-     * @param {string} pageId
-     * @param {string} photoId
-     * removes photo from page, and puts it back to list of free photos
-     */
-    removePhotoFromPage: function(pageId, photoId) {
-
     }
   });
   </script>

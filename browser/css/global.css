@@ -43,7 +43,25 @@ p {
   -webkit-tap-highlight-color: rgba(0,0,0,0);
 }
 
-
+/* pageload animation blocker http://css-tricks.com/transitions-only-after-page-load/ */
+.no-pageload-animation {
+  transition: none !important;
+  -webkit-transition: none !important;
+  -moz-transition: none !important;
+  -ms-transition: none !important;
+  -o-transition: none !important;
+  animation-name: none !important;
+  -webkit-animation-name: none !important;
+}
+* /deep/ .no-pageload-animation, * .no-pageload-animation {
+  transition: none !important;
+  -webkit-transition: none !important;
+  -moz-transition: none !important;
+  -ms-transition: none !important;
+  -o-transition: none !important;
+  animation-name: none !important;
+  -webkit-animation-name: none !important;
+}
 /* animations needed in regular dom are copied here from pook-styles.html */
 .expand-open {
                      animation-name: expand-open;
@@ -72,3 +90,5 @@ p {
 .drag-div * {
   display: block;
 }
+
+

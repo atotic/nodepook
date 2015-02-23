@@ -1,0 +1,116 @@
+<link rel='import' href='../vendor/polymer/polymer.html'>
+<link rel='import' href='pook-photo-cache.html'>
+<link rel='import' href='pook-drag-drop.html'>
+
+<!--
+@element pook-photo-icon
+@group ui
+
+Displays photo
+
+Parent should set icon width & height in css
+
+-->
+
+<polymer-element name="pook-photo-icon"  attributes="photoId page">
+  <template>
+    <style>
+      :host {
+        display: inline-block;
+        overflow: hidden;
+      }
+      #image {
+        cursor: move;
+        max-height: 100%;
+        max-width: 100%;
+        width: auto;
+        height: auto;
+/*     
+          width: 100%;
+          height: 100%;
+          object-fit: contain; 
+/*        no worky on ie*/
+      }
+    </style>
+    <img id='image' 
+      src='{{photoUrl}}'
+      on-down='{{handleDragstart}}'
+    >
+  </template>
+  <script>
+    (function() {
+    "use strict";
+    var Singleton = {
+      get photoCache() {
+        if (!('_photoCache' in this))
+          this._photoCache = document.createElement('pook-photo-cache');
+        return this._photoCache;
+      },
+      get dragdrop() {
+        if (!('_dragdrop' in this))
+          this._dragdrop = document.createElement('pook-drag-and-drop');
+        return this._dragdrop;
+      }
+    };
+
+    Polymer({
+      computed: {
+        photoUrl: 'photo.iconInfo.src'
+      },
+      photoIdChanged: function() {
+        if (this.photoId)
+          this.photo = Singleton.photoCache.getPhoto(this.photoId);
+      },
+      handleDragstart: function(ev) {
+        ev.preventDefault();
+        ev.stopPropagation();
+
+        // create the drag icon
+        var bounds = this.$.image.getBoundingClientRect();
+        var scale = 3.0;
+        var iconProps = {
+          // width: this.$.image.offsetWidth * scale + "px",
+          // height: this.$.image.offsetHeight * scale + "px",
+          width: this.$.image.naturalWidth + "px",
+          height: this.$.image.naturalHeight + "px",
+          position: 'relative'
+        };
+        var icon = this.$.image.cloneNode();
+        for (var k in iconProps)
+          icon.style[k] = iconProps[k];
+
+
+        var pos = PookUtils.getPageLocation(ev);
+
+        // start drag
+        var iconOffset = {
+          left: -( this.$.image.naturalWidth / 2 - ((bounds.left + bounds.width / 2) - pos.left)),
+          top: -( this.$.image.naturalHeight / 2 - ((bounds.top + bounds.height / 2) - pos.top))
+        };
+        Singleton.dragdrop.start(ev, {
+          flavor: "photo-in-page",
+          icon: icon,
+          iconOffset: iconOffset,
+          iconAnimationStart: bounds,
+          getDragData: function(flavor) {
+            return {
+              page: this.page,
+              photoId: this.photoId
+            }
+          }.bind(this),
+          dragComplete: function(didDrop) {
+
+            this.style.visibility = '';
+          }.bind(this)
+        });
+    
+        // hide this
+        this.style.visibility = 'hidden';
+      }
+
+    });
+
+    })();
+  </script>
+
+</polymer-element>

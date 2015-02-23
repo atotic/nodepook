@@ -1,0 +1,191 @@
+<link rel='import' href='pook-user.html'>
+
+<!--
+@element pook-page-icon
+@group ui
+
+Displays icon for the page.
+
+Parent should set icon width & height in css
+
+-->
+<polymer-element name="pook-page-icon">
+  <template>
+    <style>
+      :host {
+        display: inline-block;
+        border: 1px solid black;
+        background-color: white;
+        overflow: hidden;
+      }
+      :host([pageSide="left"]) {
+        border: 2px solid #ffffff;
+        border-right: 1px solid #dddddd;
+        box-shadow: -2px 0px 4px #b3b3b3;      
+      }
+      :host([pageSide="right"]) {
+        border: 2px solid #ffffff;
+        border-left: 1px solid #dddddd;
+        box-shadow: 2px 0px 4px #B3B3B3;
+      }
+      :host(.pook-droppable) {
+        border-color: yellow;
+      }
+      #frame {
+        width: 100%;
+        height: 100%;
+      }
+      #items {
+        width: 100%;
+        height: calc(100% - 14px);
+      }
+      #title {
+        position: absolute;
+        font-size: x-small;
+        color: #CCC;
+        bottom: 0;
+      }
+      :host([pageSide="left"]) #title {
+        right: 8px;
+      }
+      :host([pageSide="right"]) #title {
+        left: 8px;
+      }
+    </style>
+    <div id="frame">
+      <section id="items" layout wrap horizontal>
+        <template repeat='{{photoId in photoIds}}'>
+          <pook-photo-icon 
+            photoId='{{photoId}}'
+            page='{{page}}'
+            style='{{photoIconStyle | styleObject}}'></pook-photo-icon>
+        </template>
+      </section>
+      <template if="{{pageTitle}}">
+        <div id="title">{{pageTitle}}</div>
+      </template>
+    </div>
+  </template>
+  <script>
+    Polymer({
+      publish: {
+        /**
+         * @attribute orientation
+         * @type left|right|none
+         * applies appropriate page shadows
+         */
+        orientation: "",
+        /**
+         * @attribute page
+         * @type pook-page-proxy
+         * page to be shown. if null, element gets visibility:hidden
+         */
+        page: null,
+        myClass: "",
+        /**
+         * @attribute title
+         * @type string
+         * page title
+         */
+        pageTitle: "",
+
+        //photoIconStyle
+      },
+      computed: {
+        itemIds: 'computeItemIds(page.data.items)',// array
+        photoIds: 'computePhotoIds(itemIds, page.data.items)',
+        photoIconStyle: 'computePhotoIconStyle(photoIds, $.items, style)'
+      },
+      ready: function() {
+        this.setAttribute('pageSide', this.orientation);
+        this.setAttribute('pook-droppable', "file,photo,photo-in-page,page");
+        this.pageChanged();
+      },
+      computeItemIds: function(items) {
+        return Object.keys(items || {});
+      },
+      computePhotoIds: function(itemIds, items) {
+        var photoIds = [];
+        if (items) {
+          for (var i=0; i<itemIds.length; i++)
+            if (items[itemIds[i]].type === 'photo')
+              photoIds.push( items[itemIds[i]].photoId );
+        }
+        return photoIds;
+      },
+      computePhotoIconStyle: function(photoIds, container) {
+        if (!photoIds.length || !container)
+          return {};
+        var totalWidth = container.clientWidth;
+        var totalHeight = this.clientHeight - 14;
+        // suboptimal, just slice. Ideally, look for best fit for square-like tiles
+        var rows = Math.ceil( Math.sqrt( photoIds.length));
+        var rows,cols = 1;
+        switch(photoIds.length) {
+          case 1: rows = 1; cols = 1; break;
+          case 2: rows = 1; cols = 2; break;
+          case 3:
+          case 4:  rows = 2; cols = 2; break;
+          case 5: 
+          case 6: rows = 2; cols = 3; break;
+          default: rows = cols = Math.ceil( Math.sqrt( photoIds.length)); break;
+        }
+        return {
+          width: 100 / cols + "%",
+          height: 100 / rows + "%"          
+        }
+      },
+      // myClass is parto of Removed Pages HACK
+      // works just like `class` attribute, except we have control over
+      // timing of the assignment
+      myClassChanged: function(oldValue, newValue) {
+        if (newValue)
+          this.classList.add(newValue);
+        else if (oldValue)
+          this.classList.remove(oldValue);
+      },
+      pageChanged: function(oldValue, newValue) {
+        if (!this.page) {// hide non-existent pages
+          if (oldValue) {// Removed pages HACK {
+            // console.log('deletion fadeout');
+            this.classList.add('fade-out');
+          }
+          else
+            this.classList.add('hidden');
+        }
+        else
+          this.classList.remove('hidden');
+      },
+      handleDrop: function(flavor, dropData) {
+        switch(flavor) {
+          case "file":
+            var user = document.createElement('pook-user');
+            for (var i=0; i<dropData.length; i++) {
+              var transaction = new FirebaseTransaction('photo drop on page');
+
+              var photoRef = user.createPhoto( dropData[i], transaction);
+              this.page.addPhoto(photoRef.key(), transaction);
+              transaction.resolve(function(err) {
+                if (err)
+                  document.querySelector('pook-flash').error = "Upload of photo " + dropData[i].name + "failed. Try again? "; 
+              });
+            }
+            break;
+          case 'photo-in-page':
+            // remove image from old page
+            // put it in new page
+            if (this.page == dropData.page)
+              break;
+            else {
+              var t = new FirebaseTransaction('movePhoto');
+              this.page.addPhoto( dropData.photoId, t);
+              dropData.page.removePhoto(dropData.photoId, t);
+            }
+            break;
+          default:
+            console.log("TODO");
+        }
+      }
+    });
+  </script>
+</polymer-element>

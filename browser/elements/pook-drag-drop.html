@@ -14,25 +14,31 @@ drag-and-drop:
   - tracks drag (find target, visual target feedback, drag icon moving)
   - drop handling
 
-drag source: {
-  - flavor
-  - icon (optional dom to show during drag)
-  - iconOffset
-  - dragData() (or provide as argument to pook-drag-and-drop.drop)
-  - dragComplete (when drag is done)
-  - 
-}
-drag target: {
-<div pook-droppable = 'file,photo'>
-  - pook-droppable attribute has accepted flavors
-  - handleDrop(flavor, flavorSpecificData)
-}
 
-flavors | data
-file      FileList
-photo-in-page {photoId: , page: }
-page
-photo
+      dragSource: {
+        flavor: 
+        icon*: (optional dom to show during drag)
+        iconOffset*:
+        dragData: function() // or provide as argument to `pook-drag-and-drop.drop`)
+        dragComplete: function() // when drag is done
+      }
+
+dragTarget:
+
+
+<div pook-droppable = 'file,photo'>
+  `pook-droppable` attribute has accepted flavors
+
+  handleDrop: (flavor, dragData)
+
+
+| flavors | dragData |
+|:------------------|--------------------:|
+| file              |FileList             |
+| photo-in-page     |{photoId: , page: }  |
+| page              |                     |
+| photo             |                     |
+
 -->
 
 <polymer-element name="pook-drag-and-drop">

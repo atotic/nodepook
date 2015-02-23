@@ -1,17 +1,22 @@
-<link rel="import" href="../vendor/polymer/polymer.html">
+<link rel='import' href='../vendor/polymer/polymer.html'>
+<link rel='import' href='firebaseTransaction.html'>
+<link rel='import' href='pook-user.html'>
+<link rel='import' href='pook-styles.html'>
+
 <!--
 @element pook-photo-strip
 @group ui
 -->
-<polymer-element name="pook-photo-strip" pook-droppable='photo-in-page, book' >
+<polymer-element name="pook-photo-strip" pook-droppable='photo-in-page, file' on-tap='{{handleTap}}' class='contract no-pageload-animation'>
   <template>
+    <core-style ref='pook-animations'></core-style>
     <style>
       :host {
         position: fixed;
         right: 0px;
         bottom: 0px;
-        width: 48px;
         height: 72px;
+        width: 48px;
         background-color: yellow;
         z-index: 1;
         border-width: 1px 0px 1px 1px;
@@ -23,23 +28,96 @@
       :host(.pook-droppable) {
         border-width: 8px;
       }
+      :host(.expand) {
+                width:100%;
+                animation-duration:0.5s;
+        -webkit-animation-duration:0.5s;
+        -webkit-animation-name: expand;
+                animation-name: expand;
+      }
+      :host(.contract) {
+        width: 48px;
+                animation-duration:0.5s;
+        -webkit-animation-duration:0.5s;
+        -webkit-animation-name: contract;
+                animation-name: contract;
+      }
+      @keyframes expand {
+        from { width: 48px; }
+        to { width: 100%; }
+      }
+      @-webkit-keyframes expand {
+        from { width: 48px; }
+        to { width: 100%; }
+      }
+      @keyframes contract {
+        from { width: 100%; }
+        to { width: 48px; }
+      }
+      @-webkit-keyframes contract {
+        from { width: 100%; }
+        to { width: 48px; }
+      }
+
     </style>
   </template>
   <script>
+  (function() {
+    "use strict";
+    var Singleton = {
+      get photoCache() {
+        if (!('_photoCache' in this))
+          this._photoCache = document.createElement('pook-photo-cache');
+        return this._photoCache;
+      },
+      get dragdrop() {
+        if (!('_dragdrop' in this))
+          this._dragdrop = document.createElement('pook-drag-and-drop');
+        return this._dragdrop;
+      }
+    };
+
     Polymer({
       publish: {
         book: null
       },
+      attached: function() {
+        this.classList.remove('no-pageload-animation');
+      },
       handleDrop: function(flavor, dropData) {
         switch(flavor) {
           case 'file':
-          console.log("TODO");
+            var user = document.createElement('pook-user');
+            for (var i=0; i<dropData.length; i++) {
+              var transaction = new FirebaseTransaction('photo drop on page');
+              var photoRef = user.createPhoto( dropData[i], transaction);
+              this.book.addPhoto(photoRef.key(), transaction);
+              transaction.resolve(function(err) {
+                if (err)
+                  document.querySelector('pook-flash').error = "Upload of photo " + dropData[i].name + "failed. Try again? "; 
+              });
+            }
           break;
           case 'photo-in-page':
-          console.log("TODO");
+            var transaction = new FirebaseTransaction("removePhoto");
+            dropData.page.removePhoto(dropData.photoId, transaction);
+            transaction.resolve( function(err) {
+              if (err)
+                console.log(err);
+            });
           break;
         }
+      },
+      handleTap: function() {
+        if (this.classList.contains('expand') || this.classList.contains('contract')) {
+          this.classList.toggle('expand');
+          this.classList.toggle('contract');
+        }
+        else
+          this.classList.toggle('expand');
       }
     });
+
+  })();
   </script>
 </polymer-element>

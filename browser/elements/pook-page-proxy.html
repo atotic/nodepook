@@ -29,11 +29,20 @@ Firebase page proxy
   <script>
   "use strict";
   Polymer({
+    computed: {
+      items: "data.items"
+    },
     pageIdChanged: function() {
       if (this.pageId)
         this.location = CommonUtils.getFirebaseUrl('onePage', this.pageId);
       else
         this.location = null;
+    },
+    get book() {
+      if (!('_book' in this)) {
+        this._book = document.createElement('pook-book-cache').getBook(this.data.bookId);
+      }
+      return this._book;
     },
     /**
      * @method addPhoto
@@ -46,7 +55,9 @@ Firebase page proxy
         type: "photo",
         photoId: photoId
       }
-      return transaction.push( this.ref.child('items'), photoItem);
+      var itemRef = transaction.push( this.ref.child('items'), photoItem);
+      this.book.addPhoto(photoId, transaction);
+      return itemRef;
     },
     /**
      * @method removePhoto
@@ -56,8 +67,10 @@ Firebase page proxy
     removePhoto: function(photoId, transaction) {
       if (!photoId) throw new Error("missing photoId");
       for (var k in this.data.items) {
-        if (this.data.items[k].photoId === photoId)
+        if (this.data.items[k].photoId === photoId) {
           transaction.remove( this.ref.child('items').child(k));
+          this.book.refreshUnused();
+        }
       }
     }
   });
